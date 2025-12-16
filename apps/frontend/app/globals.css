@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@theme {
+  /* Warm color palette for Recept - vibrant edition */
+  --color-background: #faf8f6;
+  --color-foreground: #1a1a1a;
+
+  --color-card: #ffffff;
+  --color-card-foreground: #1a1a1a;
+
+  --color-popover: #ffffff;
+  --color-popover-foreground: #1a1a1a;
+
+  --color-primary: #d9654a;
+  --color-primary-foreground: #ffffff;
+
+  --color-secondary: #5a9e82;
+  --color-secondary-foreground: #ffffff;
+
+  --color-muted: #f2eeea;
+  --color-muted-foreground: #6b6b6b;
+
+  --color-accent: #e8b44a;
+  --color-accent-foreground: #1a1a1a;
+
+  --color-destructive: #c93a3a;
+  --color-destructive-foreground: #ffffff;
+
+  --color-border: #e0dbd5;
+  --color-input: #e0dbd5;
+  --color-ring: #d9654a;
+
+  /* Border radius */
+  --radius: 0.5rem;
+  --radius-lg: 0.5rem;
+  --radius-md: calc(0.5rem - 2px);
+  --radius-sm: calc(0.5rem - 4px);
+
+  /* Container */
+  --container-2xl: 1400px;
+
+  /* Animations */
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+}
+
+@keyframes accordion-down {
+  from { height: 0; }
+  to { height: var(--radix-accordion-content-height); }
+}
+
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); }
+  to { height: 0; }
+}
+
+/* Base styles */
+* {
+  border-color: var(--color-border);
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
+
+/* Dark mode disabled - using light mode only with soft, warm colors */

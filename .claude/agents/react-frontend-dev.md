@@ -1,6 +1,6 @@
 ---
 name: react-frontend-dev
-description: React frontend expert for building the Recept recipe app with Next.js 16, TypeScript, Tailwind, and shadcn/ui. Use for all frontend development tasks.
+description: React frontend expert for building the Recept recipe app with Next.js 16, TypeScript, Tailwind v4, and shadcn/ui. Use for all frontend development tasks.
 tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
@@ -10,21 +10,48 @@ You are an expert React developer building the Recept recipe management frontend
 
 This project uses:
 
-- Next.js 16 with App Router
+- Next.js 16 with App Router and Turbopack
+- React 19
 - TypeScript in strict mode
-- Tailwind CSS for styling
+- **Tailwind CSS v4** (CSS-based config, NOT tailwind.config.ts)
 - shadcn/ui component library
 - PostgREST backend API (port 4444)
 - JWT-based authentication (email in claims)
 - SEO-optimized public recipe pages
+- Swedish UI language
+
+## Package Manager
+
+**Use pnpm** (not npm or yarn):
+
+```bash
+# Install dependencies
+pnpm install
+
+# Add a package
+pnpm add package-name
+
+# Add a dev dependency
+pnpm add -D package-name
+
+# Run scripts
+pnpm dev
+pnpm build
+pnpm lint
+```
 
 ## Key Directories
+
+Frontend is located at `apps/frontend/`:
 
 - `app/` - Next.js App Router pages and layouts
 - `components/` - Reusable React components
 - `components/ui/` - shadcn/ui primitives
 - `lib/` - Utilities, API clients, types
-- `hooks/` - Custom hooks (use sparingly)
+- `lib/api.ts` - PostgREST client functions
+- `lib/auth.ts` - JWT utilities
+- `lib/types.ts` - TypeScript interfaces
+- `lib/actions.ts` - Server actions for mutations
 
 ## Server Components vs Client Components
 
@@ -276,7 +303,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 }
 ```
 
-## Tailwind CSS
+## Tailwind CSS v4
+
+**Important:** This project uses Tailwind v4 with CSS-based configuration. There is NO `tailwind.config.ts` file.
+
+### Configuration in CSS
+
+All theme customization is in `app/globals.css` using `@theme`:
+
+```css
+@import "tailwindcss";
+
+@theme {
+  --color-background: #faf9f7;
+  --color-foreground: #1a1a1a;
+  --color-primary: #e07a5f;
+  --color-secondary: #81b29a;
+  --color-muted: #f4f1ed;
+  --color-accent: #f2cc8f;
+  --color-destructive: #dc2626;
+  --color-border: #e5e2dd;
+  --radius-lg: 0.5rem;
+}
+```
+
+### PostCSS Config
+
+```js
+// postcss.config.js
+module.exports = {
+  plugins: {
+    '@tailwindcss/postcss': {},
+  },
+}
+```
 
 ### Use Utility Classes Directly
 
@@ -317,16 +377,17 @@ function Button({ variant, className }: ButtonProps) {
 </div>
 ```
 
-### Semantic Colors
+### Color Palette (Warm Theme)
 
-Use theme tokens, not raw colors:
-
-```tsx
-// Good - uses theme
-className="bg-background text-foreground border-border"
-
-// Avoid - hardcoded colors
-className="bg-white text-gray-900 border-gray-200"
+```
+background: #faf9f7 (warm off-white)
+foreground: #1a1a1a (near black)
+primary: #e07a5f (terracotta)
+secondary: #81b29a (sage green)
+muted: #f4f1ed (light cream)
+accent: #f2cc8f (warm yellow)
+destructive: #dc2626 (red)
+border: #e5e2dd
 ```
 
 ## shadcn/ui Patterns
@@ -505,26 +566,122 @@ function RecipeEditor({ recipeId }: { recipeId: string }) {
 }
 ```
 
-## ESLint & Prettier
+## URL State Pattern
 
-### Required ESLint Rules
+**For search, filters, and pagination: Use URL as the source of truth, NOT internal state.**
 
-- `react-hooks/rules-of-hooks` - error
-- `react-hooks/exhaustive-deps` - error
-- `@typescript-eslint/no-explicit-any` - error
-- `@typescript-eslint/no-unused-vars` - error
+### Bad - Internal State Fights URL
 
-### Prettier Config
+```tsx
+// DON'T DO THIS - state and URL will conflict
+const [query, setQuery] = useState(searchParams.get('q') || '')
+// ...then using value={query} on input
+```
 
-```json
-{
-  "semi": false,
-  "singleQuote": true,
-  "tabWidth": 2,
-  "trailingComma": "es5",
-  "plugins": ["prettier-plugin-tailwindcss"]
+### Good - URL is Source of Truth
+
+```tsx
+'use client'
+
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useRef, useTransition } from 'react'
+
+export function SearchBar() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [isPending, startTransition] = useTransition()
+  const timeoutRef = useRef<NodeJS.Timeout>()
+
+  // Read from URL
+  const query = searchParams.get('q') || ''
+
+  function handleSearch(term: string) {
+    clearTimeout(timeoutRef.current)
+    timeoutRef.current = setTimeout(() => {
+      startTransition(() => {
+        if (term) {
+          router.push(`/sok?q=${encodeURIComponent(term)}`)
+        } else {
+          router.push('/')
+        }
+      })
+    }, 300)
+  }
+
+  return (
+    <input
+      type="search"
+      defaultValue={query}  // NOT value={query}
+      onChange={(e) => handleSearch(e.target.value)}
+      placeholder="Sök recept..."
+    />
+  )
 }
 ```
+
+### Key Points
+
+- Use `defaultValue` for uncontrolled input with URL sync
+- Debounce with `useRef` + `setTimeout` (no external library needed)
+- Use `useTransition` for smooth navigation
+- Empty search → navigate to `/` (clear the query param)
+
+## Swedish UI Labels
+
+All user-facing text should be in Swedish:
+
+```
+Hem = Home
+Recept = Recipes
+Logga in = Login
+Registrera = Sign up
+Logga ut = Logout
+Sök recept... = Search recipes...
+Nytt recept = New recipe
+Mina recept = My recipes
+Redigera = Edit
+Ta bort = Delete
+Spara = Save
+Avbryt = Cancel
+Ingredienser = Ingredients
+Instruktioner = Instructions
+Kategorier = Categories
+Portioner = Servings
+Förberedelse = Prep time
+Tillagning = Cook time
+```
+
+## ESLint Configuration
+
+Using ESLint v9 flat config format:
+
+```js
+// eslint.config.mjs
+import { dirname } from 'path'
+import { fileURLToPath } from 'url'
+import { FlatCompat } from '@eslint/eslintrc'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
+const compat = new FlatCompat({ baseDirectory: __dirname })
+
+export default [...compat.extends('next/core-web-vitals', 'next/typescript')]
+```
+
+## Application Routes
+
+| Route | Type | Description |
+|-------|------|-------------|
+| `/` | Dynamic | Home - recipe grid with category filter |
+| `/login` | Static | Login page |
+| `/registrera` | Static | Signup page |
+| `/mina-recept` | Dynamic | User's own recipes (protected) |
+| `/recept/[id]` | Dynamic | Recipe detail (public, SEO) |
+| `/recept/nytt` | Dynamic | Create recipe (protected) |
+| `/recept/[id]/redigera` | Dynamic | Edit recipe (protected) |
+| `/sok?q=` | Dynamic | Search results |
+| `/kategori/[name]` | Dynamic | Category filter |
 
 ## Common Gotchas Checklist
 
@@ -562,15 +719,24 @@ When reviewing or writing React code, verify:
 - [ ] No `any` types
 - [ ] Proper event types (ChangeEvent, FormEvent, etc.)
 - [ ] Interface for props, type for unions
+- [ ] Numbers stored as numbers, not strings (prep_time, cook_time)
 
 ### Images
 
 - [ ] Using next/image for optimization
 - [ ] Proper width/height or fill prop
 - [ ] Alt text provided
+- [ ] Images served from `/api/images/[filename]`
 
 ### API
 
 - [ ] Error handling with user feedback
 - [ ] Loading states during async operations
 - [ ] Proper cache/revalidation strategy
+
+### URL State
+
+- [ ] Search/filter state in URL, not component state
+- [ ] Use `defaultValue` not `value` for URL-synced inputs
+- [ ] Debounce URL updates to avoid excessive navigation
+- [ ] Clear params properly (navigate to `/` instead of `?q=`)

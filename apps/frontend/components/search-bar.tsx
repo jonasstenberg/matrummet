@@ -1,0 +1,119 @@
+'use client'
+
+import { useRef, useTransition } from 'react'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
+import { Search, X } from 'lucide-react'
+import { cn } from '@/lib/utils'
+
+interface SearchBarProps {
+  className?: string
+}
+
+export function SearchBar({ className }: SearchBarProps) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const pathname = usePathname()
+  const [isPending, startTransition] = useTransition()
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Check if we're on /mina-recept to scope the search
+  const isMyRecipesPage = pathname.startsWith('/mina-recept')
+
+  // URL is the single source of truth
+  const query = searchParams.get('q') || ''
+
+  function getSearchUrl(term: string) {
+    if (isMyRecipesPage) {
+      return `/mina-recept/sok?q=${encodeURIComponent(term)}`
+    }
+    return `/sok?q=${encodeURIComponent(term)}`
+  }
+
+  function getEmptyUrl() {
+    return isMyRecipesPage ? '/mina-recept' : '/'
+  }
+
+  function handleSearch(term: string) {
+    // Clear existing debounce timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+
+    // Debounce the navigation
+    debounceTimerRef.current = setTimeout(() => {
+      startTransition(() => {
+        if (term.trim()) {
+          router.push(getSearchUrl(term.trim()))
+        } else {
+          // Empty search - go to appropriate page
+          router.push(getEmptyUrl())
+        }
+      })
+    }, 300)
+  }
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+
+    // Clear debounce timer for immediate navigation
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+
+    const input = e.currentTarget.elements.namedItem('search') as HTMLInputElement
+    const term = input.value.trim()
+
+    startTransition(() => {
+      if (term) {
+        router.push(getSearchUrl(term))
+      } else {
+        router.push(getEmptyUrl())
+      }
+    })
+  }
+
+  function handleClear() {
+    // Clear debounce timer for immediate navigation
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+
+    startTransition(() => {
+      router.push(getEmptyUrl())
+    })
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className={cn('relative w-full max-w-md group', className)}>
+      <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/70 transition-colors group-focus-within:text-primary" />
+      <input
+        type="search"
+        name="search"
+        placeholder="Sök recept..."
+        defaultValue={query}
+        onChange={(e) => handleSearch(e.target.value)}
+        autoComplete="off"
+        className={cn(
+          'flex h-10 w-full rounded-full bg-white pl-10 pr-10 text-sm transition-all duration-200',
+          'border border-border/80 shadow-sm',
+          'placeholder:text-muted-foreground',
+          'hover:border-border hover:shadow',
+          'focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20',
+          'disabled:cursor-not-allowed disabled:opacity-50',
+          isPending && 'opacity-70'
+        )}
+      />
+      {query && (
+        <button
+          type="button"
+          onClick={handleClear}
+          disabled={isPending}
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-muted-foreground/70 hover:text-foreground hover:bg-muted transition-colors"
+        >
+          <X className="h-3.5 w-3.5" />
+          <span className="sr-only">Rensa sökning</span>
+        </button>
+      )}
+    </form>
+  )
+}

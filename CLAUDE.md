@@ -20,7 +20,7 @@ brew install flyway
 # Apply pending migrations (auto-creates backup first)
 ./flyway/run-flyway.sh migrate
 
-# Apply migrations and import seed data (auto-creates backup first)
+# Apply migrations and import seeddata (auto-creates backup first)
 ./flyway/run-flyway.sh migrate-seed
 
 # Import seed data only
