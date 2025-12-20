@@ -2,9 +2,22 @@ import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
 import { env } from './env'
 
-const JWT_SECRET = new TextEncoder().encode(env.JWT_SECRET)
+let jwtSecret: Uint8Array | null = null
+let postgrestJwtSecret: Uint8Array | null = null
 
-const POSTGREST_JWT_SECRET = new TextEncoder().encode(env.POSTGREST_JWT_SECRET)
+function getJwtSecret(): Uint8Array {
+  if (!jwtSecret) {
+    jwtSecret = new TextEncoder().encode(env.JWT_SECRET)
+  }
+  return jwtSecret
+}
+
+function getPostgrestJwtSecret(): Uint8Array {
+  if (!postgrestJwtSecret) {
+    postgrestJwtSecret = new TextEncoder().encode(env.POSTGREST_JWT_SECRET)
+  }
+  return postgrestJwtSecret
+}
 
 const COOKIE_NAME = 'auth-token'
 
@@ -19,14 +32,14 @@ export async function signToken(payload: JWTPayload): Promise<string> {
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('7d')
-    .sign(JWT_SECRET)
+    .sign(getJwtSecret())
 
   return token
 }
 
 export async function verifyToken(token: string): Promise<JWTPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET)
+    const { payload } = await jwtVerify(token, getJwtSecret())
 
     // Validate payload has required fields
     if (
@@ -65,7 +78,7 @@ export async function signPostgrestToken(email: string): Promise<string> {
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('1h')
-    .sign(POSTGREST_JWT_SECRET)
+    .sign(getPostgrestJwtSecret())
 
   return token
 }

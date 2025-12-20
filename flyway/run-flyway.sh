@@ -13,9 +13,8 @@ CONFIG_FILE="$SCRIPT_DIR/flyway.conf"
 SEED_FILE="$ROOT_DIR/data/data.sql"
 BACKUP_DIR="$SCRIPT_DIR/backups"
 
-# Database connection details (matches flyway.conf)
+# Database connection details
 DB_NAME="recept"
-DB_USER="recept"
 
 # Check if flyway is installed
 if ! command -v flyway &> /dev/null; then
@@ -36,7 +35,7 @@ create_backup() {
     echo "Creating database backup..."
     echo "  Backup file: $backup_file"
 
-    if pg_dump -U "$DB_USER" -d "$DB_NAME" --clean --if-exists > "$backup_file" 2>/dev/null; then
+    if pg_dump -d "$DB_NAME" --clean --if-exists > "$backup_file" 2>/dev/null; then
         echo "  Backup created successfully."
         echo "$backup_file"
     else
@@ -75,7 +74,7 @@ restore_backup() {
     echo ""
 
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        psql -U "$DB_USER" -d "$DB_NAME" -f "$backup_file"
+        psql -d "$DB_NAME" -f "$backup_file"
         echo "Database restored successfully."
     else
         echo "Restore cancelled."

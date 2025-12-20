@@ -1,0 +1,68 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '22'
+  PNPM_VERSION: '10'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+          cache-dependency-path: apps/frontend/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: apps/frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        working-directory: apps/frontend
+        run: pnpm build
+
+      - name: Prepare deployment package
+        run: |
+          mkdir -p deploy
+          cp -r apps/frontend/.next/standalone/. deploy/
+          cp -r apps/frontend/.next/static deploy/.next/static
+          cp -r apps/frontend/public deploy/public
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to VPS
+        run: |
+          rsync -avz --delete --exclude='flyway' --exclude='.flyway.env' \
+            deploy/ \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/recept/
+
+      - name: Run database migrations
+        run: |
+          rsync -avz --exclude='backups' flyway/ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/recept/flyway/
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'source /opt/recept/.flyway.env && cd /opt/recept/flyway && ./run-flyway.sh migrate'
+
+      - name: Restart application
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'sudo systemctl restart recept'
