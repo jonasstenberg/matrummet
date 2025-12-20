@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/components/auth-provider'
-import { isAdmin } from '@/lib/is-admin'
 import { Category } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -190,32 +189,8 @@ export default function AdminCategoriesPage() {
     setDeleteDialogOpen(true)
   }
 
-  // Show loading while checking auth
-  if (authLoading) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <p className="text-muted-foreground">Laddar...</p>
-      </div>
-    )
-  }
-
-  // Check if user is admin
-  if (!isAdmin(user)) {
-    return (
-      <div className="space-y-8">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Du har inte behörighet att visa denna sida. Endast administratörer kan
-            hantera kategorier.
-          </AlertDescription>
-        </Alert>
-      </div>
-    )
-  }
-
   return (
-    <div className="space-y-8">
+    <>
       <header>
         <h1 className="text-4xl font-bold tracking-tight text-foreground">
           Hantera kategorier
@@ -362,6 +337,6 @@ export default function AdminCategoriesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   )
 }

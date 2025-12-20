@@ -121,3 +121,29 @@ export interface UpdateRecipeInput {
     | { step: string }
   >
 }
+
+export interface Food {
+  id: string
+  name: string
+  date_published?: string
+  date_modified?: string
+  ingredient_count?: number
+}
+
+export interface Unit {
+  id: string
+  name: string
+  plural: string
+  abbreviation: string
+  date_published?: string
+  date_modified?: string
+  ingredient_count?: number
+}
+
+export interface PaginatedResponse<T> {
+  items: T[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
