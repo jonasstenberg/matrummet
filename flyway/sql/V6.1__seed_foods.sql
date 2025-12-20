@@ -1,6 +1,9 @@
 -- Seed data for foods table
 -- Generated from apps/frontend/lib/data/foods-sv.ts
 
+-- Temporarily disable RLS for seeding (FORCE RLS applies even to superusers)
+ALTER TABLE foods DISABLE ROW LEVEL SECURITY;
+
 INSERT INTO foods (name) VALUES
   ('Abalone'),
   ('Abborre'),
@@ -2656,5 +2659,9 @@ INSERT INTO foods (name) VALUES
   ('Örtkryddad olivolja'),
   ('Örtsmör')
 ON CONFLICT (name) DO NOTHING;
+
+-- Re-enable RLS with FORCE
+ALTER TABLE foods ENABLE ROW LEVEL SECURITY;
+ALTER TABLE foods FORCE ROW LEVEL SECURITY;
 
 -- Total: 2652 foods

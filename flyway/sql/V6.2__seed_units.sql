@@ -1,6 +1,9 @@
 -- Seed data for units table
 -- Swedish measurement units with plural forms and abbreviations
 
+-- Temporarily disable RLS for seeding (FORCE RLS applies even to superusers)
+ALTER TABLE units DISABLE ROW LEVEL SECURITY;
+
 INSERT INTO units (name, plural, abbreviation) VALUES
   ('tesked', 'teskedar', 'tsk'),
   ('matsked', 'matskedar', 'msk'),
@@ -35,5 +38,9 @@ INSERT INTO units (name, plural, abbreviation) VALUES
   ('stjälk', 'stjälkar', ''),
   ('stycken', 'stycken', 'st')
 ON CONFLICT (name) DO NOTHING;
+
+-- Re-enable RLS with FORCE
+ALTER TABLE units ENABLE ROW LEVEL SECURITY;
+ALTER TABLE units FORCE ROW LEVEL SECURITY;
 
 -- Total: 32 units
