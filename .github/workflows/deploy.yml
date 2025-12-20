@@ -54,7 +54,7 @@ jobs:
 
       - name: Deploy to VPS
         run: |
-          rsync -avz --delete --exclude='flyway' --exclude='.flyway.env' \
+          rsync -avz --delete --exclude='flyway' --exclude='.flyway.env' --exclude='public/uploads' \
             deploy/ \
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/recept/
 
