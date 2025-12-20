@@ -63,6 +63,6 @@ jobs:
           rsync -avz --exclude='backups' flyway/ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/recept/flyway/
           ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'source /opt/recept/.flyway.env && cd /opt/recept/flyway && ./run-flyway.sh migrate'
 
-      - name: Restart application
+      - name: Restart services
         run: |
-          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'sudo systemctl restart recept'
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'sudo systemctl restart postgrest-recept recept'
