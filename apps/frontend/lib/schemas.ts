@@ -39,13 +39,13 @@ export const recipeInputSchema = z.object({
   prep_time: z
     .number()
     .int('Förberedelsetid måste vara ett heltal')
-    .positive('Förberedelsetid måste vara positiv')
+    .nonnegative('Förberedelsetid kan inte vara negativ')
     .nullable()
     .optional(),
   cook_time: z
     .number()
     .int('Tillagningstid måste vara ett heltal')
-    .positive('Tillagningstid måste vara positiv')
+    .nonnegative('Tillagningstid kan inte vara negativ')
     .nullable()
     .optional(),
   cuisine: z.string().trim().nullable().optional(),

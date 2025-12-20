@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { AsyncAutocompleteInput } from '@/components/ui/async-autocomplete-input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 
@@ -338,11 +339,12 @@ export function IngredientEditor({
             >
               <div className="flex flex-1 flex-col gap-2 sm:flex-row">
                 <div className="flex-1">
-                  <Input
+                  <AsyncAutocompleteInput
                     placeholder="Namn"
+                    fetchUrl="/api/foods"
                     value={ingredient.name}
-                    onChange={(e) =>
-                      updateIngredient(index, 'name', e.target.value)
+                    onChange={(value) =>
+                      updateIngredient(index, 'name', value)
                     }
                     className={cn(isInGroup && 'bg-white')}
                   />
@@ -358,11 +360,12 @@ export function IngredientEditor({
                   />
                 </div>
                 <div className="w-full sm:w-32">
-                  <Input
+                  <AsyncAutocompleteInput
                     placeholder="Mått"
+                    fetchUrl="/api/units"
                     value={ingredient.measurement}
-                    onChange={(e) =>
-                      updateIngredient(index, 'measurement', e.target.value)
+                    onChange={(value) =>
+                      updateIngredient(index, 'measurement', value)
                     }
                     className={cn(isInGroup && 'bg-white')}
                   />
