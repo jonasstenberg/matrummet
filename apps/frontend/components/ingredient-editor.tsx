@@ -1,35 +1,35 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { AsyncAutocompleteInput } from '@/components/ui/async-autocomplete-input'
-import { Label } from '@/components/ui/label'
-import { cn } from '@/lib/utils'
+import { AsyncAutocompleteInput } from "@/components/ui/async-autocomplete-input";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 interface Ingredient {
-  name: string
-  measurement: string
-  quantity: string
-  group_id?: string | null
+  name: string;
+  measurement: string;
+  quantity: string;
+  group_id?: string | null;
 }
 
 // Internal state to track group names
 interface GroupInfo {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
 interface IngredientEditorProps {
-  ingredients: Ingredient[]
-  groups?: GroupInfo[] // Optional initial groups from parent
-  onChange: (ingredients: Ingredient[], groups: GroupInfo[]) => void
+  ingredients: Ingredient[];
+  groups?: GroupInfo[]; // Optional initial groups from parent
+  onChange: (ingredients: Ingredient[], groups: GroupInfo[]) => void;
 }
 
 // Internal editor item type - can be either a group header or an ingredient
 type EditorItem =
-  | { type: 'group'; id: string; name: string }
-  | { type: 'ingredient'; index: number; data: Ingredient }
+  | { type: "group"; id: string; name: string }
+  | { type: "ingredient"; index: number; data: Ingredient };
 
 export function IngredientEditor({
   ingredients,
@@ -39,82 +39,87 @@ export function IngredientEditor({
   // Extract initial groups from ingredients if not provided
   const extractGroups = (): GroupInfo[] => {
     if (initialGroups && initialGroups.length > 0) {
-      return initialGroups
+      return initialGroups;
     }
 
-    const groupMap = new Map<string, string>()
-    const seen = new Set<string>()
+    const groupMap = new Map<string, string>();
+    const seen = new Set<string>();
 
     ingredients.forEach((ing) => {
       if (ing.group_id && !seen.has(ing.group_id)) {
-        groupMap.set(ing.group_id, `Grupp ${groupMap.size + 1}`)
-        seen.add(ing.group_id)
+        groupMap.set(ing.group_id, `Grupp ${groupMap.size + 1}`);
+        seen.add(ing.group_id);
       }
-    })
-    return Array.from(groupMap.entries()).map(([id, name]) => ({ id, name }))
-  }
+    });
+    return Array.from(groupMap.entries()).map(([id, name]) => ({ id, name }));
+  };
 
-  const [internalGroups, setInternalGroups] = useState<GroupInfo[]>(extractGroups())
+  const [internalGroups, setInternalGroups] = useState<GroupInfo[]>(
+    extractGroups()
+  );
 
   const updateWithGroups = (
     newIngredients: Ingredient[],
     newGroups?: GroupInfo[]
   ) => {
-    const updatedGroups = newGroups || internalGroups
-    setInternalGroups(updatedGroups)
-    onChange(newIngredients, updatedGroups)
-  }
+    const updatedGroups = newGroups || internalGroups;
+    setInternalGroups(updatedGroups);
+    onChange(newIngredients, updatedGroups);
+  };
 
   // Build editor items from ingredients and groups
   function buildEditorItems(): EditorItem[] {
-    const items: EditorItem[] = []
-    let currentGroupId: string | null = null
+    const items: EditorItem[] = [];
+    let currentGroupId: string | null = null;
 
     ingredients.forEach((ingredient, index) => {
-      const groupId = ingredient.group_id
+      const groupId = ingredient.group_id;
 
       // Check if we need to add a new group header
       if (groupId && groupId !== currentGroupId) {
-        const group = internalGroups.find((g) => g.id === groupId)
+        const group = internalGroups.find((g) => g.id === groupId);
         items.push({
-          type: 'group',
+          type: "group",
           id: groupId,
-          name: group?.name || 'Grupp',
-        })
-        currentGroupId = groupId
+          name: group?.name || "Grupp",
+        });
+        currentGroupId = groupId;
       } else if (!groupId && currentGroupId !== null) {
-        currentGroupId = null
+        currentGroupId = null;
       }
 
       items.push({
-        type: 'ingredient',
+        type: "ingredient",
         index,
         data: ingredient,
-      })
-    })
+      });
+    });
 
-    return items
+    return items;
   }
 
   function addIngredient(groupId?: string | null) {
     updateWithGroups([
       ...ingredients,
-      { name: '', measurement: '', quantity: '', group_id: groupId || null },
-    ])
+      { name: "", measurement: "", quantity: "", group_id: groupId || null },
+    ]);
   }
 
   function addGroup() {
-    const newGroupId = `temp-group-${Date.now()}`
-    const newGroupName = `Grupp ${internalGroups.length + 1}`
-    const newGroups = [...internalGroups, { id: newGroupId, name: newGroupName }]
+    const newGroupId = `temp-group-${Date.now()}`;
+    const newGroupName = `Grupp ${internalGroups.length + 1}`;
+    const newGroups = [
+      ...internalGroups,
+      { id: newGroupId, name: newGroupName },
+    ];
 
     updateWithGroups(
       [
         ...ingredients,
-        { name: '', measurement: '', quantity: '', group_id: newGroupId },
+        { name: "", measurement: "", quantity: "", group_id: newGroupId },
       ],
       newGroups
-    )
+    );
   }
 
   function updateIngredient(
@@ -122,118 +127,127 @@ export function IngredientEditor({
     field: keyof Ingredient,
     value: string
   ) {
-    const updated = [...ingredients]
-    updated[index] = { ...updated[index], [field]: value }
-    updateWithGroups(updated)
+    const updated = [...ingredients];
+    updated[index] = { ...updated[index], [field]: value };
+    updateWithGroups(updated);
   }
 
   function removeIngredient(index: number) {
-    updateWithGroups(ingredients.filter((_, i) => i !== index))
+    updateWithGroups(ingredients.filter((_, i) => i !== index));
   }
 
   function removeGroup(groupId: string) {
     // Remove all ingredients in this group
-    const newIngredients = ingredients.filter((ing) => ing.group_id !== groupId)
-    const newGroups = internalGroups.filter((g) => g.id !== groupId)
-    updateWithGroups(newIngredients, newGroups)
+    const newIngredients = ingredients.filter(
+      (ing) => ing.group_id !== groupId
+    );
+    const newGroups = internalGroups.filter((g) => g.id !== groupId);
+    updateWithGroups(newIngredients, newGroups);
   }
 
-  function moveIngredient(index: number, direction: 'up' | 'down') {
+  function moveIngredient(index: number, direction: "up" | "down") {
     if (
-      (direction === 'up' && index === 0) ||
-      (direction === 'down' && index === ingredients.length - 1)
+      (direction === "up" && index === 0) ||
+      (direction === "down" && index === ingredients.length - 1)
     ) {
-      return
+      return;
     }
 
-    const updated = [...ingredients]
-    const newIndex = direction === 'up' ? index - 1 : index + 1
-    const currentIngredient = updated[index]
-    const adjacentIngredient = updated[newIndex]
+    const updated = [...ingredients];
+    const newIndex = direction === "up" ? index - 1 : index + 1;
+    const currentIngredient = updated[index];
+    const adjacentIngredient = updated[newIndex];
 
     // When crossing group boundary, adopt the adjacent item's group
-    const currentGroupId = currentIngredient.group_id || null
-    const adjacentGroupId = adjacentIngredient.group_id || null
+    const currentGroupId = currentIngredient.group_id || null;
+    const adjacentGroupId = adjacentIngredient.group_id || null;
 
     if (currentGroupId !== adjacentGroupId) {
       // Crossing boundary - change the moving ingredient's group_id
-      updated[index] = { ...currentIngredient, group_id: adjacentGroupId }
+      updated[index] = { ...currentIngredient, group_id: adjacentGroupId };
     }
 
     // Swap positions
-    ;[updated[index], updated[newIndex]] = [updated[newIndex], updated[index]]
+    [updated[index], updated[newIndex]] = [updated[newIndex], updated[index]];
 
-    updateWithGroups(updated)
+    updateWithGroups(updated);
   }
 
   function getGroupOrder(): string[] {
     // Return list of group IDs in their current display order
-    const seen = new Set<string>()
-    const order: string[] = []
-    ingredients.forEach(ing => {
+    const seen = new Set<string>();
+    const order: string[] = [];
+    ingredients.forEach((ing) => {
       if (ing.group_id && !seen.has(ing.group_id)) {
-        order.push(ing.group_id)
-        seen.add(ing.group_id)
+        order.push(ing.group_id);
+        seen.add(ing.group_id);
       }
-    })
-    return order
+    });
+    return order;
   }
 
   function isFirstGroup(groupId: string): boolean {
-    const order = getGroupOrder()
-    return order.length > 0 && order[0] === groupId
+    const order = getGroupOrder();
+    return order.length > 0 && order[0] === groupId;
   }
 
   function isLastGroup(groupId: string): boolean {
-    const order = getGroupOrder()
-    return order.length > 0 && order[order.length - 1] === groupId
+    const order = getGroupOrder();
+    return order.length > 0 && order[order.length - 1] === groupId;
   }
 
-  function moveGroup(groupId: string, direction: 'up' | 'down') {
-    const groupOrder = getGroupOrder()
-    const currentIndex = groupOrder.indexOf(groupId)
+  function moveGroup(groupId: string, direction: "up" | "down") {
+    const groupOrder = getGroupOrder();
+    const currentIndex = groupOrder.indexOf(groupId);
 
-    if (currentIndex === -1) return
-    if (direction === 'up' && currentIndex === 0) return
-    if (direction === 'down' && currentIndex === groupOrder.length - 1) return
+    if (currentIndex === -1) return;
+    if (direction === "up" && currentIndex === 0) return;
+    if (direction === "down" && currentIndex === groupOrder.length - 1) return;
 
-    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+    const targetIndex =
+      direction === "up" ? currentIndex - 1 : currentIndex + 1;
 
     // Reorder ingredients to reflect new group order
     // Get all ingredients grouped by their group_id
-    const ungrouped = ingredients.filter(ing => !ing.group_id)
-    const grouped = new Map<string, typeof ingredients>()
+    const ungrouped = ingredients.filter((ing) => !ing.group_id);
+    const grouped = new Map<string, typeof ingredients>();
 
-    groupOrder.forEach(gid => {
-      grouped.set(gid, ingredients.filter(ing => ing.group_id === gid))
-    })
+    groupOrder.forEach((gid) => {
+      grouped.set(
+        gid,
+        ingredients.filter((ing) => ing.group_id === gid)
+      );
+    });
 
     // Swap the two groups in the order
-    const newOrder = [...groupOrder]
-    ;[newOrder[currentIndex], newOrder[targetIndex]] = [newOrder[targetIndex], newOrder[currentIndex]]
+    const newOrder = [...groupOrder];
+    [newOrder[currentIndex], newOrder[targetIndex]] = [
+      newOrder[targetIndex],
+      newOrder[currentIndex],
+    ];
 
     // Rebuild ingredients array with new order
-    const reordered = [...ungrouped]
-    newOrder.forEach(gid => {
-      const groupIngredients = grouped.get(gid) || []
-      reordered.push(...groupIngredients)
-    })
+    const reordered = [...ungrouped];
+    newOrder.forEach((gid) => {
+      const groupIngredients = grouped.get(gid) || [];
+      reordered.push(...groupIngredients);
+    });
 
-    updateWithGroups(reordered)
+    updateWithGroups(reordered);
   }
 
   function updateGroupName(groupId: string, newName: string) {
     const newGroups = internalGroups.map((g) =>
       g.id === groupId ? { ...g, name: newName } : g
-    )
-    updateWithGroups(ingredients, newGroups)
+    );
+    updateWithGroups(ingredients, newGroups);
   }
 
-  const editorItems = buildEditorItems()
+  const editorItems = buildEditorItems();
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-0 justify-between">
         <Label className="text-base">Ingredienser</Label>
         <div className="flex gap-2">
           <Button
@@ -263,8 +277,8 @@ export function IngredientEditor({
       )}
 
       <div className="space-y-3">
-        {editorItems.map((item, itemIndex) => {
-          if (item.type === 'group') {
+        {editorItems.map((item) => {
+          if (item.type === "group") {
             return (
               <div
                 key={`group-${item.id}`}
@@ -283,7 +297,7 @@ export function IngredientEditor({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    onClick={() => moveGroup(item.id, 'up')}
+                    onClick={() => moveGroup(item.id, "up")}
                     disabled={isFirstGroup(item.id)}
                     className="h-8 w-8"
                     aria-label="Flytta grupp upp"
@@ -294,7 +308,7 @@ export function IngredientEditor({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    onClick={() => moveGroup(item.id, 'down')}
+                    onClick={() => moveGroup(item.id, "down")}
                     disabled={isLastGroup(item.id)}
                     className="h-8 w-8"
                     aria-label="Flytta grupp ner"
@@ -322,19 +336,19 @@ export function IngredientEditor({
                   ×
                 </Button>
               </div>
-            )
+            );
           }
 
-          const ingredient = item.data
-          const index = item.index
-          const isInGroup = !!ingredient.group_id
+          const ingredient = item.data;
+          const index = item.index;
+          const isInGroup = !!ingredient.group_id;
 
           return (
             <div
               key={`ingredient-${index}`}
               className={cn(
-                'flex gap-2 rounded-lg border p-3',
-                isInGroup && 'ml-4 border-orange-200 bg-orange-50/30'
+                "flex gap-2 rounded-lg border p-3",
+                isInGroup && "ml-4 border-orange-200 bg-orange-50/30"
               )}
             >
               <div className="flex flex-1 flex-col gap-2 sm:flex-row">
@@ -343,10 +357,8 @@ export function IngredientEditor({
                     placeholder="Namn"
                     fetchUrl="/api/foods"
                     value={ingredient.name}
-                    onChange={(value) =>
-                      updateIngredient(index, 'name', value)
-                    }
-                    className={cn(isInGroup && 'bg-white')}
+                    onChange={(value) => updateIngredient(index, "name", value)}
+                    className={cn(isInGroup && "bg-white")}
                   />
                 </div>
                 <div className="w-full sm:w-24">
@@ -354,9 +366,9 @@ export function IngredientEditor({
                     placeholder="Mängd"
                     value={ingredient.quantity}
                     onChange={(e) =>
-                      updateIngredient(index, 'quantity', e.target.value)
+                      updateIngredient(index, "quantity", e.target.value)
                     }
-                    className={cn(isInGroup && 'bg-white')}
+                    className={cn(isInGroup && "bg-white")}
                   />
                 </div>
                 <div className="w-full sm:w-32">
@@ -365,9 +377,9 @@ export function IngredientEditor({
                     fetchUrl="/api/units"
                     value={ingredient.measurement}
                     onChange={(value) =>
-                      updateIngredient(index, 'measurement', value)
+                      updateIngredient(index, "measurement", value)
                     }
-                    className={cn(isInGroup && 'bg-white')}
+                    className={cn(isInGroup && "bg-white")}
                   />
                 </div>
               </div>
@@ -377,7 +389,7 @@ export function IngredientEditor({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  onClick={() => moveIngredient(index, 'up')}
+                  onClick={() => moveIngredient(index, "up")}
                   disabled={index === 0}
                   className="h-8 w-8"
                   aria-label="Flytta ingrediens upp"
@@ -388,7 +400,7 @@ export function IngredientEditor({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  onClick={() => moveIngredient(index, 'down')}
+                  onClick={() => moveIngredient(index, "down")}
                   disabled={index === ingredients.length - 1}
                   className="h-8 w-8"
                   aria-label="Flytta ingrediens ner"
@@ -408,9 +420,9 @@ export function IngredientEditor({
                 ×
               </Button>
             </div>
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 }
