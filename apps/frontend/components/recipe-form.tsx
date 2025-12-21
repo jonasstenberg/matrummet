@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { recipeInputSchema } from "@/lib/schemas";
 import { cn } from "@/lib/utils";
 import { CreateRecipeInput, Recipe } from "@/lib/types";
+import { downloadAndSaveImage } from "@/lib/actions";
 import { useState } from "react";
 
 type FieldErrors = Record<string, string>;
@@ -186,23 +187,14 @@ export function RecipeForm({
     }
   }
 
-  async function downloadAndUploadImage(imageUrl: string): Promise<string | null> {
-    try {
-      const response = await fetch(imageUrl);
-      if (!response.ok) return null;
-
-      const blob = await response.blob();
-      if (!blob.type.startsWith('image/')) return null;
-
-      const url = new URL(imageUrl);
-      const pathname = url.pathname;
-      const filename = pathname.substring(pathname.lastIndexOf('/') + 1) || 'image.jpg';
-
-      const file = new File([blob], filename, { type: blob.type });
-      return uploadFile(file);
-    } catch {
+  async function downloadAndUploadImageFromUrl(imageUrl: string): Promise<string | null> {
+    // Use server action to bypass CORS restrictions
+    const result = await downloadAndSaveImage(imageUrl);
+    if ('error' in result) {
+      console.error('Failed to download image:', result.error);
       return null;
     }
+    return result.filename;
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -232,8 +224,8 @@ export function RecipeForm({
       // User selected a file - upload it now
       finalImage = await uploadFile(pendingImageFile);
     } else if (isImageUrl(image)) {
-      // Image is a URL (from import) - download and upload it now
-      finalImage = await downloadAndUploadImage(image!);
+      // Image is a URL (from import) - download via server action to bypass CORS
+      finalImage = await downloadAndUploadImageFromUrl(image!);
     } else {
       // Image is already a filename or null
       finalImage = image;

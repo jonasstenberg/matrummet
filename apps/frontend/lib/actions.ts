@@ -7,6 +7,7 @@ import { join } from 'path'
 import { CreateRecipeInput, UpdateRecipeInput } from '@/lib/types'
 import { verifyToken, signPostgrestToken } from '@/lib/auth'
 import { extractJsonLdRecipe, mapJsonLdToRecipeInput } from '@/lib/recipe-import'
+import { downloadImage } from '@/lib/recipe-import/image-downloader'
 
 const POSTGREST_URL = process.env.POSTGREST_URL || 'http://localhost:4444'
 
@@ -398,5 +399,26 @@ export async function importRecipeFromUrl(
       error: 'Ett oväntat fel uppstod vid import. Försök igen.',
       sourceUrl: url,
     }
+  }
+}
+
+/**
+ * Download an image from a URL and save it locally (server-side).
+ * This bypasses CORS restrictions that would block client-side downloads.
+ */
+export async function downloadAndSaveImage(
+  imageUrl: string
+): Promise<{ filename: string } | { error: string }> {
+  try {
+    const result = await downloadImage(imageUrl)
+
+    if (!result.success || !result.filename) {
+      return { error: result.error || 'Kunde inte ladda ner bilden' }
+    }
+
+    return { filename: result.filename }
+  } catch (error) {
+    console.error('Error downloading image:', error)
+    return { error: 'Ett fel uppstod vid nedladdning av bilden' }
   }
 }
