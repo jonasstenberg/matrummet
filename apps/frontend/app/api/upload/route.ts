@@ -3,6 +3,7 @@ import { writeFile } from 'fs/promises'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
 import { getSession } from '@/lib/auth'
+import { getDataFilesDir } from '@/lib/paths'
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,9 +40,8 @@ export async function POST(request: NextRequest) {
     const ext = file.name.split('.').pop() || 'webp'
     const filename = `${randomUUID()}.${ext}`
 
-    // Get the data directory path (relative to project root)
-    const dataDir = join(process.cwd(), '..', '..', 'data', 'files')
-    const filepath = join(dataDir, filename)
+    // Get the data directory path
+    const filepath = join(getDataFilesDir(), filename)
 
     // Convert file to buffer and save
     const bytes = await file.arrayBuffer()

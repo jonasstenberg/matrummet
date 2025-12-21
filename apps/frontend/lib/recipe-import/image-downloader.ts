@@ -1,6 +1,7 @@
 import { writeFile } from 'fs/promises'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
+import { getDataFilesDir } from '@/lib/paths'
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024 // 5MB
 const ALLOWED_CONTENT_TYPES = [
@@ -87,8 +88,7 @@ export async function downloadImage(imageUrl: string): Promise<DownloadResult> {
     const filename = `${randomUUID()}.${ext}`
 
     // Save to data directory
-    const dataDir = join(process.cwd(), '..', '..', 'data', 'files')
-    const filepath = join(dataDir, filename)
+    const filepath = join(getDataFilesDir(), filename)
     await writeFile(filepath, buffer)
 
     return { success: true, filename }

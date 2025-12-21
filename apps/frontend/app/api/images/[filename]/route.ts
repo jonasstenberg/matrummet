@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createReadStream, statSync } from 'fs'
 import { join } from 'path'
 import { createHash } from 'crypto'
+import { getDataFilesDir } from '@/lib/paths'
 
 const SUPPORTED_FORMATS = ['.webp', '.jpg', '.jpeg', '.png', '.avif'] as const
 const CONTENT_TYPES: Record<string, string> = {
@@ -30,8 +31,8 @@ export async function GET(
       return new NextResponse('Unsupported image format', { status: 400 })
     }
 
-    // Path to images in the project root data/files directory
-    const imagePath = join(process.cwd(), '..', '..', 'data', 'files', filename)
+    // Path to images in the uploads directory
+    const imagePath = join(getDataFilesDir(), filename)
 
     // Check if file exists and get stats for ETag
     let stats
