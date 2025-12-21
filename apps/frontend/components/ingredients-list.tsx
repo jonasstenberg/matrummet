@@ -72,9 +72,7 @@ export function IngredientsList({
           return (
             <div key={groupId || "ungrouped"} className="py-1">
               {groupName && (
-                <div className="flex items-center gap-3 px-5 pb-1 pt-4">
-                  {/* Spacer for quantity alignment */}
-                  <span className="min-w-[4rem] shrink-0" />
+                <div className="px-5 pb-1 pt-4">
                   <span className="text-xs font-semibold uppercase tracking-wider text-primary/80">
                     {groupName}
                   </span>
@@ -84,20 +82,13 @@ export function IngredientsList({
                 {groupIngredients.map((ingredient, index) => (
                   <li
                     key={ingredient.id || `${groupId}-${index}`}
-                    className="flex items-baseline gap-3 px-5 py-2.5 transition-colors hover:bg-muted/30"
+                    className="px-5 py-2.5 text-sm transition-colors hover:bg-muted/30"
                   >
-                    {/* Quantity */}
-                    <span className="min-w-[4rem] shrink-0 text-right text-sm font-semibold tabular-nums text-foreground">
+                    <span className="font-semibold tabular-nums">
                       {scaleQuantity(ingredient.quantity, scaleFactor)}
-                      {ingredient.measurement
-                        ? ` ${ingredient.measurement}`
-                        : ""}
-                    </span>
-
-                    {/* Name */}
-                    <span className="text-sm text-muted-foreground">
-                      {ingredient.name}
-                    </span>
+                      {ingredient.measurement ? ` ${ingredient.measurement}` : ""}
+                    </span>{" "}
+                    <span className="text-muted-foreground">{ingredient.name}</span>
                   </li>
                 ))}
               </ul>
