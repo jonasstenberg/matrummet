@@ -48,7 +48,7 @@ function formatDate(dateString: string | null): string {
   }).format(date);
 }
 
-function PlaceholderHero() {
+function PlaceholderImage() {
   return (
     <div className="absolute inset-0 bg-gradient-to-br from-muted via-muted/80 to-muted/60">
       <div
@@ -59,9 +59,9 @@ function PlaceholderHero() {
         }}
       />
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="rounded-full bg-card/60 p-8 shadow-sm backdrop-blur-sm">
+        <div className="rounded-full bg-card/60 p-6 shadow-sm backdrop-blur-sm">
           <UtensilsCrossed
-            className="h-16 w-16 text-primary/40"
+            className="h-12 w-12 text-primary/40"
             strokeWidth={1.5}
           />
         </div>
@@ -86,100 +86,88 @@ export function RecipeDetail({ recipe }: RecipeDetailProps) {
 
   return (
     <article className="space-y-8">
-      {/* Hero Image */}
-      <div className="relative aspect-[21/9] w-full overflow-hidden rounded-2xl shadow-[0_4px_20px_-4px_rgba(139,90,60,0.15)]">
-        {hasImage && imageUrl ? (
-          <>
-            <img
-              src={imageUrl}
-              alt={recipe.name}
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-          </>
-        ) : (
-          <PlaceholderHero />
-        )}
-      </div>
+      {/* Hero Section: Metadata left, Image right */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
+        {/* Left: Metadata */}
+        <div className="flex flex-col justify-center space-y-4 order-2 md:order-1">
+          {/* Categories */}
+          {recipe.categories && recipe.categories.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {recipe.categories.map((category) => (
+                <span
+                  key={category}
+                  className="rounded-full bg-secondary/10 px-3 py-1 text-sm font-medium text-secondary"
+                >
+                  {category}
+                </span>
+              ))}
+            </div>
+          )}
 
-      {/* Header */}
-      <header className="space-y-4">
-        {/* Categories */}
-        {recipe.categories && recipe.categories.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {recipe.categories.map((category) => (
-              <span
-                key={category}
-                className="rounded-full bg-secondary/10 px-3 py-1 text-sm font-medium text-secondary"
-              >
-                {category}
-              </span>
-            ))}
+          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+            {recipe.name}
+          </h1>
+
+          {hasDescription && (
+            <p className="text-lg leading-relaxed text-muted-foreground">
+              {recipe.description}
+            </p>
+          )}
+
+          {/* Meta Information */}
+          <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+            {recipe.author && (
+              <div className="flex items-center gap-2">
+                <ChefHat className="h-4 w-4 text-primary/60" />
+                <span>{recipe.author}</span>
+              </div>
+            )}
+
+            {recipe.date_published && (
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-primary/60" />
+                <span>{formatDate(recipe.date_published)}</span>
+              </div>
+            )}
           </div>
-        )}
 
-        <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-          {recipe.name}
-        </h1>
+          {/* Recipe Info */}
+          {infoItems.length > 0 && (
+            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+              {totalTime && (
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-primary/60" />
+                  <span>{totalTime}</span>
+                </div>
+              )}
 
-        {hasDescription && (
-          <p className="text-lg leading-relaxed text-muted-foreground">
-            {recipe.description}
-          </p>
-        )}
-
-        {/* Meta Information */}
-        <div className="flex flex-wrap items-center gap-4 pt-2 text-sm text-muted-foreground">
-          {recipe.author && (
-            <div className="flex items-center gap-2">
-              <ChefHat className="h-4 w-4 text-primary/60" />
-              <span>{recipe.author}</span>
-            </div>
-          )}
-
-          {recipe.date_published && (
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-primary/60" />
-              <span>{formatDate(recipe.date_published)}</span>
+              {recipe.recipe_yield && (
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-secondary" />
+                  <span>
+                    {recipe.recipe_yield} {recipe.recipe_yield_name || "portioner"}
+                  </span>
+                </div>
+              )}
             </div>
           )}
         </div>
-      </header>
 
-      {/* Recipe Info Bar */}
-      {infoItems.length > 0 && (
-        <div className="flex flex-wrap gap-3">
-          {totalTime && (
-            <div className="flex items-center gap-3 rounded-xl bg-card px-4 py-3 shadow-[0_2px_8px_-2px_rgba(139,90,60,0.08)]">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                <Clock className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-muted-foreground">
-                  Tid
-                </p>
-                <p className="font-semibold text-foreground">{totalTime}</p>
-              </div>
-            </div>
-          )}
-
-          {recipe.recipe_yield && (
-            <div className="flex items-center gap-3 rounded-xl bg-card px-4 py-3 shadow-[0_2px_8px_-2px_rgba(139,90,60,0.08)]">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary/10">
-                <Users className="h-5 w-5 text-secondary" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-muted-foreground">
-                  Portioner
-                </p>
-                <p className="font-semibold text-foreground">
-                  {recipe.recipe_yield} {recipe.recipe_yield_name || "st"}
-                </p>
-              </div>
-            </div>
-          )}
+        {/* Right: Image */}
+        <div className="order-1 md:order-2">
+          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl shadow-[0_4px_20px_-4px_rgba(139,90,60,0.15)]">
+            {hasImage && imageUrl ? (
+              <img
+                src={imageUrl}
+                alt={recipe.name}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            ) : (
+              <PlaceholderImage />
+            )}
+          </div>
         </div>
-      )}
+      </div>
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
