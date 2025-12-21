@@ -122,7 +122,8 @@ export function RecipeForm({
     initialData?.cook_time?.toString() || ""
   );
   const [cuisine, setCuisine] = useState(initialData?.cuisine || "");
-  const [image, setImage] = useState(initialData?.image || null);
+  const [image, setImage] = useState<string | null>(initialData?.image || null);
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
   const [categories, setCategories] = useState<string[]>(
     initialData?.categories || []
   );
@@ -159,6 +160,49 @@ export function RecipeForm({
     }
   }
 
+  function isImageUrl(value: string | null | undefined): boolean {
+    if (!value) return false;
+    return value.startsWith('http://') || value.startsWith('https://');
+  }
+
+  async function uploadFile(file: File): Promise<string | null> {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) return null;
+
+      const data = await response.json();
+      return data.filename;
+    } catch {
+      return null;
+    }
+  }
+
+  async function downloadAndUploadImage(imageUrl: string): Promise<string | null> {
+    try {
+      const response = await fetch(imageUrl);
+      if (!response.ok) return null;
+
+      const blob = await response.blob();
+      if (!blob.type.startsWith('image/')) return null;
+
+      const url = new URL(imageUrl);
+      const pathname = url.pathname;
+      const filename = pathname.substring(pathname.lastIndexOf('/') + 1) || 'image.jpg';
+
+      const file = new File([blob], filename, { type: blob.type });
+      return uploadFile(file);
+    } catch {
+      return null;
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setFieldErrors({});
@@ -180,6 +224,19 @@ export function RecipeForm({
       instructionGroups
     );
 
+    // Handle image upload - only happens when saving
+    let finalImage: string | null = null;
+    if (pendingImageFile) {
+      // User selected a file - upload it now
+      finalImage = await uploadFile(pendingImageFile);
+    } else if (isImageUrl(image)) {
+      // Image is a URL (from import) - download and upload it now
+      finalImage = await downloadAndUploadImage(image!);
+    } else {
+      // Image is already a filename or null
+      finalImage = image;
+    }
+
     const data: CreateRecipeInput = {
       recipe_name: name.trim(),
       author: author.trim() || null,
@@ -190,8 +247,8 @@ export function RecipeForm({
       prep_time: prepTime.trim() ? parseInt(prepTime.trim(), 10) : null,
       cook_time: cookTime.trim() ? parseInt(cookTime.trim(), 10) : null,
       cuisine: cuisine.trim() || null,
-      image,
-      thumbnail: image,
+      image: finalImage,
+      thumbnail: finalImage,
       categories,
       ingredients: transformedIngredients,
       instructions: transformedInstructions,
@@ -375,7 +432,12 @@ export function RecipeForm({
             />
           </div>
 
-          <ImageUpload value={image} onChange={setImage} />
+          <ImageUpload
+            value={image}
+            onChange={setImage}
+            pendingFile={pendingImageFile}
+            onFileSelect={setPendingImageFile}
+          />
         </div>
       </Card>
 

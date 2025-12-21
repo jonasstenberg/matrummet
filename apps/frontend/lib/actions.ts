@@ -2,10 +2,11 @@
 
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
+import { unlink } from 'fs/promises'
+import { join } from 'path'
 import { CreateRecipeInput, UpdateRecipeInput } from '@/lib/types'
 import { verifyToken, signPostgrestToken } from '@/lib/auth'
 import { extractJsonLdRecipe, mapJsonLdToRecipeInput } from '@/lib/recipe-import'
-import { downloadImage } from '@/lib/recipe-import/image-downloader'
 
 const POSTGREST_URL = process.env.POSTGREST_URL || 'http://localhost:4444'
 
@@ -141,6 +142,22 @@ export async function updateRecipe(
   }
 }
 
+async function deleteImageFile(filename: string | null): Promise<void> {
+  if (!filename) return
+
+  // Skip if it's a URL (external image)
+  if (filename.startsWith('http://') || filename.startsWith('https://')) return
+
+  try {
+    const dataDir = join(process.cwd(), '..', '..', 'data', 'files')
+    const filepath = join(dataDir, filename)
+    await unlink(filepath)
+  } catch (error) {
+    // File might not exist, that's ok
+    console.error('Failed to delete image file:', error)
+  }
+}
+
 export async function deleteRecipe(
   id: string
 ): Promise<{ success: boolean } | { error: string }> {
@@ -151,6 +168,24 @@ export async function deleteRecipe(
       return { error: 'Du måste vara inloggad för att ta bort recept' }
     }
 
+    // First, fetch the recipe to get the image filename
+    const getResponse = await fetch(
+      `${POSTGREST_URL}/recipes?id=eq.${id}&select=image`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
+
+    if (getResponse.ok) {
+      const recipes = await getResponse.json()
+      if (recipes.length > 0 && recipes[0].image) {
+        await deleteImageFile(recipes[0].image)
+      }
+    }
+
+    // Delete the recipe from the database
     const response = await fetch(`${POSTGREST_URL}/recipes?id=eq.${id}`, {
       method: 'DELETE',
       headers: {
@@ -347,22 +382,7 @@ export async function importRecipeFromUrl(
       }
     }
 
-    // Download external image and save locally
-    if (data.image && data.image.startsWith('http')) {
-      const imageResult = await downloadImage(data.image)
-      if (imageResult.success && imageResult.filename) {
-        data.image = imageResult.filename
-        data.thumbnail = imageResult.filename
-      } else {
-        // Image download failed - clear image and add warning
-        warnings.push(
-          `Kunde inte ladda ner bilden: ${imageResult.error || 'okänt fel'}`
-        )
-        data.image = null
-        data.thumbnail = null
-      }
-    }
-
+    // Keep the image URL as-is - it will be downloaded when the recipe is saved
     return {
       success: true,
       data,
