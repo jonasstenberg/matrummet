@@ -6,6 +6,7 @@ import { parseDuration } from './duration-parser'
 export interface MappingResult {
   data: Partial<CreateRecipeInput>
   warnings: string[]
+  lowConfidenceIngredients: number[]
 }
 
 /**
@@ -200,13 +201,14 @@ export function mapJsonLdToRecipeInput(
   sourceUrl: string
 ): MappingResult {
   const warnings: string[] = []
-  
+  const lowConfidenceIngredients: number[] = []
+
   // Parse image
   const imageUrl = extractImageUrl(jsonLd.image)
-  
+
   // Parse author
   const author = extractAuthor(jsonLd.author)
-  
+
   // Parse durations
   const prepTime = parseDuration(jsonLd.prepTime)
   const cookTime = parseDuration(jsonLd.cookTime)
@@ -215,28 +217,28 @@ export function mapJsonLdToRecipeInput(
   // If only totalTime is provided, use it for cook_time
   const finalPrepTime = prepTime ?? null
   const finalCookTime = cookTime ?? totalTime ?? null
-  
+
   // Parse recipe yield
   const yieldData = parseRecipeYield(jsonLd.recipeYield)
-  
+
   // Parse cuisine
   const cuisine = jsonLd.recipeCuisine
     ? Array.isArray(jsonLd.recipeCuisine)
       ? jsonLd.recipeCuisine.join(', ')
       : String(jsonLd.recipeCuisine)
     : null
-  
+
   // Parse ingredients
   const ingredients: Array<{ name: string; measurement: string; quantity: string }> = []
-  
+
   if (jsonLd.recipeIngredient && Array.isArray(jsonLd.recipeIngredient)) {
     for (const ingredientStr of jsonLd.recipeIngredient) {
       const parsed = parseIngredient(String(ingredientStr))
-      
+
       if (parsed.confidence === 'low') {
-        warnings.push(`Låg konfidens vid parsning av ingrediens: "${ingredientStr}"`)
+        lowConfidenceIngredients.push(ingredients.length)
       }
-      
+
       ingredients.push({
         name: parsed.name,
         measurement: parsed.measurement,
@@ -244,14 +246,14 @@ export function mapJsonLdToRecipeInput(
       })
     }
   }
-  
+
   // Parse instructions
   const instructions = parseInstructions(jsonLd.recipeInstructions)
-  
+
   if (instructions.length === 0) {
     warnings.push('Inga instruktioner hittades i receptet')
   }
-  
+
   // Build the result
   const data: Partial<CreateRecipeInput> = {
     recipe_name: jsonLd.name,
@@ -268,6 +270,6 @@ export function mapJsonLdToRecipeInput(
     ingredients,
     instructions,
   }
-  
-  return { data, warnings }
+
+  return { data, warnings, lowConfidenceIngredients }
 }

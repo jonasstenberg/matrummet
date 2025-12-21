@@ -214,6 +214,7 @@ export interface ImportRecipeResult {
   success: boolean
   data?: Partial<CreateRecipeInput>
   warnings?: string[]
+  lowConfidenceIngredients?: number[]
   error?: string
   sourceUrl: string
 }
@@ -358,7 +359,7 @@ export async function importRecipeFromUrl(
     }
 
     // Map to our format
-    const { data, warnings } = mapJsonLdToRecipeInput(jsonLd, url)
+    const { data, warnings, lowConfidenceIngredients } = mapJsonLdToRecipeInput(jsonLd, url)
 
     // Match ingredients to database foods and units
     if (data.ingredients && data.ingredients.length > 0) {
@@ -387,6 +388,7 @@ export async function importRecipeFromUrl(
       success: true,
       data,
       warnings: warnings.length > 0 ? warnings : undefined,
+      lowConfidenceIngredients: lowConfidenceIngredients.length > 0 ? lowConfidenceIngredients : undefined,
       sourceUrl: url,
     }
   } catch (error) {

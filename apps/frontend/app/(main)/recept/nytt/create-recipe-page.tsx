@@ -11,9 +11,10 @@ export function CreateRecipePage() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [importedData, setImportedData] = useState<Partial<Recipe> | null>(null)
+  const [lowConfidenceIngredients, setLowConfidenceIngredients] = useState<number[]>([])
   const [importKey, setImportKey] = useState(0)
 
-  function handleImport(data: Partial<CreateRecipeInput>) {
+  function handleImport(data: Partial<CreateRecipeInput>, lowConfidenceIndices?: number[]) {
     // Transform CreateRecipeInput to Recipe format for the form
     const recipeData: Partial<Recipe> = {
       name: data.recipe_name || '',
@@ -48,6 +49,7 @@ export function CreateRecipePage() {
     }
 
     setImportedData(recipeData)
+    setLowConfidenceIngredients(lowConfidenceIndices || [])
     setImportKey((prev) => prev + 1)
   }
 
@@ -76,6 +78,7 @@ export function CreateRecipePage() {
       <RecipeForm
         key={importKey}
         initialData={importedData as Recipe | undefined}
+        lowConfidenceIngredients={lowConfidenceIngredients}
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
       />

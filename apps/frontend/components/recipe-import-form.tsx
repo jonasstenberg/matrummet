@@ -10,7 +10,7 @@ import { CreateRecipeInput } from '@/lib/types'
 import { ChevronDown, ChevronRight, Link, Loader2 } from 'lucide-react'
 
 interface RecipeImportFormProps {
-  onImport: (data: Partial<CreateRecipeInput>) => void
+  onImport: (data: Partial<CreateRecipeInput>, lowConfidenceIndices?: number[]) => void
 }
 
 export function RecipeImportForm({ onImport }: RecipeImportFormProps) {
@@ -43,7 +43,7 @@ export function RecipeImportForm({ onImport }: RecipeImportFormProps) {
     }
 
     if (result.data) {
-      onImport(result.data)
+      onImport(result.data, result.lowConfidenceIngredients)
       setIsExpanded(false)
       setUrl('')
     }

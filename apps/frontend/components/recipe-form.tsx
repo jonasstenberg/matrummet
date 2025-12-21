@@ -94,12 +94,14 @@ function transformInstructionsToInlineFormat(
 
 interface RecipeFormProps {
   initialData?: Recipe;
+  lowConfidenceIngredients?: number[];
   onSubmit: (data: CreateRecipeInput) => Promise<void>;
   isSubmitting: boolean;
 }
 
 export function RecipeForm({
   initialData,
+  lowConfidenceIngredients = [],
   onSubmit,
   isSubmitting,
 }: RecipeFormProps) {
@@ -456,6 +458,7 @@ export function RecipeForm({
         <IngredientEditor
           ingredients={ingredients}
           groups={ingredientGroups}
+          lowConfidenceIndices={lowConfidenceIngredients}
           onChange={(newIngredients, newGroups) => {
             setIngredients(newIngredients);
             setIngredientGroups(newGroups);
@@ -503,9 +506,9 @@ export function RecipeForm({
           <Button type="submit" disabled={isSubmitting} size="lg">
             {isSubmitting
               ? "Sparar..."
-              : initialData
+              : initialData?.id
               ? "Uppdatera recept"
-              : "Skapa recept"}
+              : "Spara recept"}
           </Button>
           <Button
             type="button"
