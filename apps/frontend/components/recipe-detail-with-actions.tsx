@@ -47,8 +47,8 @@ export function RecipeDetailWithActions({
         return
       }
 
-      // Redirect to recipes page after successful deletion
-      router.push('/recept')
+      // Redirect to home page after successful deletion
+      router.push('/')
     } catch (error) {
       setDeleteError(
         error instanceof Error ? error.message : 'Ett oväntat fel uppstod'

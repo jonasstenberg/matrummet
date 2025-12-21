@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: RecipePageProps): Promise<Met
   }
 
   const imageUrl = recipe.image
-    ? `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/uploads/${recipe.image}`
+    ? `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/api/images/${recipe.image}`
     : undefined
 
   return {

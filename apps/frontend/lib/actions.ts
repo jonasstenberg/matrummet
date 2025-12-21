@@ -4,6 +4,8 @@ import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { CreateRecipeInput, UpdateRecipeInput } from '@/lib/types'
 import { verifyToken, signPostgrestToken } from '@/lib/auth'
+import { extractJsonLdRecipe, mapJsonLdToRecipeInput } from '@/lib/recipe-import'
+import { downloadImage } from '@/lib/recipe-import/image-downloader'
 
 const POSTGREST_URL = process.env.POSTGREST_URL || 'http://localhost:4444'
 
@@ -48,7 +50,6 @@ export async function createRecipe(
       p_cuisine: data.cuisine || null,
       p_image: data.image || null,
       p_thumbnail: data.thumbnail || null,
-      p_date_published: data.date_published || null,
       p_categories: data.categories || [],
       p_ingredients: data.ingredients || [],
       p_instructions: data.instructions || [],
@@ -171,5 +172,209 @@ export async function deleteRecipe(
   } catch (error) {
     console.error('Error deleting recipe:', error)
     return { error: 'Ett oväntat fel uppstod. Försök igen.' }
+  }
+}
+
+export interface ImportRecipeResult {
+  success: boolean
+  data?: Partial<CreateRecipeInput>
+  warnings?: string[]
+  error?: string
+  sourceUrl: string
+}
+
+interface FoodMatch {
+  id: string
+  name: string
+  rank: number
+}
+
+interface UnitMatch {
+  id: string
+  name: string
+  plural: string
+  abbreviation: string
+  rank: number
+}
+
+async function searchFood(query: string): Promise<FoodMatch | null> {
+  if (!query || query.length < 2) return null
+
+  try {
+    const response = await fetch(`${POSTGREST_URL}/rpc/search_foods`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_query: query, p_limit: 1 }),
+    })
+
+    if (!response.ok) return null
+
+    const results: FoodMatch[] = await response.json()
+    // Only return if it's a good match (rank > 0.5)
+    return results.length > 0 && results[0].rank > 0.5 ? results[0] : null
+  } catch {
+    return null
+  }
+}
+
+async function searchUnit(query: string): Promise<UnitMatch | null> {
+  if (!query || query.length < 1) return null
+
+  try {
+    const response = await fetch(`${POSTGREST_URL}/rpc/search_units`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_query: query, p_limit: 1 }),
+    })
+
+    if (!response.ok) return null
+
+    const results: UnitMatch[] = await response.json()
+    // Only return if it's a good match (rank > 0.5)
+    return results.length > 0 && results[0].rank > 0.5 ? results[0] : null
+  } catch {
+    return null
+  }
+}
+
+async function matchIngredientsToDatabase(
+  ingredients: Array<{ name: string; measurement: string; quantity: string }>
+): Promise<Array<{ name: string; measurement: string; quantity: string }>> {
+  const matched = await Promise.all(
+    ingredients.map(async (ing) => {
+      const [foodMatch, unitMatch] = await Promise.all([
+        searchFood(ing.name),
+        searchUnit(ing.measurement),
+      ])
+
+      return {
+        name: foodMatch?.name || ing.name,
+        measurement: unitMatch?.abbreviation || unitMatch?.name || ing.measurement,
+        quantity: ing.quantity,
+      }
+    })
+  )
+
+  return matched
+}
+
+export async function importRecipeFromUrl(
+  url: string
+): Promise<ImportRecipeResult> {
+  try {
+    // Check authentication
+    const token = await getPostgrestToken()
+    if (!token) {
+      return {
+        success: false,
+        error: 'Du måste vara inloggad för att importera recept',
+        sourceUrl: url,
+      }
+    }
+
+    // Validate URL
+    let parsedUrl: URL
+    try {
+      parsedUrl = new URL(url)
+      if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+        return {
+          success: false,
+          error: 'Ogiltig URL. Endast HTTP och HTTPS stöds.',
+          sourceUrl: url,
+        }
+      }
+    } catch {
+      return {
+        success: false,
+        error: 'Ogiltig URL-format',
+        sourceUrl: url,
+      }
+    }
+
+    // Fetch the page
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (compatible; RecipeImporter/1.0; recipe parser)',
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'sv-SE,sv;q=0.9,en;q=0.8',
+      },
+    })
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: `Kunde inte hämta sidan: ${response.status} ${response.statusText}`,
+        sourceUrl: url,
+      }
+    }
+
+    const html = await response.text()
+
+    // Extract JSON-LD Recipe
+    const jsonLd = extractJsonLdRecipe(html)
+    if (!jsonLd) {
+      return {
+        success: false,
+        error:
+          'Ingen receptdata hittades på sidan. Sidan kanske inte använder JSON-LD-format.',
+        sourceUrl: url,
+      }
+    }
+
+    // Map to our format
+    const { data, warnings } = mapJsonLdToRecipeInput(jsonLd, url)
+
+    // Match ingredients to database foods and units
+    if (data.ingredients && data.ingredients.length > 0) {
+      const ingredientsToMatch = data.ingredients.filter(
+        (i): i is { name: string; measurement: string; quantity: string } =>
+          'name' in i
+      )
+
+      if (ingredientsToMatch.length > 0) {
+        const matchedIngredients =
+          await matchIngredientsToDatabase(ingredientsToMatch)
+
+        // Rebuild ingredients array with matched values
+        let matchIndex = 0
+        data.ingredients = data.ingredients.map((ing) => {
+          if ('name' in ing) {
+            return matchedIngredients[matchIndex++]
+          }
+          return ing
+        })
+      }
+    }
+
+    // Download external image and save locally
+    if (data.image && data.image.startsWith('http')) {
+      const imageResult = await downloadImage(data.image)
+      if (imageResult.success && imageResult.filename) {
+        data.image = imageResult.filename
+        data.thumbnail = imageResult.filename
+      } else {
+        // Image download failed - clear image and add warning
+        warnings.push(
+          `Kunde inte ladda ner bilden: ${imageResult.error || 'okänt fel'}`
+        )
+        data.image = null
+        data.thumbnail = null
+      }
+    }
+
+    return {
+      success: true,
+      data,
+      warnings: warnings.length > 0 ? warnings : undefined,
+      sourceUrl: url,
+    }
+  } catch (error) {
+    console.error('Error importing recipe from URL:', error)
+    return {
+      success: false,
+      error: 'Ett oväntat fel uppstod vid import. Försök igen.',
+      sourceUrl: url,
+    }
   }
 }

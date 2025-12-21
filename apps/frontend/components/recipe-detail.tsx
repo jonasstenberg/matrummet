@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Recipe } from "@/lib/types";
-import { IMAGE_BLUR_DATA_URL } from "@/lib/utils";
+import { getImageUrl } from "@/lib/utils";
 import {
   Calendar,
   ChefHat,
@@ -10,7 +10,6 @@ import {
   Users,
   UtensilsCrossed,
 } from "lucide-react";
-import Image from "next/image";
 import { IngredientsList } from "./ingredients-list";
 import { InstructionsChecklist } from "./instructions-checklist";
 import { ServingsSlider } from "./servings-slider";
@@ -72,7 +71,8 @@ function PlaceholderHero() {
 }
 
 export function RecipeDetail({ recipe }: RecipeDetailProps) {
-  const hasImage = !!recipe.image;
+  const imageUrl = getImageUrl(recipe.image);
+  const hasImage = !!imageUrl;
   const totalTime = calculateTotalTime(recipe.prep_time, recipe.cook_time);
   const hasDescription = recipe.description && recipe.description !== "-";
 
@@ -88,17 +88,12 @@ export function RecipeDetail({ recipe }: RecipeDetailProps) {
     <article className="space-y-8">
       {/* Hero Image */}
       <div className="relative aspect-[21/9] w-full overflow-hidden rounded-2xl shadow-[0_4px_20px_-4px_rgba(139,90,60,0.15)]">
-        {hasImage ? (
+        {hasImage && imageUrl ? (
           <>
-            <Image
-              src={`/uploads/${recipe.image}`}
+            <img
+              src={imageUrl}
               alt={recipe.name}
-              fill
-              className="object-cover"
-              priority
-              sizes="(max-width: 1200px) 100vw, 1200px"
-              placeholder="blur"
-              blurDataURL={IMAGE_BLUR_DATA_URL}
+              className="absolute inset-0 h-full w-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
           </>

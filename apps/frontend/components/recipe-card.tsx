@@ -1,8 +1,7 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import { Clock, Users, UtensilsCrossed } from 'lucide-react'
 import type { Recipe } from '@/lib/types'
-import { cn, IMAGE_BLUR_DATA_URL } from '@/lib/utils'
+import { cn, getImageUrl } from '@/lib/utils'
 
 interface RecipeCardProps {
   recipe: Recipe
@@ -44,7 +43,8 @@ function PlaceholderImage() {
 
 export function RecipeCard({ recipe, className }: RecipeCardProps) {
   const totalTime = calculateTotalTime(recipe.prep_time, recipe.cook_time)
-  const hasImage = !!recipe.image
+  const imageUrl = getImageUrl(recipe.image)
+  const hasImage = !!imageUrl
 
   return (
     <Link href={`/recept/${recipe.id}`} className="block">
@@ -59,17 +59,13 @@ export function RecipeCard({ recipe, className }: RecipeCardProps) {
         )}
       >
         <div className="relative aspect-[4/3] w-full overflow-hidden">
-          {hasImage ? (
+          {hasImage && imageUrl ? (
             <>
-              <Image
-                src={`/uploads/${recipe.image}`}
+              <img
+                src={imageUrl}
                 alt={recipe.name}
-                fill
                 loading="lazy"
-                className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                placeholder="blur"
-                blurDataURL={IMAGE_BLUR_DATA_URL}
+                className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/5 to-transparent opacity-60 transition-opacity duration-300 group-hover:opacity-40" />
             </>

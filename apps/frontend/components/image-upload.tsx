@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -11,13 +11,21 @@ interface ImageUploadProps {
   label?: string
 }
 
+function getPreviewUrl(value: string | null | undefined): string | null {
+  if (!value) return null
+  return `/api/images/${value}`
+}
+
 export function ImageUpload({ value, onChange, label = 'Bild' }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [preview, setPreview] = useState<string | null>(
-    value ? `/api/files/${value}` : null
-  )
+  const [preview, setPreview] = useState<string | null>(getPreviewUrl(value))
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Update preview when value changes (e.g., from import)
+  useEffect(() => {
+    setPreview(getPreviewUrl(value))
+  }, [value])
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -65,7 +73,7 @@ export function ImageUpload({ value, onChange, label = 'Bild' }: ImageUploadProp
     } catch (err) {
       console.error('Upload error:', err)
       setError(err instanceof Error ? err.message : 'Kunde inte ladda upp bilden')
-      setPreview(value ? `/api/files/${value}` : null)
+      setPreview(getPreviewUrl(value))
     } finally {
       setIsUploading(false)
     }
