@@ -8,6 +8,8 @@ const envSchema = z.object({
   POSTGREST_JWT_SECRET: z
     .string()
     .min(32, "POSTGREST_JWT_SECRET must be at least 32 characters long"),
+  OLLAMA_API_URL: z.string().url().optional(),
+  OLLAMA_API_TOKEN: z.string().optional(),
 });
 
 type Env = z.infer<typeof envSchema>;
@@ -21,6 +23,8 @@ function getEnv(): Env {
     POSTGREST_URL: process.env.POSTGREST_URL,
     JWT_SECRET: process.env.JWT_SECRET,
     POSTGREST_JWT_SECRET: process.env.POSTGREST_JWT_SECRET,
+    OLLAMA_API_URL: process.env.OLLAMA_API_URL,
+    OLLAMA_API_TOKEN: process.env.OLLAMA_API_TOKEN,
   });
 
   if (!result.success) {
@@ -46,5 +50,11 @@ export const env = {
   },
   get POSTGREST_JWT_SECRET() {
     return getEnv().POSTGREST_JWT_SECRET;
+  },
+  get OLLAMA_API_URL() {
+    return getEnv().OLLAMA_API_URL;
+  },
+  get OLLAMA_API_TOKEN() {
+    return getEnv().OLLAMA_API_TOKEN;
   },
 };

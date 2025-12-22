@@ -4,11 +4,15 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { RecipeForm } from '@/components/recipe-form'
 import { RecipeImportForm } from '@/components/recipe-import-form'
+import { RecipeParser } from '@/components/recipe-parser'
+import { useAuth } from '@/components/auth-provider'
+import { isAdmin } from '@/lib/is-admin'
 import { createRecipe } from '@/lib/actions'
 import { CreateRecipeInput, Recipe } from '@/lib/types'
 
 export function CreateRecipePage() {
   const router = useRouter()
+  const { user } = useAuth()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [importedData, setImportedData] = useState<Partial<Recipe> | null>(null)
   const [lowConfidenceIngredients, setLowConfidenceIngredients] = useState<number[]>([])
@@ -74,6 +78,7 @@ export function CreateRecipePage() {
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold">Skapa nytt recept</h1>
+      {isAdmin(user) && <RecipeParser onParse={handleImport} />}
       <RecipeImportForm onImport={handleImport} />
       <RecipeForm
         key={importKey}

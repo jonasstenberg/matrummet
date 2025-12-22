@@ -1,15 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import type { Recipe } from "@/lib/types";
 import { getImageUrl } from "@/lib/utils";
-import {
-  Calendar,
-  ChefHat,
-  Clock,
-  Users,
-  UtensilsCrossed,
-} from "lucide-react";
+import { Calendar, ChefHat, Clock, Users, UtensilsCrossed } from "lucide-react";
+import { useState } from "react";
 import { IngredientsList } from "./ingredients-list";
 import { InstructionsChecklist } from "./instructions-checklist";
 import { ServingsSlider } from "./servings-slider";
@@ -104,7 +98,7 @@ export function RecipeDetail({ recipe }: RecipeDetailProps) {
             </div>
           )}
 
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl overflow-hidden">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
             {recipe.name}
           </h1>
 
@@ -145,7 +139,8 @@ export function RecipeDetail({ recipe }: RecipeDetailProps) {
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-secondary" />
                   <span>
-                    {recipe.recipe_yield} {recipe.recipe_yield_name || "portioner"}
+                    {recipe.recipe_yield}{" "}
+                    {recipe.recipe_yield_name || "portioner"}
                   </span>
                 </div>
               )}
