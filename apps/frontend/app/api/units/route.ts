@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { env } from '@/lib/env'
 
+type Unit = {
+  id: number
+  name: string
+  plural: string
+  abbreviation: string
+  rank: number
+}
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
   const query = searchParams.get('q') || ''
@@ -28,8 +36,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json([])
     }
 
-    const data = await response.json()
-    return NextResponse.json(data)
+    const data: Unit[] = await response.json()
+
+    // Format as { display, value } objects
+    const formattedData = data.map((unit) => ({
+      display: unit.abbreviation
+        ? `${unit.abbreviation} (${unit.name})`
+        : unit.name,
+      value: unit.abbreviation || unit.name,
+    }))
+
+    return NextResponse.json(formattedData)
   } catch (error) {
     console.error('Error fetching units:', error)
     return NextResponse.json([])

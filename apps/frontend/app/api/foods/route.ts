@@ -5,12 +5,9 @@ import { env } from '@/lib/env'
 interface FoodResult {
   id: string
   name: string
+  rank: number
   status?: string
   is_own_pending?: boolean
-}
-
-interface FoodWithDisplay extends FoodResult {
-  displayName: string
 }
 
 export async function GET(request: NextRequest) {
@@ -53,16 +50,13 @@ export async function GET(request: NextRequest) {
 
     const data: FoodResult[] = await response.json()
 
-    // Map the response to include displayName with "(väntar godkännande)" suffix for pending foods
-    const mappedData: FoodWithDisplay[] = data.map((food) => ({
-      ...food,
-      displayName:
-        food.status === 'pending' || food.is_own_pending
-          ? `${food.name} (väntar godkännande)`
-          : food.name,
+    // Format as { display, value } objects
+    const formattedData = data.map((food) => ({
+      display: food.is_own_pending ? `${food.name} (väntar)` : food.name,
+      value: food.name,
     }))
 
-    return NextResponse.json(mappedData)
+    return NextResponse.json(formattedData)
   } catch (error) {
     console.error('Error fetching foods:', error)
     return NextResponse.json([])

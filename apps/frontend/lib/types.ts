@@ -27,6 +27,8 @@ export interface Ingredient {
   quantity: string
   group_id?: string | null
   sort_order?: number
+  food_id?: string
+  unit_id?: string
 }
 
 export interface InstructionGroup {

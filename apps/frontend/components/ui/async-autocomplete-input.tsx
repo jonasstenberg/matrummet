@@ -1,11 +1,14 @@
 'use client'
 
 import * as React from 'react'
-import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { Input, InputProps } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 
-const defaultMapResult = (result: unknown) => (result as { name: string }).name
+export interface AutocompleteOption {
+  display: string
+  value: string
+}
 
 interface AsyncAutocompleteInputProps extends Omit<InputProps, 'onChange'> {
   fetchUrl: string
@@ -13,7 +16,6 @@ interface AsyncAutocompleteInputProps extends Omit<InputProps, 'onChange'> {
   onChange: (value: string) => void
   maxSuggestions?: number
   debounceMs?: number
-  mapResult?: (result: unknown) => string
 }
 
 export function AsyncAutocompleteInput({
@@ -22,21 +24,17 @@ export function AsyncAutocompleteInput({
   onChange,
   maxSuggestions = 8,
   debounceMs = 200,
-  mapResult,
   className,
   ...props
 }: AsyncAutocompleteInputProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
-  const [suggestions, setSuggestions] = useState<string[]>([])
+  const [suggestions, setSuggestions] = useState<AutocompleteOption[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const debounceTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
-
-  // Stabilize mapResult to prevent infinite loops
-  const stableMapResult = useMemo(() => mapResult ?? defaultMapResult, [mapResult])
 
   const showSuggestions = isOpen && suggestions.length > 0
 
@@ -74,9 +72,8 @@ export function AsyncAutocompleteInput({
           throw new Error('Failed to fetch suggestions')
         }
 
-        const data: unknown[] = await response.json()
-        const mapped = data.map(stableMapResult)
-        setSuggestions(mapped)
+        const data: AutocompleteOption[] = await response.json()
+        setSuggestions(data)
       } catch (error) {
         // Ignore abort errors
         if (error instanceof Error && error.name !== 'AbortError') {
@@ -87,7 +84,7 @@ export function AsyncAutocompleteInput({
         setIsLoading(false)
       }
     },
-    [stableMapResult]
+    []
   )
 
   // Debounced fetch effect
@@ -113,8 +110,8 @@ export function AsyncAutocompleteInput({
   }, [value, fetchSuggestions, debounceMs])
 
   const handleSelect = useCallback(
-    (suggestion: string) => {
-      onChange(suggestion)
+    (option: AutocompleteOption) => {
+      onChange(option.value)
       setIsOpen(false)
       setHighlightedIndex(-1)
       inputRef.current?.focus()
@@ -196,9 +193,9 @@ export function AsyncAutocompleteInput({
       </div>
       {showSuggestions && (
         <ul className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-white py-1 shadow-lg">
-          {suggestions.map((suggestion, index) => (
+          {suggestions.map((option, index) => (
             <li
-              key={suggestion}
+              key={option.value}
               className={cn(
                 'cursor-pointer px-3 py-2 text-sm',
                 index === highlightedIndex
@@ -207,11 +204,11 @@ export function AsyncAutocompleteInput({
               )}
               onMouseDown={(e) => {
                 e.preventDefault()
-                handleSelect(suggestion)
+                handleSelect(option)
               }}
               onMouseEnter={() => setHighlightedIndex(index)}
             >
-              {suggestion}
+              {option.display}
             </li>
           ))}
         </ul>
