@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 interface Instruction {
   id?: string;
@@ -60,8 +60,8 @@ export function InstructionsChecklist({
   const allChecked = checkedSteps.size === instructions.length;
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="overflow-hidden rounded-2xl bg-card shadow-[0_2px_12px_-2px_rgba(139,90,60,0.1)]">
+      <div className="flex items-center justify-between border-b border-border/50 bg-muted/30 px-5 py-4">
         <h2 className="text-lg font-semibold text-foreground">Gör så här</h2>
         {hasCheckedSteps && (
           <button
@@ -73,13 +73,12 @@ export function InstructionsChecklist({
         )}
       </div>
 
-      <ol className="relative space-y-0">
+      <ol className="relative space-y-0 p-5">
         {/* Vertical line connecting steps */}
-        <div className="absolute bottom-4 left-5 top-4 w-px bg-gradient-to-b from-primary/20 via-primary/10 to-transparent" />
+        <div className="absolute bottom-9 left-10 top-9 w-px bg-linear-to-b from-primary/20 via-primary/10 to-transparent" />
 
         {instructions.map((instruction, index) => {
           const isChecked = checkedSteps.has(index);
-          const isPrevChecked = index === 0 || checkedSteps.has(index - 1);
 
           return (
             <li
@@ -113,9 +112,7 @@ export function InstructionsChecklist({
                 <p
                   className={cn(
                     "leading-relaxed transition-colors",
-                    isChecked
-                      ? "text-muted-foreground/50"
-                      : "text-foreground"
+                    isChecked ? "text-muted-foreground/50" : "text-foreground"
                   )}
                 >
                   {instruction.step}
@@ -127,7 +124,7 @@ export function InstructionsChecklist({
       </ol>
 
       {allChecked && instructions.length > 0 && (
-        <div className="rounded-xl bg-secondary/10 px-4 py-3 text-center">
+        <div className="border-t border-border/50 bg-secondary/10 px-5 py-4 text-center">
           <p className="text-sm font-medium text-secondary">
             Alla steg är klara! Smaklig måltid! 🎉
           </p>

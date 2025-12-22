@@ -215,9 +215,13 @@ export function RecipeDetail({ recipe }: RecipeDetailProps) {
               instructions={recipe.instructions}
             />
           ) : (
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-foreground">Gör så här</h2>
-              <p className="text-sm text-muted-foreground">
+            <div className="overflow-hidden rounded-2xl bg-card shadow-[0_2px_12px_-2px_rgba(139,90,60,0.1)]">
+              <div className="border-b border-border/50 bg-muted/30 px-5 py-4">
+                <h2 className="text-lg font-semibold text-foreground">
+                  Gör så här
+                </h2>
+              </div>
+              <p className="px-5 py-4 text-sm text-muted-foreground">
                 Inga instruktioner angivna.
               </p>
             </div>
