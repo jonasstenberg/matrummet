@@ -104,7 +104,7 @@ export function RecipeDetail({ recipe }: RecipeDetailProps) {
             </div>
           )}
 
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl overflow-hidden">
             {recipe.name}
           </h1>
 

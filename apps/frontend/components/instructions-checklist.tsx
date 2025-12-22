@@ -73,10 +73,11 @@ export function InstructionsChecklist({
         )}
       </div>
 
-      <ol className="relative space-y-0 p-5">
+      <div className="relative p-5">
         {/* Vertical line connecting steps */}
-        <div className="absolute bottom-9 left-10 top-9 w-px bg-linear-to-b from-primary/20 via-primary/10 to-transparent" />
+        <div className="absolute bottom-9 left-10 top-9 w-px bg-linear-to-b from-primary/20 via-primary/10 to-transparent" aria-hidden="true" />
 
+        <ol className="relative space-y-0">
         {instructions.map((instruction, index) => {
           const isChecked = checkedSteps.has(index);
 
@@ -121,7 +122,8 @@ export function InstructionsChecklist({
             </li>
           );
         })}
-      </ol>
+        </ol>
+      </div>
 
       {allChecked && instructions.length > 0 && (
         <div className="border-t border-border/50 bg-secondary/10 px-5 py-4 text-center">

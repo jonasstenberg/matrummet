@@ -105,9 +105,9 @@ export function RecipeCard({ recipe, className }: RecipeCardProps) {
         </div>
 
         <div className="p-4">
-          <h3 className="line-clamp-2 text-lg font-semibold leading-snug text-foreground transition-colors duration-200 group-hover:text-primary">
+          <h2 className="line-clamp-2 text-lg font-semibold leading-snug text-foreground transition-colors duration-200 group-hover:text-primary">
             {recipe.name}
-          </h3>
+          </h2>
 
           {recipe.description && recipe.description !== '-' && (
             <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">

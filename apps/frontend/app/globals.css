@@ -11,10 +11,10 @@
   --color-popover: #ffffff;
   --color-popover-foreground: #1a1a1a;
 
-  --color-primary: #d9654a;
+  --color-primary: #b03d25;
   --color-primary-foreground: #ffffff;
 
-  --color-secondary: #5a9e82;
+  --color-secondary: #2d6650;
   --color-secondary-foreground: #ffffff;
 
   --color-muted: #f2eeea;
@@ -28,7 +28,7 @@
 
   --color-border: #e0dbd5;
   --color-input: #e0dbd5;
-  --color-ring: #d9654a;
+  --color-ring: #b03d25;
 
   /* Border radius */
   --radius: 0.5rem;
