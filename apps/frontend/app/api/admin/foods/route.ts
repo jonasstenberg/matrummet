@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
     const search = searchParams.get('search') || ''
+    const status = searchParams.get('status') || null
     const pageSize = 50
 
     const token = await signPostgrestToken(session.email)
@@ -31,7 +32,10 @@ export async function GET(request: NextRequest) {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ p_search: search || null }),
+        body: JSON.stringify({
+          p_search: search || null,
+          p_status: status,
+        }),
       }
     )
 
@@ -53,6 +57,7 @@ export async function GET(request: NextRequest) {
         },
         body: JSON.stringify({
           p_search: search || null,
+          p_status: status,
           p_limit: pageSize,
           p_offset: offset,
         }),

@@ -1,5 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getSession, signPostgrestToken } from '@/lib/auth'
 import { env } from '@/lib/env'
+
+interface FoodResult {
+  id: string
+  name: string
+  status?: string
+  is_own_pending?: boolean
+}
+
+interface FoodWithDisplay extends FoodResult {
+  displayName: string
+}
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -12,11 +24,22 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // Get user session (optional - unauthenticated users still work)
+    const session = await getSession()
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    }
+
+    // If authenticated, pass JWT token so RLS works
+    if (session) {
+      const token = await signPostgrestToken(session.email)
+      headers.Authorization = `Bearer ${token}`
+    }
+
     const response = await fetch(`${env.POSTGREST_URL}/rpc/search_foods`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify({
         p_query: query,
         p_limit: limit,
@@ -28,8 +51,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json([])
     }
 
-    const data = await response.json()
-    return NextResponse.json(data)
+    const data: FoodResult[] = await response.json()
+
+    // Map the response to include displayName with "(väntar godkännande)" suffix for pending foods
+    const mappedData: FoodWithDisplay[] = data.map((food) => ({
+      ...food,
+      displayName:
+        food.status === 'pending' || food.is_own_pending
+          ? `${food.name} (väntar godkännande)`
+          : food.name,
+    }))
+
+    return NextResponse.json(mappedData)
   } catch (error) {
     console.error('Error fetching foods:', error)
     return NextResponse.json([])

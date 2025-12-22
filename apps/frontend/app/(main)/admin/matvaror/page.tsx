@@ -15,7 +15,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Card } from '@/components/ui/card'
-import { Pencil, Trash2, Plus, AlertCircle } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Pencil, Trash2, Plus, AlertCircle, Check, X } from 'lucide-react'
 import {
   Pagination,
   PaginationContent,
@@ -26,9 +27,15 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination'
 
+type FoodStatus = 'pending' | 'approved' | 'rejected'
+
 interface Food {
   id: string
   name: string
+  status: FoodStatus
+  created_by: string | null
+  reviewed_by: string | null
+  reviewed_at: string | null
   date_published: string
   date_modified: string
   ingredient_count: number
@@ -42,6 +49,11 @@ interface PaginatedResponse {
   totalPages: number
 }
 
+interface SimilarFood {
+  id: string
+  name: string
+}
+
 export default function AdminFoodsPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -51,14 +63,20 @@ export default function AdminFoodsPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
-  // Pagination and search - read from URL
+  // Pagination, search, and status filter - read from URL
   const page = parseInt(searchParams.get('page') || '1', 10)
   const search = searchParams.get('search') || ''
+  const statusFilter = (searchParams.get('status') || 'pending') as FoodStatus | 'all'
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
 
   // Debounce for search
   const searchTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
+
+  // Similar foods warning dialog
+  const [similarDialogOpen, setSimilarDialogOpen] = useState(false)
+  const [similarFoods, setSimilarFoods] = useState<SimilarFood[]>([])
+  const [foodToApprove, setFoodToApprove] = useState<Food | null>(null)
 
   // Edit state
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -72,12 +90,12 @@ export default function AdminFoodsPage() {
   const [newFoodName, setNewFoodName] = useState('')
   const [isAdding, setIsAdding] = useState(false)
 
-  // Load foods when auth is ready and page/search params change
+  // Load foods when auth is ready and page/search/status params change
   useEffect(() => {
     if (!authLoading && user) {
       loadFoods()
     }
-  }, [authLoading, user, page, search])
+  }, [authLoading, user, page, search, statusFilter])
 
   async function loadFoods() {
     try {
@@ -90,6 +108,10 @@ export default function AdminFoodsPage() {
 
       if (search) {
         params.set('search', search)
+      }
+
+      if (statusFilter !== 'all') {
+        params.set('status', statusFilter)
       }
 
       const response = await fetch(`/api/admin/foods?${params}`)
@@ -206,13 +228,91 @@ export default function AdminFoodsPage() {
         throw new Error(data.error || 'Kunde inte skapa matvara')
       }
 
-      setSuccess('Matvara skapad')
+      setSuccess('Matvara skapad och godkänd')
       setNewFoodName('')
       await loadFoods()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ett fel uppstod')
     } finally {
       setIsAdding(false)
+    }
+  }
+
+  async function handleApprove(food: Food, skipSimilarCheck = false) {
+    try {
+      setError(null)
+      setSuccess(null)
+
+      // Check for similar foods if not skipping
+      if (!skipSimilarCheck) {
+        const similarResponse = await fetch(
+          `/api/admin/foods/similar?name=${encodeURIComponent(food.name)}`
+        )
+
+        if (similarResponse.ok) {
+          const similar: SimilarFood[] = await similarResponse.json()
+          if (similar.length > 0) {
+            // Show warning dialog
+            setSimilarFoods(similar)
+            setFoodToApprove(food)
+            setSimilarDialogOpen(true)
+            return
+          }
+        }
+      }
+
+      // Proceed with approval
+      const response = await fetch('/api/admin/foods/approve', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: food.id }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Kunde inte godkänna matvara')
+      }
+
+      setSuccess('Matvara godkänd')
+      await loadFoods()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ett fel uppstod')
+    }
+  }
+
+  async function handleReject(foodId: string) {
+    try {
+      setError(null)
+      setSuccess(null)
+
+      const response = await fetch('/api/admin/foods/reject', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: foodId }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Kunde inte avvisa matvara')
+      }
+
+      setSuccess('Matvara avvisad')
+      await loadFoods()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ett fel uppstod')
+    }
+  }
+
+  function confirmApprove() {
+    if (foodToApprove) {
+      handleApprove(foodToApprove, true)
+      setSimilarDialogOpen(false)
+      setSimilarFoods([])
+      setFoodToApprove(null)
     }
   }
 
@@ -234,7 +334,7 @@ export default function AdminFoodsPage() {
     setDeleteDialogOpen(true)
   }
 
-  function updateURL(newPage: number, newSearch: string) {
+  function updateURL(newPage: number, newSearch: string, newStatus?: FoodStatus | 'all') {
     const params = new URLSearchParams()
 
     if (newPage > 1) {
@@ -245,8 +345,17 @@ export default function AdminFoodsPage() {
       params.set('search', newSearch)
     }
 
+    const status = newStatus !== undefined ? newStatus : statusFilter
+    if (status !== 'pending') {
+      params.set('status', status)
+    }
+
     const queryString = params.toString()
     router.replace(queryString ? `/admin/matvaror?${queryString}` : '/admin/matvaror')
+  }
+
+  function setStatusFilter(newStatus: FoodStatus | 'all') {
+    updateURL(1, search, newStatus)
   }
 
   function handleSearchChange(value: string) {
@@ -293,6 +402,29 @@ export default function AdminFoodsPage() {
     return pages
   }
 
+  function getStatusBadge(status: FoodStatus) {
+    switch (status) {
+      case 'pending':
+        return (
+          <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">
+            Väntar
+          </Badge>
+        )
+      case 'approved':
+        return (
+          <Badge className="bg-green-100 text-green-900 hover:bg-green-100">
+            Godkänd
+          </Badge>
+        )
+      case 'rejected':
+        return (
+          <Badge className="bg-red-100 text-red-900 hover:bg-red-100">
+            Avvisad
+          </Badge>
+        )
+    }
+  }
+
   return (
     <>
       <header>
@@ -300,7 +432,7 @@ export default function AdminFoodsPage() {
           Hantera matvaror
         </h1>
         <p className="mt-2 text-lg text-muted-foreground">
-          Skapa, redigera och ta bort matvaror för ingredienser.
+          Granska inlämnade matvaror, skapa nya eller redigera befintliga.
         </p>
       </header>
 
@@ -321,6 +453,9 @@ export default function AdminFoodsPage() {
       {/* Add new food */}
       <Card className="p-4">
         <h2 className="mb-4 text-lg font-semibold">Lägg till matvara</h2>
+        <p className="mb-3 text-sm text-muted-foreground">
+          Matvaror som skapas av admin blir automatiskt godkända.
+        </p>
         <div className="flex gap-2">
           <Input
             placeholder="t.ex. Tomater, Olivolja, Vitlök"
@@ -336,6 +471,36 @@ export default function AdminFoodsPage() {
           <Button onClick={handleAdd} disabled={isAdding || !newFoodName.trim()}>
             <Plus className="mr-2 h-4 w-4" />
             {isAdding ? 'Skapar...' : 'Lägg till'}
+          </Button>
+        </div>
+      </Card>
+
+      {/* Status filter tabs */}
+      <Card className="p-4">
+        <div className="flex gap-2">
+          <Button
+            variant={statusFilter === 'all' ? 'default' : 'outline'}
+            onClick={() => setStatusFilter('all')}
+          >
+            Alla
+          </Button>
+          <Button
+            variant={statusFilter === 'pending' ? 'default' : 'outline'}
+            onClick={() => setStatusFilter('pending')}
+          >
+            Väntar
+          </Button>
+          <Button
+            variant={statusFilter === 'approved' ? 'default' : 'outline'}
+            onClick={() => setStatusFilter('approved')}
+          >
+            Godkända
+          </Button>
+          <Button
+            variant={statusFilter === 'rejected' ? 'default' : 'outline'}
+            onClick={() => setStatusFilter('rejected')}
+          >
+            Avvisade
           </Button>
         </div>
       </Card>
@@ -405,13 +570,43 @@ export default function AdminFoodsPage() {
                   ) : (
                     <>
                       <div className="flex-1">
-                        <span className="font-medium">{food.name}</span>
-                        <span className="ml-2 text-sm text-muted-foreground">
-                          ({food.ingredient_count}{' '}
-                          {food.ingredient_count === 1 ? 'ingrediens' : 'ingredienser'})
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{food.name}</span>
+                          {getStatusBadge(food.status)}
+                        </div>
+                        <div className="mt-1 text-sm text-muted-foreground">
+                          {food.ingredient_count}{' '}
+                          {food.ingredient_count === 1 ? 'ingrediens' : 'ingredienser'}
+                          {food.status === 'pending' && food.created_by && (
+                            <span className="ml-2">
+                              • Inlämnad av: {food.created_by}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className="flex gap-2">
+                        {food.status === 'pending' && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleApprove(food)}
+                              aria-label="Godkänn matvara"
+                              className="text-green-600 hover:bg-green-50 hover:text-green-700"
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleReject(food.id)}
+                              aria-label="Avvisa matvara"
+                              className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
                         <Button
                           size="sm"
                           variant="ghost"
@@ -522,6 +717,42 @@ export default function AdminFoodsPage() {
             </Button>
             <Button variant="destructive" onClick={handleDelete}>
               Ta bort
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Similar foods warning dialog */}
+      <Dialog open={similarDialogOpen} onOpenChange={setSimilarDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Liknande matvaror finns</DialogTitle>
+            <DialogDescription>
+              Det finns redan liknande matvaror i systemet. Vill du fortfarande godkänna &quot;
+              {foodToApprove?.name}&quot;?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="my-4">
+            <p className="mb-2 text-sm font-medium">Befintliga liknande matvaror:</p>
+            <ul className="list-inside list-disc space-y-1 text-sm text-muted-foreground">
+              {similarFoods.map((similar) => (
+                <li key={similar.id}>{similar.name}</li>
+              ))}
+            </ul>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setSimilarDialogOpen(false)
+                setSimilarFoods([])
+                setFoodToApprove(null)
+              }}
+            >
+              Avbryt
+            </Button>
+            <Button onClick={confirmApprove}>
+              Godkänn ändå
             </Button>
           </DialogFooter>
         </DialogContent>
