@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidateTag } from 'next/cache'
 import { getSession, signPostgrestToken } from '@/lib/auth'
 import { env } from '@/lib/env'
 
@@ -80,6 +81,7 @@ export async function POST(request: NextRequest) {
       throw new Error(errorText || 'Failed to create category')
     }
 
+    revalidateTag('categories', 'max')
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Create category error:', error)
@@ -129,6 +131,7 @@ export async function PATCH(request: NextRequest) {
       throw new Error(errorText || 'Failed to update category')
     }
 
+    revalidateTag('categories', 'max')
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Update category error:', error)
@@ -173,6 +176,7 @@ export async function DELETE(request: NextRequest) {
       throw new Error(errorText || 'Failed to delete category')
     }
 
+    revalidateTag('categories', 'max')
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Delete category error:', error)

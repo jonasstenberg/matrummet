@@ -48,7 +48,7 @@ export async function getRecipe(id: string): Promise<Recipe | null> {
 export async function getCategories(): Promise<string[]> {
   try {
     const res = await fetch(`${env.POSTGREST_URL}/categories?select=name&order=name`, {
-      next: { revalidate: 3600 },
+      next: { tags: ['categories'] },
     });
 
     if (!res.ok) {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -12,30 +12,6 @@ import { ChevronDown, ChevronRight, Sparkles, Loader2, FileJson } from 'lucide-r
 interface RecipeParserProps {
   onParse: (data: Partial<CreateRecipeInput>) => void
 }
-
-interface Model {
-  name: string
-  size: number
-  modified_at: string
-}
-
-interface StreamProgress {
-  type: 'progress'
-  text: string
-  fullText: string
-}
-
-interface StreamComplete {
-  type: 'complete'
-  recipe: Partial<CreateRecipeInput>
-}
-
-interface StreamError {
-  type: 'error'
-  error: string
-}
-
-type StreamChunk = StreamProgress | StreamComplete | StreamError
 
 const JSON_EXAMPLE = `{
   "recipe_name": "Pasta Carbonara",
@@ -60,12 +36,7 @@ const JSON_EXAMPLE = `{
 export function RecipeParser({ onParse }: RecipeParserProps) {
   // AI parsing state
   const [aiText, setAiText] = useState('')
-  const [models, setModels] = useState<Model[]>([])
-  const [selectedModel, setSelectedModel] = useState('')
-  const [isLoadingModels, setIsLoadingModels] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
-  const [streamingText, setStreamingText] = useState('')
-  const streamingRef = useRef<HTMLDivElement>(null)
 
   // JSON paste state
   const [jsonText, setJsonText] = useState('')
@@ -74,104 +45,39 @@ export function RecipeParser({ onParse }: RecipeParserProps) {
   const [error, setError] = useState<string | null>(null)
   const [isExpanded, setIsExpanded] = useState(true)
 
-  useEffect(() => {
-    async function fetchModels() {
-      try {
-        const response = await fetch('/api/admin/ollama/models')
-        if (!response.ok) {
-          throw new Error('Kunde inte hämta modeller')
-        }
-        const data = await response.json()
-        setModels(data.models || [])
-        if (data.models?.length > 0) {
-          setSelectedModel(data.models[0].name)
-        }
-      } catch (err) {
-        // Don't set error here - just log it, AI tab might not be usable
-        console.error('Failed to fetch models:', err)
-      } finally {
-        setIsLoadingModels(false)
-      }
-    }
-
-    fetchModels()
-  }, [])
-
-  // Auto-scroll the streaming output
-  useEffect(() => {
-    if (streamingRef.current) {
-      streamingRef.current.scrollTop = streamingRef.current.scrollHeight
-    }
-  }, [streamingText])
-
   async function handleAiParse(e: React.FormEvent) {
     e.preventDefault()
 
-    if (!aiText.trim() || !selectedModel) return
+    if (!aiText.trim()) return
 
     setIsLoading(true)
     setError(null)
-    setStreamingText('')
 
     try {
-      const response = await fetch('/api/admin/ollama/parse', {
+      const response = await fetch('/api/admin/gemini/parse', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           text: aiText.trim(),
-          model: selectedModel,
-          stream: true,
         }),
       })
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Tolkning misslyckades')
+        const message = errorData.details
+          ? `${errorData.error}: ${errorData.details}`
+          : errorData.error || 'Tolkning misslyckades'
+        throw new Error(message)
       }
 
-      if (!response.body) {
-        throw new Error('No response body')
-      }
-
-      const reader = response.body.getReader()
-      const decoder = new TextDecoder()
-
-      while (true) {
-        const { done, value } = await reader.read()
-
-        if (done) break
-
-        const chunk = decoder.decode(value, { stream: true })
-        const lines = chunk.split('\n').filter(line => line.trim())
-
-        for (const line of lines) {
-          try {
-            const data: StreamChunk = JSON.parse(line)
-
-            if (data.type === 'progress') {
-              setStreamingText(data.fullText)
-            } else if (data.type === 'complete') {
-              onParse(data.recipe)
-              setIsExpanded(false)
-              setAiText('')
-              setStreamingText('')
-            } else if (data.type === 'error') {
-              throw new Error(data.error)
-            }
-          } catch (parseError) {
-            // If it's a JSON parse error, ignore (incomplete chunk)
-            // If it's our thrown error, rethrow
-            if (parseError instanceof Error && parseError.message !== 'Unexpected end of JSON input') {
-              throw parseError
-            }
-          }
-        }
-      }
+      const data = await response.json()
+      onParse(data.recipe)
+      setIsExpanded(false)
+      setAiText('')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Tolkning misslyckades')
-      setStreamingText('')
     } finally {
       setIsLoading(false)
     }
@@ -268,86 +174,38 @@ export function RecipeParser({ onParse }: RecipeParserProps) {
                 Klistra in recepttext i friformat och låt AI tolka och strukturera det.
               </p>
 
-              {isLoadingModels ? (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Laddar modeller...
-                </div>
-              ) : models.length === 0 ? (
-                <Alert>
-                  <AlertDescription>
-                    Kunde inte ansluta till AI-tjänsten. Prova att klistra in JSON istället.
-                  </AlertDescription>
-                </Alert>
-              ) : (
-                <form onSubmit={handleAiParse} className="space-y-4">
-                  <div className="space-y-2">
-                    <label htmlFor="model" className="text-sm font-medium">
-                      Modell
-                    </label>
-                    <select
-                      id="model"
-                      value={selectedModel}
-                      onChange={(e) => setSelectedModel(e.target.value)}
-                      className="flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      disabled={isLoading}
-                    >
-                      {models.map((model) => (
-                        <option key={model.name} value={model.name}>
-                          {model.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label htmlFor="ai-text" className="text-sm font-medium">
-                      Recepttext
-                    </label>
-                    <Textarea
-                      id="ai-text"
-                      placeholder="Klistra in recept här..."
-                      value={aiText}
-                      onChange={(e) => {
-                        setAiText(e.target.value)
-                        setError(null)
-                      }}
-                      className="min-h-[200px]"
-                      disabled={isLoading}
-                    />
-                  </div>
-
-                  <Button
-                    type="submit"
-                    disabled={!aiText.trim() || !selectedModel || isLoading}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Tolkar...
-                      </>
-                    ) : (
-                      'Tolka recept'
-                    )}
-                  </Button>
-                </form>
-              )}
-
-              {/* Streaming output display */}
-              {streamingText && (
+              <form onSubmit={handleAiParse} className="space-y-4">
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    AI genererar...
-                  </div>
-                  <div
-                    ref={streamingRef}
-                    className="max-h-[300px] overflow-y-auto rounded-md border bg-background p-3 font-mono text-xs"
-                  >
-                    <pre className="whitespace-pre-wrap break-words">{streamingText}</pre>
-                  </div>
+                  <label htmlFor="ai-text" className="text-sm font-medium">
+                    Recepttext
+                  </label>
+                  <Textarea
+                    id="ai-text"
+                    placeholder="Klistra in recept här..."
+                    value={aiText}
+                    onChange={(e) => {
+                      setAiText(e.target.value)
+                      setError(null)
+                    }}
+                    className="min-h-[200px]"
+                    disabled={isLoading}
+                  />
                 </div>
-              )}
+
+                <Button
+                  type="submit"
+                  disabled={!aiText.trim() || isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Tolkar...
+                    </>
+                  ) : (
+                    'Tolka recept'
+                  )}
+                </Button>
+              </form>
             </TabsContent>
 
             <TabsContent value="json" className="space-y-4">

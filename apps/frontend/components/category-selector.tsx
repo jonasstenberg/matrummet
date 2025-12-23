@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { X } from 'lucide-react'
 
 interface CategorySelectorProps {
   selectedCategories: string[]
@@ -23,7 +24,9 @@ export function CategorySelector({
   useEffect(() => {
     async function fetchCategories() {
       try {
-        const response = await fetch('http://localhost:4444/categories?select=name')
+        // Use the public API route to fetch categories
+        const response = await fetch('/api/categories')
+        if (!response.ok) throw new Error('Failed to fetch')
         const data = await response.json()
         const categories = data.map((cat: { name: string }) => cat.name)
         setAvailableCategories(categories)
@@ -134,8 +137,19 @@ export function CategorySelector({
               <p className="text-sm font-medium mb-2">Valda kategorier:</p>
               <div className="flex flex-wrap gap-2">
                 {selectedCategories.map((category) => (
-                  <Badge key={category} variant="default">
+                  <Badge key={category} variant="default" className="pr-1">
                     {category}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onChange(selectedCategories.filter((c) => c !== category))
+                      }}
+                      className="ml-1 rounded-full p-0.5 hover:bg-primary-foreground/20"
+                      aria-label={`Ta bort ${category}`}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
                   </Badge>
                 ))}
               </div>

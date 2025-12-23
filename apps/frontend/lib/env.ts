@@ -8,8 +8,9 @@ const envSchema = z.object({
   POSTGREST_JWT_SECRET: z
     .string()
     .min(32, "POSTGREST_JWT_SECRET must be at least 32 characters long"),
-  OLLAMA_API_URL: z.string().url().optional(),
-  OLLAMA_API_TOKEN: z.string().optional(),
+  GEMINI_API_KEY: z.string().optional(),
+  RECIPE_IMPORT_API_KEY: z.string().optional(),
+  RECIPE_IMPORT_EMAIL: z.string().email().optional(),
 });
 
 type Env = z.infer<typeof envSchema>;
@@ -23,8 +24,9 @@ function getEnv(): Env {
     POSTGREST_URL: process.env.POSTGREST_URL,
     JWT_SECRET: process.env.JWT_SECRET,
     POSTGREST_JWT_SECRET: process.env.POSTGREST_JWT_SECRET,
-    OLLAMA_API_URL: process.env.OLLAMA_API_URL,
-    OLLAMA_API_TOKEN: process.env.OLLAMA_API_TOKEN,
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+    RECIPE_IMPORT_API_KEY: process.env.RECIPE_IMPORT_API_KEY,
+    RECIPE_IMPORT_EMAIL: process.env.RECIPE_IMPORT_EMAIL,
   });
 
   if (!result.success) {
@@ -51,10 +53,13 @@ export const env = {
   get POSTGREST_JWT_SECRET() {
     return getEnv().POSTGREST_JWT_SECRET;
   },
-  get OLLAMA_API_URL() {
-    return getEnv().OLLAMA_API_URL;
+  get GEMINI_API_KEY() {
+    return getEnv().GEMINI_API_KEY;
   },
-  get OLLAMA_API_TOKEN() {
-    return getEnv().OLLAMA_API_TOKEN;
+  get RECIPE_IMPORT_API_KEY() {
+    return getEnv().RECIPE_IMPORT_API_KEY;
+  },
+  get RECIPE_IMPORT_EMAIL() {
+    return getEnv().RECIPE_IMPORT_EMAIL;
   },
 };

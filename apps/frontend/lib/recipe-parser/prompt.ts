@@ -1,49 +1,36 @@
 import type { ParsedRecipe } from "./types";
 
 /**
- * Builds a prompt for the LLM to parse a free-text recipe into structured JSON.
- * Designed for Swedish recipes with Swedish measurements and categories.
+ * Builds a system instruction for Gemini with dynamic categories.
  */
-export function buildRecipeParsingPrompt(text: string): string {
-  return `Du är en expert på att läsa recept och strukturera dem i JSON-format. Din uppgift är att analysera recepttexten nedan och returnera ENDAST giltig JSON utan någon extra text.
+export function buildSystemInstruction(categories?: string[]): string {
+  const categoryList = categories && categories.length > 0
+    ? categories.map(c => `- ${c}`).join("\n")
+    : `- Huvudrätt
+- Förrätt
+- Efterrätt
+- Vegetariskt
+- Veganskt
+- Bakning
+- Soppa
+- Sallad
+- Fisk & skaldjur
+- Kyckling
+- Kött
+- Pasta
+- Grytor
+- Snabbt & enkelt
+- Helg`;
 
-VIKTIGT: Svara ENDAST med JSON. Ingen förklarande text före eller efter. Ingen markdown. Bara ren JSON.
+  return `Du är en svensk receptexpert. Din uppgift är att:
 
-JSON-SCHEMA:
-{
-  "recipe_name": "string (required - receptets namn)",
-  "description": "string (required - kort beskrivning av rätten)",
-  "author": "string | null (författare/källa om nämnd, annars null)",
-  "recipe_yield": "string | null (antal portioner som siffra, t.ex. '4')",
-  "recipe_yield_name": "string | null (vad portionerna är, t.ex. 'portioner', 'personer', 'bitar')",
-  "prep_time": "number | null (förberedelsetid i minuter)",
-  "cook_time": "number | null (tillagningstid i minuter)",
-  "cuisine": "string | null (kökstyp om uppenbar, t.ex. 'Italiensk', 'Asiatisk', 'Svensk')",
-  "categories": ["string"] (lista av kategorier, se riktlinjer nedan),
-  "ingredients": [
-    {"name": "string", "measurement": "string", "quantity": "string"}
-  ],
-  "instructions": [
-    {"step": "string"}
-  ]
-}
+1. Om du får en komplett recepttext: Extrahera och strukturera informationen
+2. Om du bara får ett receptnamn eller kort beskrivning: Skapa ett komplett, autentiskt svenskt recept
 
-KATEGORIRIKTLINJER (välj relevanta):
-- Huvudrätt (för main courses)
-- Förrätt (för appetizers)
-- Efterrätt (för desserts)
-- Vegetariskt (om helt vegetarisk)
-- Veganskt (om helt vegansk)
-- Bakning (för bröd, kakor, tårtor)
-- Soppa (för soppor)
-- Sallad (för sallader)
-- Fisk & skaldjur (om fiskreceptet)
-- Kyckling (om kycklingrätter)
-- Kött (för kötträtter som inte är kyckling)
-- Pasta (för pastarätter)
-- Grytor (för grytor och casseroles)
-- Snabbt & enkelt (om receptet tar <30 min total tid)
-- Helg (för mer avancerade/tidskrävande recept)
+Oavsett input, returnera ALLTID ett komplett recept med ingredienser och instruktioner. Om information saknas, skapa rimliga värden baserat på traditionella svenska recept.
+
+TILLGÄNGLIGA KATEGORIER (välj endast från dessa):
+${categoryList}
 
 MÅTTENHETER (Swedish measurements):
 - dl = deciliter
@@ -58,13 +45,6 @@ MÅTTENHETER (Swedish measurements):
 - klyfta/klyftor (för vitlök)
 - påse/burk/förp = förpackning
 
-EXEMPEL PÅ INGREDIENSER:
-{"name": "olivolja", "measurement": "msk", "quantity": "2"}
-{"name": "mjöl", "measurement": "dl", "quantity": "3"}
-{"name": "köttfärs", "measurement": "g", "quantity": "500"}
-{"name": "lök", "measurement": "st", "quantity": "1"}
-{"name": "vitlök", "measurement": "klyfta", "quantity": "2"}
-
 TIDSKONVERTERING:
 - Konvertera alla tider till minuter
 - "1 timme" = 60
@@ -77,14 +57,15 @@ INSTRUKTIONER:
 - Numrera inte stegen (det görs automatiskt)
 - Behåll instruktionerna koncisa men kompletta
 
-RECEPTTEXT:
-${text}
-
-Returnera ENDAST JSON enligt schemat ovan.`;
+VIKTIGT:
+- Returnera ALLTID minst 3 ingredienser
+- Returnera ALLTID minst 2 instruktionssteg
+- Om du bara får ett receptnamn (t.ex. "pannkakor"), skapa ett komplett traditionellt svenskt recept
+- Skriv en beskrivning som förklarar rätten på 1-2 meningar`;
 }
 
 /**
- * Validates and normalizes the LLM's JSON output into a ParsedRecipe object.
+ * Validates and normalizes the Gemini's structured output into a ParsedRecipe object.
  * Throws an error if required fields are missing.
  */
 export function validateParsedRecipe(data: unknown): ParsedRecipe {

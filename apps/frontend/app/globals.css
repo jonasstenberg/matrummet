@@ -54,14 +54,19 @@
   to { height: 0; }
 }
 
-/* Base styles */
-* {
-  border-color: var(--color-border);
-}
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
 
-body {
-  background-color: var(--color-background);
-  color: var(--color-foreground);
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+  }
+
+  button {
+    cursor: pointer;
+  }
 }
 
 /* Dark mode disabled - using light mode only with soft, warm colors */
