@@ -1,9 +1,8 @@
 import type { Metadata } from 'next'
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { getRecipes } from '@/lib/api'
 import { getSession } from '@/lib/auth'
 import { RecipeGrid } from '@/components/recipe-grid'
+import { RecipeViewToggleSearch } from '@/components/recipe-view-toggle-search'
 
 interface SearchPageProps {
   searchParams: Promise<{ q?: string }>
@@ -16,25 +15,23 @@ export async function generateMetadata({
   const query = params.q || ''
 
   return {
-    title: query ? `Mina recept - Sök: ${query}` : 'Sök i mina recept',
+    title: query ? `Sök: ${query} - Alla recept` : 'Sök alla recept',
     description: query
-      ? `Sökresultat för "${query}" i mina recept`
-      : 'Sök bland dina egna recept',
+      ? `Sökresultat för "${query}"`
+      : 'Sök efter recept',
   }
 }
 
-export default async function MyRecipesSearchPage({ searchParams }: SearchPageProps) {
-  const session = await getSession()
-
-  if (!session) {
-    redirect('/login')
-  }
-
+export default async function AllRecipesSearchPage({ searchParams }: SearchPageProps) {
   const params = await searchParams
   const query = params.q || ''
 
+  const session = await getSession()
+  const isLoggedIn = !!session
+
+  // Search all recipes (no owner filter)
   const recipes = query
-    ? await getRecipes({ search: query, owner: session.email })
+    ? await getRecipes({ search: query })
     : []
 
   return (
@@ -42,16 +39,19 @@ export default async function MyRecipesSearchPage({ searchParams }: SearchPagePr
       {/* Results with query */}
       {query && (
         <>
-          <div>
-            <h1 className="mb-2 text-3xl font-bold text-foreground">
-              Sökresultat i <Link href="/mina-recept" className="text-primary hover:underline">mina recept</Link> för "{query}"
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              {recipes.length === 0 && 'Inga recept hittades'}
-              {recipes.length === 1 && '1 recept hittades'}
-              {recipes.length > 1 && `${recipes.length} recept hittades`}
-            </p>
-          </div>
+          <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h1 className="mb-2 text-3xl font-bold text-foreground">
+                Sökresultat för &quot;{query}&quot;
+              </h1>
+              <p className="text-lg text-muted-foreground">
+                {recipes.length === 0 && 'Inga recept hittades'}
+                {recipes.length === 1 && '1 recept hittades'}
+                {recipes.length > 1 && `${recipes.length} recept hittades`}
+              </p>
+            </div>
+            <RecipeViewToggleSearch isLoggedIn={isLoggedIn} showAll />
+          </header>
 
           <RecipeGrid recipes={recipes} />
         </>
@@ -62,10 +62,10 @@ export default async function MyRecipesSearchPage({ searchParams }: SearchPagePr
         <div className="flex min-h-[500px] items-center justify-center">
           <div className="max-w-md text-center">
             <h1 className="mb-4 text-3xl font-bold text-foreground">
-              Sök i mina recept
+              Sök efter recept
             </h1>
             <p className="mb-2 text-lg text-muted-foreground">
-              Använd sökfältet i menyn ovan för att hitta bland dina egna recept
+              Använd sökfältet i menyn ovan för att hitta recept
             </p>
             <p className="text-sm text-muted-foreground">
               Du kan söka efter ingredienser, rätter eller kategorier

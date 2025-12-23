@@ -16,21 +16,23 @@ export function SearchBar({ className }: SearchBarProps) {
   const [isPending, startTransition] = useTransition()
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Check if we're on /mina-recept to scope the search
-  const isMyRecipesPage = pathname.startsWith('/mina-recept')
+  // Check if we're on /alla-recept to scope the search
+  const isAllRecipesPage = pathname.startsWith('/alla-recept')
 
   // URL is the single source of truth
   const query = searchParams.get('q') || ''
 
   function getSearchUrl(term: string) {
-    if (isMyRecipesPage) {
-      return `/mina-recept/sok?q=${encodeURIComponent(term)}`
+    // When on /alla-recept, search should stay within that scope
+    if (isAllRecipesPage) {
+      return `/alla-recept/sok?q=${encodeURIComponent(term)}`
     }
     return `/sok?q=${encodeURIComponent(term)}`
   }
 
   function getEmptyUrl() {
-    return isMyRecipesPage ? '/mina-recept' : '/'
+    // When on /alla-recept, clear should go back to /alla-recept
+    return isAllRecipesPage ? '/alla-recept' : '/'
   }
 
   function handleSearch(term: string) {

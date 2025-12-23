@@ -19,24 +19,21 @@ export async function generateMetadata({
   const categoryName = decodeURIComponent(name)
 
   return {
-    title: `${categoryName} - Recept`,
+    title: `${categoryName} - Alla recept`,
     description: `Alla ${categoryName.toLowerCase()}-recept`,
   }
 }
 
-export default async function CategoryPage({ params }: CategoryPageProps) {
+export default async function AllRecipesCategoryPage({ params }: CategoryPageProps) {
   const { name } = await params
   const categoryName = decodeURIComponent(name)
 
   const session = await getSession()
   const isLoggedIn = !!session
 
-  // When logged in, show user's recipes. When not logged in, show all.
-  const ownerEmail = isLoggedIn ? session.email : undefined
-
+  // Show all recipes (no owner filter)
   const recipes = await getRecipes({
     category: categoryName,
-    owner: ownerEmail,
   })
 
   return (
@@ -44,7 +41,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       {/* Back Link */}
       <div>
         <Button variant="ghost" asChild className="gap-2">
-          <Link href="/">
+          <Link href="/alla-recept">
             <ArrowLeft className="h-4 w-4" />
             Tillbaka
           </Link>
@@ -61,11 +58,11 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
             {recipes.length > 1 && `${recipes.length} recept`}
           </p>
         </div>
-        <RecipeViewToggle isLoggedIn={isLoggedIn} categoryName={categoryName} />
+        <RecipeViewToggle isLoggedIn={isLoggedIn} categoryName={categoryName} showAll />
       </header>
 
       {/* Category Filter */}
-      <CategoryFilter activeCategory={categoryName} />
+      <CategoryFilter activeCategory={categoryName} basePath="/alla-recept" />
 
       {/* Recipe Grid */}
       <RecipeGrid recipes={recipes} />

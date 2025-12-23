@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { getRecipes } from '@/lib/api'
+import { getSession } from '@/lib/auth'
 import { RecipeGrid } from '@/components/recipe-grid'
+import { RecipeViewToggleSearch } from '@/components/recipe-view-toggle-search'
 
 interface SearchPageProps {
   searchParams: Promise<{ q?: string }>
@@ -13,7 +15,7 @@ export async function generateMetadata({
   const query = params.q || ''
 
   return {
-    title: query ? `Sök: ${query} - Recept` : 'Sök recept - Recept',
+    title: query ? `Sök: ${query} - Mina recept` : 'Sök recept',
     description: query
       ? `Sökresultat för "${query}"`
       : 'Sök efter dina favoritrecept',
@@ -23,23 +25,35 @@ export async function generateMetadata({
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const params = await searchParams
   const query = params.q || ''
-  const recipes = query ? await getRecipes({ search: query }) : []
+
+  const session = await getSession()
+  const isLoggedIn = !!session
+
+  // Search only user's recipes when logged in
+  const ownerEmail = isLoggedIn ? session.email : undefined
+
+  const recipes = query
+    ? await getRecipes({ search: query, owner: ownerEmail })
+    : []
 
   return (
     <div className="space-y-8">
       {/* Results with query */}
       {query && (
         <>
-          <div>
-            <h1 className="mb-2 text-3xl font-bold text-foreground">
-              Sökresultat för "{query}"
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              {recipes.length === 0 && 'Inga recept hittades'}
-              {recipes.length === 1 && '1 recept hittades'}
-              {recipes.length > 1 && `${recipes.length} recept hittades`}
-            </p>
-          </div>
+          <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h1 className="mb-2 text-3xl font-bold text-foreground">
+                Sökresultat för &quot;{query}&quot;
+              </h1>
+              <p className="text-lg text-muted-foreground">
+                {recipes.length === 0 && 'Inga recept hittades'}
+                {recipes.length === 1 && '1 recept hittades'}
+                {recipes.length > 1 && `${recipes.length} recept hittades`}
+              </p>
+            </div>
+            <RecipeViewToggleSearch isLoggedIn={isLoggedIn} />
+          </header>
 
           <RecipeGrid recipes={recipes} />
         </>

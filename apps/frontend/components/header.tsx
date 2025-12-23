@@ -58,14 +58,6 @@ export function Header() {
                   />
                   <div className="absolute right-0 top-12 z-50 w-48 rounded-md border border-border bg-popover p-1 shadow-md">
                     <Link
-                      href="/mina-recept"
-                      className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
-                      onClick={() => setUserMenuOpen(false)}
-                    >
-                      <ChefHat className="h-4 w-4" />
-                      Mina recept
-                    </Link>
-                    <Link
                       href="/recept/nytt"
                       className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
                       onClick={() => setUserMenuOpen(false)}
@@ -143,13 +135,6 @@ export function Header() {
 
               {user ? (
                 <>
-                  <Link
-                    href="/mina-recept"
-                    className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Mina recept
-                  </Link>
                   <Link
                     href="/recept/nytt"
                     className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
