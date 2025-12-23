@@ -208,6 +208,7 @@ export function RecipeDetail({ recipe }: RecipeDetailProps) {
             <InstructionsChecklist
               recipeId={recipe.id}
               instructions={recipe.instructions}
+              instructionGroups={recipe.instruction_groups}
             />
           ) : (
             <div className="overflow-hidden rounded-2xl bg-card shadow-[0_2px_12px_-2px_rgba(139,90,60,0.1)]">
