@@ -84,3 +84,23 @@ export const signupInputSchema = z.object({
 })
 
 export type SignupInputSchema = z.infer<typeof signupInputSchema>
+
+// Update profile schema
+export const updateProfileSchema = z.object({
+  name: z.string().min(1, 'Namn är obligatoriskt').trim(),
+})
+
+export type UpdateProfileSchema = z.infer<typeof updateProfileSchema>
+
+// Change password schema
+export const changePasswordSchema = z.object({
+  oldPassword: z.string().min(1, 'Nuvarande lösenord är obligatoriskt'),
+  newPassword: z
+    .string()
+    .min(8, 'Lösenordet måste vara minst 8 tecken')
+    .regex(/[A-Z]/, 'Lösenordet måste innehålla minst en versal')
+    .regex(/[a-z]/, 'Lösenordet måste innehålla minst en gemen')
+    .regex(/[0-9]/, 'Lösenordet måste innehålla minst en siffra'),
+})
+
+export type ChangePasswordSchema = z.infer<typeof changePasswordSchema>
