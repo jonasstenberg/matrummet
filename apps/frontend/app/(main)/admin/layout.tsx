@@ -12,6 +12,7 @@ const adminLinks = [
   { href: '/admin/kategorier', label: 'Kategorier' },
   { href: '/admin/matvaror', label: 'Matvaror' },
   { href: '/admin/enheter', label: 'Enheter' },
+  { href: '/admin/strukturera', label: 'Strukturera' },
 ]
 
 export default function AdminLayout({

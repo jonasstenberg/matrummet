@@ -35,7 +35,9 @@ create_backup() {
     echo "Creating database backup..."
     echo "  Backup file: $backup_file"
 
-    if pg_dump -d "$DB_NAME" --clean --if-exists > "$backup_file" 2>/dev/null; then
+    # Try sudo -u postgres first to bypass RLS policies, fall back to regular pg_dump
+    if sudo -n -u postgres pg_dump -d "$DB_NAME" --clean --if-exists > "$backup_file" 2>/dev/null || \
+       pg_dump -d "$DB_NAME" --clean --if-exists > "$backup_file" 2>/dev/null; then
         echo "  Backup created successfully."
         echo "$backup_file"
     else
