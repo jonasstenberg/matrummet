@@ -4,7 +4,7 @@ import { useAuth } from "@/components/auth-provider";
 import { SearchBar } from "@/components/search-bar";
 import { Button } from "@/components/ui/button";
 import { isAdmin } from "@/lib/is-admin";
-import { ChefHat, LogOut, Menu, Plus, Settings, User, X } from "lucide-react";
+import { ChefHat, LogOut, Menu, Settings, User, X } from "lucide-react";
 import Link from "next/link";
 import { Suspense, useState } from "react";
 
@@ -57,14 +57,6 @@ export function Header() {
                     onClick={() => setUserMenuOpen(false)}
                   />
                   <div className="absolute right-0 top-12 z-50 w-48 rounded-md border border-border bg-popover p-1 shadow-md">
-                    <Link
-                      href="/recept/nytt"
-                      className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
-                      onClick={() => setUserMenuOpen(false)}
-                    >
-                      <Plus className="h-4 w-4" />
-                      Nytt recept
-                    </Link>
                     {isAdmin(user) && (
                       <Link
                         href="/admin/kategorier"
@@ -135,13 +127,6 @@ export function Header() {
 
               {user ? (
                 <>
-                  <Link
-                    href="/recept/nytt"
-                    className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Nytt recept
-                  </Link>
                   {isAdmin(user) && (
                     <Link
                       href="/admin/kategorier"

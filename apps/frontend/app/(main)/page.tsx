@@ -2,8 +2,10 @@ import { CategoryFilter } from "@/components/category-filter";
 import { RecipeGrid } from "@/components/recipe-grid";
 import { RecipeGridSkeleton } from "@/components/recipe-grid-skeleton";
 import { RecipeViewToggle } from "@/components/recipe-view-toggle";
+import { Button } from "@/components/ui/button";
 import { getRecipes } from "@/lib/api";
 import { getSession } from "@/lib/auth";
+import Link from "next/link";
 import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
@@ -33,7 +35,14 @@ export default async function HomePage() {
           </h1>
           <p className="mt-2 text-lg text-muted-foreground">{subtitle}</p>
         </div>
-        <RecipeViewToggle isLoggedIn={isLoggedIn} />
+        <div className="flex items-center gap-2">
+          <RecipeViewToggle isLoggedIn={isLoggedIn} />
+          {isLoggedIn && (
+            <Button asChild variant="outline">
+              <Link href="/recept/nytt">Lägg till recept</Link>
+            </Button>
+          )}
+        </div>
       </header>
 
       {/* Category Filter */}
