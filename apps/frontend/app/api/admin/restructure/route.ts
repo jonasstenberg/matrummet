@@ -16,6 +16,12 @@ interface RecipeWithGroups {
     group_id: string | null
     sort_order: number
   }> | null
+  instructions: Array<{
+    id: string
+    step: string
+    group_id: string | null
+    sort_order: number
+  }> | null
 }
 
 /**
@@ -66,11 +72,12 @@ function extractGroupNames(recipe: RecipeWithGroups): string[] {
 
 /**
  * GET /api/admin/restructure
- * Lists recipes that need restructuring (have ingredient groups or # prefixed ingredients).
+ * Lists recipes for restructuring/instruction improvement.
  *
  * Query params:
  * - page: Page number (default 1)
  * - search: Search term for recipe name
+ * - mode: Filter mode - "all" shows all recipes, "ingredients" shows only those needing restructuring (default: "ingredients")
  */
 export async function GET(request: NextRequest) {
   try {
@@ -87,10 +94,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10))
     const search = searchParams.get("search") || ""
+    const mode = searchParams.get("mode") || "ingredients"
 
     // Fetch all recipes (we need to filter in code to check for # prefixed ingredients)
     const params = new URLSearchParams()
-    params.set("select", "id,name,ingredient_groups,ingredients")
+    params.set("select", "id,name,ingredient_groups,ingredients,instructions")
     params.set("order", "name.asc")
 
     if (search) {
@@ -111,8 +119,10 @@ export async function GET(request: NextRequest) {
 
     const allRecipes: RecipeWithGroups[] = await response.json()
 
-    // Filter to recipes that need restructuring
-    const recipesToRestructure = allRecipes.filter(needsRestructuring)
+    // Filter based on mode
+    const recipesToRestructure = mode === "all"
+      ? allRecipes
+      : allRecipes.filter(needsRestructuring)
 
     // Calculate pagination
     const total = recipesToRestructure.length
@@ -124,14 +134,17 @@ export async function GET(request: NextRequest) {
     const items = paginatedRecipes.map(r => {
       const groups = extractGroupNames(r)
       const hashPrefixedCount = r.ingredients?.filter(i => i.name.startsWith("#")).length || 0
+      const instructionCount = r.instructions?.length || 0
 
       return {
         id: r.id,
         name: r.name,
         groupCount: groups.length,
         ingredientCount: (r.ingredients?.length || 0) - hashPrefixedCount,
+        instructionCount,
         groups,
         hasLegacyFormat: hashPrefixedCount > 0,
+        hasInstructions: instructionCount > 0,
       }
     })
 

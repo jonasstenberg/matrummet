@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
 import {
   Dialog,
   DialogContent,
@@ -34,8 +36,10 @@ interface RecipeItem {
   name: string
   groupCount: number
   ingredientCount: number
+  instructionCount: number
   groups: string[]
   hasLegacyFormat?: boolean
+  hasInstructions?: boolean
 }
 
 interface PaginatedResponse {
@@ -64,6 +68,16 @@ interface RestructuredData {
   }>
 }
 
+interface InstructionGroup {
+  group_name: string
+  steps: string[]
+}
+
+interface ImprovedInstructionsData {
+  groups: InstructionGroup[]
+  ungrouped_steps: string[]
+}
+
 interface PreviewResponse {
   recipe: {
     id: string
@@ -79,9 +93,17 @@ interface PreviewResponse {
       group_id: string | null
       sort_order: number
     }> | null
+    instructions: Array<{
+      id: string
+      step: string
+      group_id: string | null
+      sort_order: number
+    }> | null
   }
-  restructured: RestructuredData
-  updateFormat: Array<{ group?: string; name?: string; measurement?: string; quantity?: string }>
+  restructured?: RestructuredData
+  updateFormat?: Array<{ group?: string; name?: string; measurement?: string; quantity?: string }>
+  improvedInstructions?: ImprovedInstructionsData
+  instructionsUpdateFormat?: Array<{ group?: string; step?: string }>
 }
 
 export default function AdminRestructurePage() {
@@ -109,12 +131,14 @@ export default function AdminRestructurePage() {
   const [selectedRecipe, setSelectedRecipe] = useState<RecipeItem | null>(null)
   const [applying, setApplying] = useState(false)
   const [customInstructions, setCustomInstructions] = useState('')
+  const [includeIngredients, setIncludeIngredients] = useState(true)
+  const [includeInstructions, setIncludeInstructions] = useState(false)
 
   useEffect(() => {
     if (!authLoading && user) {
       loadRecipes()
     }
-  }, [authLoading, user, page, search])
+  }, [authLoading, user, page, search, includeIngredients, includeInstructions])
 
   async function loadRecipes() {
     try {
@@ -124,6 +148,10 @@ export default function AdminRestructurePage() {
       const params = new URLSearchParams({ page: page.toString() })
       if (search) {
         params.set('search', search)
+      }
+      // Show all recipes when only instructions mode, otherwise filter to those needing restructuring
+      if (includeInstructions && !includeIngredients) {
+        params.set('mode', 'all')
       }
 
       const response = await fetch(`/api/admin/restructure?${params}`)
@@ -147,12 +175,15 @@ export default function AdminRestructurePage() {
     }
   }
 
-  async function handlePreview(recipe: RecipeItem, instructions?: string) {
+  async function handlePreview(recipe: RecipeItem, instructions?: string, ingFlag?: boolean, instrFlag?: boolean) {
     setSelectedRecipe(recipe)
     setPreviewDialogOpen(true)
     setPreviewLoading(true)
     setPreviewData(null)
     setError(null)
+
+    const shouldIncludeIngredients = ingFlag ?? includeIngredients
+    const shouldIncludeInstructions = instrFlag ?? includeInstructions
 
     try {
       const response = await fetch('/api/admin/restructure/preview', {
@@ -160,7 +191,9 @@ export default function AdminRestructurePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           recipeId: recipe.id,
-          instructions: instructions || customInstructions || undefined
+          instructions: instructions || customInstructions || undefined,
+          includeIngredients: shouldIncludeIngredients,
+          includeInstructions: shouldIncludeInstructions,
         }),
       })
 
@@ -191,7 +224,8 @@ export default function AdminRestructurePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           recipeId: previewData.recipe.id,
-          ingredients: previewData.updateFormat,
+          ...(previewData.updateFormat && { ingredients: previewData.updateFormat }),
+          ...(previewData.instructionsUpdateFormat && { instructions: previewData.instructionsUpdateFormat }),
         }),
       })
 
@@ -200,7 +234,11 @@ export default function AdminRestructurePage() {
         throw new Error(data.error || 'Kunde inte uppdatera receptet')
       }
 
-      setSuccess(`"${previewData.recipe.name}" har strukturerats om`)
+      const updatedParts: string[] = []
+      if (previewData.updateFormat) updatedParts.push('ingredienser')
+      if (previewData.instructionsUpdateFormat) updatedParts.push('instruktioner')
+
+      setSuccess(`"${previewData.recipe.name}" har uppdaterats (${updatedParts.join(' och ')})`)
       setPreviewDialogOpen(false)
       setPreviewData(null)
       setSelectedRecipe(null)
@@ -299,12 +337,43 @@ export default function AdminRestructurePage() {
     <>
       <header>
         <h1 className="text-4xl font-bold tracking-tight text-foreground">
-          Strukturera ingredienser
+          Strukturera recept
         </h1>
         <p className="mt-2 text-lg text-muted-foreground">
-          Använd AI för att organisera ingredienser under rätt grupper. Perfekt för recept migrerade från det gamla systemet.
+          Använd AI för att organisera ingredienser och förbättra/skapa instruktioner.
         </p>
       </header>
+
+      {/* Mode toggles */}
+      <Card className="p-4">
+        <div className="flex flex-wrap gap-6">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="includeIngredients"
+              checked={includeIngredients}
+              onCheckedChange={(checked) => setIncludeIngredients(checked === true)}
+            />
+            <Label htmlFor="includeIngredients" className="cursor-pointer">
+              Strukturera ingredienser
+            </Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="includeInstructions"
+              checked={includeInstructions}
+              onCheckedChange={(checked) => setIncludeInstructions(checked === true)}
+            />
+            <Label htmlFor="includeInstructions" className="cursor-pointer">
+              Förbättra/skapa instruktioner
+            </Label>
+          </div>
+        </div>
+        {!includeIngredients && !includeInstructions && (
+          <p className="mt-2 text-sm text-destructive">
+            Välj minst ett alternativ
+          </p>
+        )}
+      </Card>
 
       {error && (
         <Alert variant="destructive">
@@ -332,7 +401,11 @@ export default function AdminRestructurePage() {
       {/* Recipe list */}
       <Card className="p-4">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Recept med ingrediensgrupper</h2>
+          <h2 className="text-lg font-semibold">
+            {includeInstructions && !includeIngredients
+              ? 'Alla recept'
+              : 'Recept med ingrediensgrupper'}
+          </h2>
           {!loading && (
             <p className="text-sm text-muted-foreground">
               {total} {total === 1 ? 'recept' : 'recept'}
@@ -370,11 +443,16 @@ export default function AdminRestructurePage() {
                       >
                         <ExternalLink className="h-3 w-3" />
                       </Link>
-                      <Badge variant="secondary">
-                        {recipe.groupCount} {recipe.groupCount === 1 ? 'grupp' : 'grupper'}
-                      </Badge>
+                      {recipe.groupCount > 0 && (
+                        <Badge variant="secondary">
+                          {recipe.groupCount} {recipe.groupCount === 1 ? 'grupp' : 'grupper'}
+                        </Badge>
+                      )}
                       <Badge variant="outline">
                         {recipe.ingredientCount} ingredienser
+                      </Badge>
+                      <Badge variant={recipe.hasInstructions ? 'outline' : 'destructive'}>
+                        {recipe.instructionCount} instruktioner
                       </Badge>
                       {recipe.hasLegacyFormat && (
                         <Badge variant="destructive" className="text-xs">
@@ -397,9 +475,14 @@ export default function AdminRestructurePage() {
                     size="sm"
                     onClick={() => handlePreview(recipe)}
                     className="ml-4"
+                    disabled={!includeIngredients && !includeInstructions}
                   >
                     <Wand2 className="mr-2 h-4 w-4" />
-                    Strukturera
+                    {includeIngredients && includeInstructions
+                      ? 'Strukturera'
+                      : includeInstructions
+                      ? 'Förbättra instruktioner'
+                      : 'Strukturera ingredienser'}
                   </Button>
                 </div>
               ))}
@@ -476,90 +559,153 @@ export default function AdminRestructurePage() {
               <span className="ml-3 text-muted-foreground">Genererar förslag med AI...</span>
             </div>
           ) : previewData ? (
-            <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-4">
-              {/* Current structure */}
-              <div className="space-y-2">
-                <h3 className="font-semibold text-destructive">Nuvarande struktur</h3>
-                <div className="space-y-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4">
-                  {(() => {
-                    const { groups, ungrouped } = groupCurrentIngredients()
-                    return (
-                      <>
-                        {ungrouped.length > 0 && (
+            <div className="space-y-6">
+              {/* Ingredients preview */}
+              {previewData.restructured && (
+                <div>
+                  <h4 className="mb-3 text-sm font-medium text-muted-foreground uppercase tracking-wide">Ingredienser</h4>
+                  <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-4">
+                    {/* Current ingredients */}
+                    <div className="space-y-2">
+                      <h3 className="font-semibold text-destructive">Nuvarande</h3>
+                      <div className="space-y-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4 max-h-64 overflow-y-auto">
+                        {(() => {
+                          const { groups, ungrouped } = groupCurrentIngredients()
+                          return (
+                            <>
+                              {ungrouped.length > 0 && (
+                                <div>
+                                  <p className="text-xs font-medium text-muted-foreground">Utan grupp</p>
+                                  <ul className="mt-1 space-y-0.5">
+                                    {ungrouped.map((ing) => (
+                                      <li key={ing.id} className="text-sm">
+                                        {formatIngredient(ing)}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              {groups.map((group, i) => (
+                                <div key={i}>
+                                  <p className="text-xs font-medium text-muted-foreground">
+                                    {group.name}
+                                  </p>
+                                  <ul className="mt-1 space-y-0.5">
+                                    {group.ingredients.length === 0 ? (
+                                      <li className="text-sm italic text-muted-foreground">
+                                        (inga ingredienser)
+                                      </li>
+                                    ) : (
+                                      group.ingredients.map((ing) => (
+                                        <li key={ing.id} className="text-sm">
+                                          {formatIngredient(ing)}
+                                        </li>
+                                      ))
+                                    )}
+                                  </ul>
+                                </div>
+                              ))}
+                            </>
+                          )
+                        })()}
+                      </div>
+                    </div>
+
+                    {/* Arrow */}
+                    <div className="flex items-center justify-center self-center py-8">
+                      <ChevronRight className="h-8 w-8 text-muted-foreground" />
+                    </div>
+
+                    {/* Proposed ingredients */}
+                    <div className="space-y-2">
+                      <h3 className="font-semibold text-green-600">Föreslagen</h3>
+                      <div className="space-y-3 rounded-lg border border-green-300 bg-green-50 p-4 max-h-64 overflow-y-auto">
+                        {previewData.restructured.ungrouped_ingredients.length > 0 && (
                           <div>
                             <p className="text-xs font-medium text-muted-foreground">Utan grupp</p>
                             <ul className="mt-1 space-y-0.5">
-                              {ungrouped.map((ing) => (
-                                <li key={ing.id} className="text-sm">
+                              {previewData.restructured.ungrouped_ingredients.map((ing, i) => (
+                                <li key={i} className="text-sm">
                                   {formatIngredient(ing)}
                                 </li>
                               ))}
                             </ul>
                           </div>
                         )}
-                        {groups.map((group, i) => (
+                        {previewData.restructured.groups.map((group, i) => (
                           <div key={i}>
                             <p className="text-xs font-medium text-muted-foreground">
-                              {group.name}
+                              {group.group_name}
                             </p>
                             <ul className="mt-1 space-y-0.5">
-                              {group.ingredients.length === 0 ? (
-                                <li className="text-sm italic text-muted-foreground">
-                                  (inga ingredienser)
+                              {group.ingredients.map((ing, j) => (
+                                <li key={j} className="text-sm">
+                                  {formatIngredient(ing)}
                                 </li>
-                              ) : (
-                                group.ingredients.map((ing) => (
-                                  <li key={ing.id} className="text-sm">
-                                    {formatIngredient(ing)}
-                                  </li>
-                                ))
-                              )}
+                              ))}
                             </ul>
                           </div>
                         ))}
-                      </>
-                    )
-                  })()}
-                </div>
-              </div>
-
-              {/* Arrow */}
-              <div className="flex items-center justify-center self-center py-8">
-                <ChevronRight className="h-8 w-8 text-muted-foreground" />
-              </div>
-
-              {/* Proposed structure */}
-              <div className="space-y-2">
-                <h3 className="font-semibold text-green-600">Föreslagen struktur</h3>
-                <div className="space-y-3 rounded-lg border border-green-300 bg-green-50 p-4">
-                  {previewData.restructured.ungrouped_ingredients.length > 0 && (
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground">Utan grupp</p>
-                      <ul className="mt-1 space-y-0.5">
-                        {previewData.restructured.ungrouped_ingredients.map((ing, i) => (
-                          <li key={i} className="text-sm">
-                            {formatIngredient(ing)}
-                          </li>
-                        ))}
-                      </ul>
+                      </div>
                     </div>
-                  )}
-                  {previewData.restructured.groups.map((group, i) => (
-                    <div key={i}>
-                      <p className="text-xs font-medium text-muted-foreground">
-                        {group.group_name}
-                      </p>
-                      <ul className="mt-1 space-y-0.5">
-                        {group.ingredients.map((ing, j) => (
-                          <li key={j} className="text-sm">
-                            {formatIngredient(ing)}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* Instructions preview */}
+              {previewData.improvedInstructions && (
+                <div>
+                  <h4 className="mb-3 text-sm font-medium text-muted-foreground uppercase tracking-wide">Instruktioner</h4>
+                  <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-4">
+                    {/* Current instructions */}
+                    <div className="space-y-2">
+                      <h3 className="font-semibold text-destructive">Nuvarande</h3>
+                      <div className="space-y-2 rounded-lg border border-destructive/30 bg-destructive/5 p-4 max-h-64 overflow-y-auto">
+                        {previewData.current.instructions && previewData.current.instructions.length > 0 ? (
+                          <ol className="list-decimal list-inside space-y-1">
+                            {previewData.current.instructions.map((instr, i) => (
+                              <li key={i} className="text-sm">{instr.step}</li>
+                            ))}
+                          </ol>
+                        ) : (
+                          <p className="text-sm italic text-muted-foreground">Inga instruktioner</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Arrow */}
+                    <div className="flex items-center justify-center self-center py-8">
+                      <ChevronRight className="h-8 w-8 text-muted-foreground" />
+                    </div>
+
+                    {/* Proposed instructions */}
+                    <div className="space-y-2">
+                      <h3 className="font-semibold text-green-600">Föreslagen</h3>
+                      <div className="space-y-3 rounded-lg border border-green-300 bg-green-50 p-4 max-h-64 overflow-y-auto">
+                        {previewData.improvedInstructions.ungrouped_steps.length > 0 && (
+                          <ol className="list-decimal list-inside space-y-1">
+                            {previewData.improvedInstructions.ungrouped_steps.map((step, i) => (
+                              <li key={i} className="text-sm">{step}</li>
+                            ))}
+                          </ol>
+                        )}
+                        {previewData.improvedInstructions.groups.map((group, i) => (
+                          <div key={i}>
+                            <p className="text-xs font-medium text-muted-foreground">
+                              {group.group_name}
+                            </p>
+                            <ol className="mt-1 list-decimal list-inside space-y-1">
+                              {group.steps.map((step, j) => (
+                                <li key={j} className="text-sm">{step}</li>
+                              ))}
+                            </ol>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ) : null}
 

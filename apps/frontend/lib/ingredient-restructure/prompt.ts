@@ -1,5 +1,5 @@
 import type { Ingredient, IngredientGroup, Instruction } from "@/lib/types"
-import type { RestructuredIngredients } from "./types"
+import type { RestructuredIngredients, ImprovedInstructions } from "./types"
 
 /**
  * Builds a system instruction for Gemini to restructure messy ingredients.
@@ -208,4 +208,183 @@ export function convertToUpdateFormat(
 
   // Return ungrouped first, then grouped
   return [...ungrouped, ...result]
+}
+
+/**
+ * Builds a system instruction for Gemini to improve/create recipe instructions.
+ */
+export function buildInstructionsSystemInstruction(): string {
+  return `Du är en expert på svenska recept och matlagning.
+
+Din uppgift är att skapa eller förbättra tillagningsinstruktioner för recept.
+
+DINA INSTRUKTIONER:
+1. Analysera receptnamnet, ingredienserna och eventuella befintliga instruktioner
+2. Skapa tydliga, steg-för-steg instruktioner som är lätta att följa
+3. Använd korta, koncisa meningar i imperativ form (t.ex. "Skär löken i tärningar")
+4. Inkludera relevanta tillagningstemperaturer och tider där det är lämpligt
+5. Se till att alla ingredienser används i instruktionerna
+6. Följ en logisk ordning: förberedelser → tillagning → servering
+
+RIKTLINJER FÖR BRA INSTRUKTIONER:
+- Börja med förberedelser (skära, hacka, marinera)
+- Fortsätt med tillagning i rätt ordning
+- Avsluta med servering eller garnering om relevant
+- Ange specifika tider (t.ex. "stek i 5-7 minuter")
+- Ange temperaturer där det behövs (t.ex. "värm ugnen till 200°C")
+- Använd svenska matlagningstermer
+
+GRUPPERING:
+- För enkla recept: lägg alla steg i "ungrouped_steps"
+- För komplexa recept: använd grupper som "Förberedelser", "Sås", "Tillagning", "Servering"
+- Matcha grupper med ingrediensgrupper om möjligt (t.ex. om ingredienserna har "Potatispuré" som grupp)
+
+EXEMPEL PÅ BRA INSTRUKTIONER:
+- "Värm ugnen till 200°C."
+- "Skär potatisen i 2 cm stora bitar."
+- "Stek löken i smör på medelvärme i 5 minuter tills den mjuknat."
+- "Rör ner grädden och låt såsen sjuda i 10 minuter."
+- "Servera med fräsch persilja på toppen."`
+}
+
+/**
+ * Formats recipe data for instruction improvement prompt.
+ */
+export function formatRecipeForInstructionsPrompt(
+  recipeName: string,
+  description: string | null,
+  ingredients: Ingredient[],
+  ingredientGroups: IngredientGroup[],
+  currentInstructions: Instruction[]
+): string {
+  const lines: string[] = []
+
+  lines.push(`RECEPTNAMN: ${recipeName}`)
+
+  if (description && description !== "-") {
+    lines.push(`BESKRIVNING: ${description}`)
+  }
+  lines.push("")
+
+  // Add ingredients with their groups
+  lines.push("INGREDIENSER:")
+  const groupMap = new Map(ingredientGroups.map(g => [g.id, g.name]))
+
+  // Group ingredients by group_id for display
+  const grouped = new Map<string | null, Ingredient[]>()
+  for (const ing of ingredients) {
+    if (ing.name.startsWith("#")) continue // Skip legacy group headers
+    const key = ing.group_id || null
+    if (!grouped.has(key)) {
+      grouped.set(key, [])
+    }
+    grouped.get(key)!.push(ing)
+  }
+
+  // Show ungrouped first
+  const ungrouped = grouped.get(null) || []
+  if (ungrouped.length > 0) {
+    for (const ing of ungrouped) {
+      const display = [ing.quantity, ing.measurement, ing.name].filter(Boolean).join(" ")
+      lines.push(`  - ${display}`)
+    }
+  }
+
+  // Show grouped ingredients
+  for (const group of ingredientGroups.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))) {
+    if (!group.id) continue
+    const ings = grouped.get(group.id) || []
+    if (ings.length > 0) {
+      lines.push(`  [${group.name}]`)
+      for (const ing of ings) {
+        const display = [ing.quantity, ing.measurement, ing.name].filter(Boolean).join(" ")
+        lines.push(`    - ${display}`)
+      }
+    }
+  }
+  lines.push("")
+
+  // Add current instructions if any
+  if (currentInstructions.length > 0) {
+    lines.push("BEFINTLIGA INSTRUKTIONER (kan vara ofullständiga eller dåliga):")
+    currentInstructions.forEach((instr, i) => {
+      lines.push(`  ${i + 1}. ${instr.step}`)
+    })
+  } else {
+    lines.push("BEFINTLIGA INSTRUKTIONER: Inga (skapa nya från grunden)")
+  }
+
+  return lines.join("\n")
+}
+
+/**
+ * Validates and converts the LLM response for instructions to a structured format.
+ */
+export function validateImprovedInstructions(data: unknown): ImprovedInstructions {
+  if (!data || typeof data !== "object") {
+    throw new Error("Invalid response: Expected JSON object")
+  }
+
+  const result = data as Record<string, unknown>
+
+  if (!Array.isArray(result.groups)) {
+    throw new Error("Invalid response: groups must be an array")
+  }
+
+  if (!Array.isArray(result.ungrouped_steps)) {
+    throw new Error("Invalid response: ungrouped_steps must be an array")
+  }
+
+  // Validate groups
+  for (const group of result.groups) {
+    if (!group || typeof group !== "object") {
+      throw new Error("Invalid instruction group: must be an object")
+    }
+    const g = group as Record<string, unknown>
+    if (!g.group_name || typeof g.group_name !== "string") {
+      throw new Error("Invalid instruction group: group_name is required")
+    }
+    if (!Array.isArray(g.steps)) {
+      throw new Error(`Invalid instruction group "${g.group_name}": steps must be an array`)
+    }
+    for (const step of g.steps) {
+      if (typeof step !== "string") {
+        throw new Error(`Invalid step in group "${g.group_name}": must be a string`)
+      }
+    }
+  }
+
+  // Validate ungrouped steps
+  for (const step of result.ungrouped_steps) {
+    if (typeof step !== "string") {
+      throw new Error("Invalid ungrouped step: must be a string")
+    }
+  }
+
+  return result as unknown as ImprovedInstructions
+}
+
+/**
+ * Converts improved instructions to the format used by update_recipe.
+ * Returns an array that can be passed directly to p_instructions.
+ */
+export function convertInstructionsToUpdateFormat(
+  improved: ImprovedInstructions
+): Array<{ group: string } | { step: string }> {
+  const result: Array<{ group: string } | { step: string }> = []
+
+  // First, add ungrouped steps
+  for (const step of improved.ungrouped_steps) {
+    result.push({ step })
+  }
+
+  // Then add grouped steps
+  for (const group of improved.groups) {
+    result.push({ group: group.group_name })
+    for (const step of group.steps) {
+      result.push({ step })
+    }
+  }
+
+  return result
 }

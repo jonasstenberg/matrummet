@@ -97,11 +97,12 @@ async function matchIngredientsToDatabase(
 
 /**
  * POST /api/admin/restructure/apply
- * Applies the restructured ingredients to a recipe.
+ * Applies the restructured ingredients and/or improved instructions to a recipe.
  *
  * Body:
  * - recipeId: The recipe ID to update
- * - ingredients: Array of ingredient objects (with group markers)
+ * - ingredients: Optional array of ingredient objects (with group markers)
+ * - instructions: Optional array of instruction objects (with group markers)
  */
 export async function POST(request: NextRequest) {
   try {
@@ -116,7 +117,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { recipeId, ingredients } = body
+    const { recipeId, ingredients, instructions } = body
 
     if (!recipeId || typeof recipeId !== "string") {
       return NextResponse.json(
@@ -125,9 +126,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!Array.isArray(ingredients) || ingredients.length === 0) {
+    const hasIngredients = Array.isArray(ingredients) && ingredients.length > 0
+    const hasInstructions = Array.isArray(instructions) && instructions.length > 0
+
+    if (!hasIngredients && !hasInstructions) {
       return NextResponse.json(
-        { error: "ingredients array is required and must not be empty" },
+        { error: "At least one of ingredients or instructions must be provided" },
         { status: 400 }
       )
     }
@@ -155,13 +159,24 @@ export async function POST(request: NextRequest) {
 
     const recipe = recipes[0]
 
-    // Match ingredients to foods and units
-    const matchedIngredients = await matchIngredientsToDatabase(ingredients)
+    // Match ingredients to foods and units (if provided)
+    const matchedIngredients = hasIngredients
+      ? await matchIngredientsToDatabase(ingredients)
+      : recipe.ingredients?.map((i: { name: string; measurement: string; quantity: string; group_id?: string }) => ({
+          name: i.name,
+          measurement: i.measurement || "",
+          quantity: i.quantity || "",
+        })) || []
 
     // Create PostgREST token for the admin user
     const token = await signPostgrestToken(session.email)
 
-    // Call update_recipe with only the ingredients changed
+    // Build instructions array - use provided or keep existing
+    const finalInstructions = hasInstructions
+      ? instructions
+      : recipe.instructions?.map((i: { step: string }) => ({ step: i.step })) || []
+
+    // Call update_recipe with the updated data
     const payload = {
       p_recipe_id: recipeId,
       p_name: recipe.name,
@@ -177,7 +192,7 @@ export async function POST(request: NextRequest) {
       p_thumbnail: recipe.thumbnail,
       p_categories: recipe.categories || [],
       p_ingredients: matchedIngredients,
-      p_instructions: recipe.instructions?.map((i: { step: string }) => ({ step: i.step })) || [],
+      p_instructions: finalInstructions,
     }
 
     const updateResponse = await fetch(`${POSTGREST_URL}/rpc/update_recipe`, {
@@ -203,10 +218,16 @@ export async function POST(request: NextRequest) {
     revalidatePath('/recept')
     revalidatePath('/')
 
+    // Build success message
+    const updatedParts: string[] = []
+    if (hasIngredients) updatedParts.push("ingredients")
+    if (hasInstructions) updatedParts.push("instructions")
+
     return NextResponse.json({
       success: true,
-      message: "Recipe ingredients restructured successfully",
-      matchedIngredients,
+      message: `Recipe ${updatedParts.join(" and ")} updated successfully`,
+      ...(hasIngredients && { matchedIngredients }),
+      ...(hasInstructions && { updatedInstructions: finalInstructions }),
     })
   } catch (error) {
     console.error("Apply restructure error:", error)
