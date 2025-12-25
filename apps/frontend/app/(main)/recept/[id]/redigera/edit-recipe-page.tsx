@@ -41,7 +41,7 @@ export function EditRecipePage({ recipe }: EditRecipePageProps) {
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="text-4xl font-bold tracking-tight text-foreground">
+        <h1 className="font-heading text-4xl font-bold tracking-tight text-foreground">
           Redigera recept
         </h1>
       </header>

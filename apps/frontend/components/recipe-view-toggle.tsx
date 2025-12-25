@@ -30,14 +30,14 @@ export function RecipeViewToggle({
     : "/alla-recept";
 
   return (
-    <div className={cn("flex gap-2", className)}>
+    <nav className={cn("flex gap-6 border-b border-border", className)}>
       <Link
         href={mineUrl}
         className={cn(
-          "rounded-full px-4 py-2 text-sm font-medium transition-colors",
+          "relative pb-3 text-sm font-medium transition-colors",
           !showAll
-            ? "bg-primary text-primary-foreground"
-            : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            ? "text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-warm"
+            : "text-muted-foreground hover:text-foreground"
         )}
       >
         Mina recept
@@ -45,14 +45,14 @@ export function RecipeViewToggle({
       <Link
         href={allUrl}
         className={cn(
-          "rounded-full px-4 py-2 text-sm font-medium transition-colors",
+          "relative pb-3 text-sm font-medium transition-colors",
           showAll
-            ? "bg-primary text-primary-foreground"
-            : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            ? "text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-warm"
+            : "text-muted-foreground hover:text-foreground"
         )}
       >
         Alla recept
       </Link>
-    </div>
+    </nav>
   );
 }

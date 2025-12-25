@@ -19,10 +19,15 @@ export function Header() {
         {/* Logo */}
         <Link
           href="/"
-          className="flex items-center gap-2 text-xl font-bold text-primary"
+          className="flex items-center gap-3"
         >
-          <ChefHat className="h-6 w-6" />
-          <h1>Stenberg&apos;s Recept</h1>
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-warm">
+            <ChefHat className="h-5 w-5 text-warm-foreground" />
+          </div>
+          <div className="flex flex-col">
+            <span className="font-heading text-xl font-semibold text-foreground">Stenberg&apos;s</span>
+            <span className="text-xs font-medium tracking-[0.2em] text-warm">RECEPT</span>
+          </div>
         </Link>
 
         {/* Desktop Navigation */}

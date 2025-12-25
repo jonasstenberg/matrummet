@@ -27,23 +27,24 @@ export default async function HomePage() {
     : "Utforska och upptäck recept";
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      {/* Page Header */}
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight text-foreground">
+          <h1 className="font-heading text-4xl font-bold tracking-tight text-foreground">
             {title}
           </h1>
           <p className="mt-2 text-lg text-muted-foreground">{subtitle}</p>
         </div>
-        <div className="flex items-center gap-2">
-          <RecipeViewToggle isLoggedIn={isLoggedIn} />
-          {isLoggedIn && (
-            <Button asChild variant="outline">
-              <Link href="/recept/nytt">Lägg till recept</Link>
-            </Button>
-          )}
-        </div>
+        {isLoggedIn && (
+          <Button asChild className="bg-warm text-warm-foreground hover:bg-warm/90 shrink-0">
+            <Link href="/recept/nytt">Lägg till recept</Link>
+          </Button>
+        )}
       </header>
+
+      {/* View Toggle Tabs */}
+      <RecipeViewToggle isLoggedIn={isLoggedIn} />
 
       {/* Category Filter */}
       <Suspense fallback={<div className="h-10" />}>

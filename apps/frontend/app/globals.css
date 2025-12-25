@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
 @theme {
+  /* Font families */
+  --font-heading: "Playfair Display", "Playfair Display Fallback", ui-serif, Georgia, serif;
+
   /* Warm color palette for Recept - vibrant edition */
   --color-background: #F5F3F0;
   --color-foreground: #1a1a1a;
@@ -22,6 +25,9 @@
 
   --color-accent: #e8b44a;
   --color-accent-foreground: #1a1a1a;
+
+  --color-warm: #c9a77a;
+  --color-warm-foreground: #ffffff;
 
   --color-destructive: #c93a3a;
   --color-destructive-foreground: #ffffff;

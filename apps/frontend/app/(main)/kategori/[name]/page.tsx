@@ -40,7 +40,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   })
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Back Link */}
       <div>
         <Button variant="ghost" asChild className="gap-2">
@@ -52,17 +52,17 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       </div>
 
       {/* Category Header */}
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">{categoryName}</h1>
-          <p className="mt-2 text-muted-foreground">
-            {recipes.length === 0 && 'Inga recept i denna kategori'}
-            {recipes.length === 1 && '1 recept'}
-            {recipes.length > 1 && `${recipes.length} recept`}
-          </p>
-        </div>
-        <RecipeViewToggle isLoggedIn={isLoggedIn} categoryName={categoryName} />
+      <header>
+        <h1 className="font-heading text-3xl font-bold text-foreground">{categoryName}</h1>
+        <p className="mt-2 text-muted-foreground">
+          {recipes.length === 0 && 'Inga recept i denna kategori'}
+          {recipes.length === 1 && '1 recept'}
+          {recipes.length > 1 && `${recipes.length} recept`}
+        </p>
       </header>
+
+      {/* View Toggle Tabs */}
+      <RecipeViewToggle isLoggedIn={isLoggedIn} categoryName={categoryName} />
 
       {/* Category Filter */}
       <CategoryFilter activeCategory={categoryName} />
