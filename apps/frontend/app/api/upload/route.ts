@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { writeFile } from 'fs/promises'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
+import sharp from 'sharp'
 import { getSession } from '@/lib/auth'
 import { getDataFilesDir } from '@/lib/paths'
+
+const MAX_DIMENSION = 1920
+const WEBP_QUALITY = 85
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,17 +40,24 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Generate unique filename
-    const ext = file.name.split('.').pop() || 'webp'
-    const filename = `${randomUUID()}.${ext}`
-
-    // Get the data directory path
+    // Generate unique filename (always save as webp for optimization)
+    const filename = `${randomUUID()}.webp`
     const filepath = join(getDataFilesDir(), filename)
 
-    // Convert file to buffer and save
+    // Convert file to buffer and optimize with sharp
     const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-    await writeFile(filepath, buffer)
+    const inputBuffer = Buffer.from(bytes)
+
+    // Resize if larger than max dimension, convert to webp
+    const optimizedBuffer = await sharp(inputBuffer)
+      .resize(MAX_DIMENSION, MAX_DIMENSION, {
+        fit: 'inside',
+        withoutEnlargement: true,
+      })
+      .webp({ quality: WEBP_QUALITY })
+      .toBuffer()
+
+    await writeFile(filepath, optimizedBuffer)
 
     return NextResponse.json({ filename })
   } catch (error) {

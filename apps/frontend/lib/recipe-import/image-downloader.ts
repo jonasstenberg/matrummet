@@ -1,9 +1,13 @@
 import { writeFile } from 'fs/promises'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
+import sharp from 'sharp'
 import { getDataFilesDir } from '@/lib/paths'
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024 // 5MB
+const MAX_DIMENSION = 1920
+const WEBP_QUALITY = 85
+
 const ALLOWED_CONTENT_TYPES = [
   'image/jpeg',
   'image/png',
@@ -12,14 +16,6 @@ const ALLOWED_CONTENT_TYPES = [
   'image/gif',
 ]
 
-const CONTENT_TYPE_TO_EXT: Record<string, string> = {
-  'image/jpeg': 'jpg',
-  'image/png': 'png',
-  'image/webp': 'webp',
-  'image/avif': 'avif',
-  'image/gif': 'gif',
-}
-
 export interface DownloadResult {
   success: boolean
   filename?: string
@@ -27,7 +23,7 @@ export interface DownloadResult {
 }
 
 /**
- * Download an image from a URL and save it locally.
+ * Download an image from a URL, optimize it, and save locally as webp.
  * Returns the local filename on success.
  */
 export async function downloadImage(imageUrl: string): Promise<DownloadResult> {
@@ -83,13 +79,20 @@ export async function downloadImage(imageUrl: string): Promise<DownloadResult> {
       }
     }
 
-    // Generate filename with appropriate extension
-    const ext = CONTENT_TYPE_TO_EXT[contentType] || 'jpg'
-    const filename = `${randomUUID()}.${ext}`
-
-    // Save to data directory
+    // Always save as webp for optimization
+    const filename = `${randomUUID()}.webp`
     const filepath = join(getDataFilesDir(), filename)
-    await writeFile(filepath, buffer)
+
+    // Resize if larger than max dimension, convert to webp
+    const optimizedBuffer = await sharp(buffer)
+      .resize(MAX_DIMENSION, MAX_DIMENSION, {
+        fit: 'inside',
+        withoutEnlargement: true,
+      })
+      .webp({ quality: WEBP_QUALITY })
+      .toBuffer()
+
+    await writeFile(filepath, optimizedBuffer)
 
     return { success: true, filename }
   } catch (error) {
