@@ -3,6 +3,7 @@
 import type { Recipe } from "@/lib/types";
 import { getImageUrl } from "@/lib/utils";
 import { Calendar, ChefHat, Clock, Users, UtensilsCrossed } from "lucide-react";
+import Image from "next/image";
 import { useState } from "react";
 import { IngredientsList } from "./ingredients-list";
 import { InstructionsChecklist } from "./instructions-checklist";
@@ -150,12 +151,13 @@ export function RecipeDetail({ recipe }: RecipeDetailProps) {
 
         {/* Right: Image */}
         <div className="order-1 md:order-2">
-          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl shadow-[0_4px_20px_-4px_rgba(139,90,60,0.15)]">
+          <div className="relative aspect-4/3 w-full overflow-hidden rounded-2xl shadow-[0_4px_20px_-4px_rgba(139,90,60,0.15)]">
             {hasImage && imageUrl ? (
-              <img
+              <Image
                 src={imageUrl}
                 alt={recipe.name}
-                className="absolute inset-0 h-full w-full object-cover"
+                fill
+                className="object-cover"
               />
             ) : (
               <PlaceholderImage />
