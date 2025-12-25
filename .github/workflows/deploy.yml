@@ -7,8 +7,8 @@ on:
   workflow_dispatch:
 
 env:
-  NODE_VERSION: '22'
-  PNPM_VERSION: '10'
+  NODE_VERSION: "22"
+  PNPM_VERSION: "10"
 
 jobs:
   build-and-deploy:
@@ -27,7 +27,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
+          cache: "pnpm"
           cache-dependency-path: apps/frontend/pnpm-lock.yaml
 
       - name: Install dependencies
@@ -44,6 +44,7 @@ jobs:
           cp -r apps/frontend/.next/standalone/. deploy/
           cp -r apps/frontend/.next/static deploy/.next/static
           cp -r apps/frontend/public deploy/public
+          cp -r apps/frontend/scripts deploy/scripts
 
       - name: Setup SSH
         run: |

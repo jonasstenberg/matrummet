@@ -22,7 +22,7 @@
  *   npx tsx scripts/optimize-existing-images.ts /opt/recept/public/uploads
  */
 
-import { readdir, stat, unlink } from 'fs/promises'
+import { readdir, stat, unlink, rename } from 'fs/promises'
 import { join, extname, basename, isAbsolute } from 'path'
 import sharp from 'sharp'
 
@@ -141,19 +141,26 @@ async function optimizeImage(
     // Convert to WebP
     pipeline = pipeline.webp({ quality: WEBP_QUALITY })
 
+    // If input and output are the same file, write to temp file first
+    const isSameFile = filePath === newPath
+    const tempPath = isSameFile ? `${newPath}.tmp` : newPath
+
     // Save the optimized image
-    await pipeline.toFile(newPath)
+    await pipeline.toFile(tempPath)
+
+    // If we wrote to a temp file, rename it to the final path
+    if (isSameFile) {
+      await unlink(filePath)
+      await rename(tempPath, newPath)
+      action = 'optimized'
+    } else {
+      // Delete original if it's a different format
+      await unlink(filePath)
+      action = 'converted'
+    }
 
     // Verify the new file was created successfully
     const newStats = await stat(newPath)
-
-    // Delete original if it's a different format
-    if (ext !== '.webp' && filePath !== newPath) {
-      await unlink(filePath)
-      action = 'converted'
-    } else {
-      action = 'optimized'
-    }
 
     const savings = originalStats.size - newStats.size
     const savingsPercent = (savings / originalStats.size) * 100
