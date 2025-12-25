@@ -98,6 +98,56 @@ async function matchIngredientsToDatabase(
   return matched;
 }
 
+/**
+ * Flatten grouped ingredients from Gemini parser into flat array with group markers
+ * for the PostgREST insert_recipe function
+ */
+function flattenIngredientGroups(
+  recipe: ParsedRecipe
+): Array<{ name: string; measurement: string; quantity: string } | { group: string }> {
+  const result: Array<{ name: string; measurement: string; quantity: string } | { group: string }> = [];
+
+  for (const group of recipe.ingredient_groups || []) {
+    // Only add group marker if there's a non-empty group name
+    if (group.group_name) {
+      result.push({ group: group.group_name });
+    }
+
+    for (const ing of group.ingredients) {
+      result.push({
+        name: ing.name,
+        measurement: ing.measurement,
+        quantity: ing.quantity,
+      });
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Flatten grouped instructions from Gemini parser into flat array with group markers
+ * for the PostgREST insert_recipe function
+ */
+function flattenInstructionGroups(
+  recipe: ParsedRecipe
+): Array<{ step: string } | { group: string }> {
+  const result: Array<{ step: string } | { group: string }> = [];
+
+  for (const group of recipe.instruction_groups || []) {
+    // Only add group marker if there's a non-empty group name
+    if (group.group_name) {
+      result.push({ group: group.group_name });
+    }
+
+    for (const inst of group.instructions) {
+      result.push({ step: inst.step });
+    }
+  }
+
+  return result;
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Validate API key
@@ -191,10 +241,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Match ingredients to database
-    const matchedIngredients = await matchIngredientsToDatabase(
-      recipe.ingredients
+    // Flatten grouped format to flat arrays for the database
+    const flatIngredients = flattenIngredientGroups(recipe);
+    const flatInstructions = flattenInstructionGroups(recipe);
+
+    // Get only the actual ingredients (not group markers) for database matching
+    const ingredientsOnly = flatIngredients.filter(
+      (item): item is { name: string; measurement: string; quantity: string } =>
+        "name" in item
     );
+
+    // Match ingredients to database
+    const matchedIngredients = await matchIngredientsToDatabase(ingredientsOnly);
+
+    // Rebuild flat array with matched ingredients (preserving group markers)
+    let matchedIndex = 0;
+    const finalIngredients = flatIngredients.map((item) => {
+      if ("group" in item) {
+        return item;
+      }
+      return matchedIngredients[matchedIndex++];
+    });
 
     // Create PostgREST token for the import email
     const token = await signPostgrestToken(importEmail);
@@ -213,8 +280,8 @@ export async function POST(request: NextRequest) {
       p_image: null,
       p_thumbnail: null,
       p_categories: recipe.categories || [],
-      p_ingredients: matchedIngredients,
-      p_instructions: recipe.instructions,
+      p_ingredients: finalIngredients,
+      p_instructions: flatInstructions,
     };
 
     const saveResponse = await fetch(`${POSTGREST_URL}/rpc/insert_recipe`, {
@@ -242,7 +309,8 @@ export async function POST(request: NextRequest) {
       id: recipeId,
       recipe: {
         ...recipe,
-        ingredients: matchedIngredients,
+        ingredients: finalIngredients,
+        instructions: flatInstructions,
       },
     });
   } catch (error) {

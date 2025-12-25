@@ -25,11 +25,16 @@ const JSON_EXAMPLE = `{
   "cuisine": "Italienskt",
   "categories": ["Huvudrätt", "Pasta"],
   "ingredients": [
+    {"group": "Pasta"},
     {"name": "spaghetti", "measurement": "g", "quantity": "400"},
-    {"name": "guanciale", "measurement": "g", "quantity": "200"}
+    {"group": "Sås"},
+    {"name": "guanciale", "measurement": "g", "quantity": "200"},
+    {"name": "äggula", "measurement": "st", "quantity": "4"}
   ],
   "instructions": [
+    {"group": "Förberedelse"},
     {"step": "Koka pastan enligt förpackningen."},
+    {"group": "Sås"},
     {"step": "Stek guancialen tills den är krispig."}
   ]
 }`
@@ -119,20 +124,32 @@ export function RecipeParser({ onParse }: RecipeParserProps) {
         throw new Error('instructions saknas eller är tom')
       }
 
-      // Validate ingredients structure
+      // Validate ingredients structure (supports both group markers and regular ingredients)
       for (const ing of parsed.ingredients) {
-        if (!ing.name) {
-          throw new Error('Ingrediens saknar name')
-        }
-        // measurement and quantity can be empty strings (e.g., "efter smak")
-        if (typeof ing.measurement !== 'string' || typeof ing.quantity !== 'string') {
-          throw new Error(`Ingrediens "${ing.name}" saknar measurement eller quantity`)
+        if ('group' in ing) {
+          // Group marker - just needs a group name
+          if (typeof ing.group !== 'string') {
+            throw new Error('Ingrediensgrupp saknar namn')
+          }
+        } else {
+          if (!ing.name) {
+            throw new Error('Ingrediens saknar name')
+          }
+          // measurement and quantity can be empty strings (e.g., "efter smak")
+          if (typeof ing.measurement !== 'string' || typeof ing.quantity !== 'string') {
+            throw new Error(`Ingrediens "${ing.name}" saknar measurement eller quantity`)
+          }
         }
       }
 
-      // Validate instructions structure
+      // Validate instructions structure (supports both group markers and regular instructions)
       for (const inst of parsed.instructions) {
-        if (!inst.step) {
+        if ('group' in inst) {
+          // Group marker - just needs a group name
+          if (typeof inst.group !== 'string') {
+            throw new Error('Instruktionsgrupp saknar namn')
+          }
+        } else if (!inst.step) {
           throw new Error('Instruktion saknar step')
         }
       }

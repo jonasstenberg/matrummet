@@ -1,3 +1,13 @@
+export interface ParsedIngredientGroup {
+  group_name: string
+  ingredients: Array<{ name: string; measurement: string; quantity: string }>
+}
+
+export interface ParsedInstructionGroup {
+  group_name: string
+  instructions: Array<{ step: string }>
+}
+
 export interface ParsedRecipe {
   recipe_name: string
   description: string
@@ -8,14 +18,14 @@ export interface ParsedRecipe {
   cook_time?: number | null
   cuisine?: string | null
   categories?: string[]
-  ingredients: Array<{ name: string; measurement: string; quantity: string }>
-  instructions: Array<{ step: string }>
+  ingredient_groups?: ParsedIngredientGroup[]
+  instruction_groups?: ParsedInstructionGroup[]
 }
 
 // JSON Schema for Gemini structured output
 export const RECIPE_SCHEMA = {
   type: "object",
-  required: ["recipe_name", "description", "ingredients", "instructions"],
+  required: ["recipe_name", "description", "ingredient_groups", "instruction_groups"],
   properties: {
     recipe_name: {
       type: "string",
@@ -56,36 +66,64 @@ export const RECIPE_SCHEMA = {
       },
       description: "Lista av kategorier"
     },
-    ingredients: {
+    ingredient_groups: {
       type: "array",
+      description: "Lista av ingrediensgrupper. Varje grupp har ett namn och en lista med ingredienser. Använd en tom sträng som gruppnamn om receptet inte har grupperade ingredienser.",
       items: {
         type: "object",
-        required: ["name", "measurement", "quantity"],
+        required: ["group_name", "ingredients"],
         properties: {
-          name: {
+          group_name: {
             type: "string",
-            description: "Ingrediensens namn"
+            description: "Gruppens namn, t.ex. 'Deg', 'Fyllning', 'Sås'. Använd tom sträng om receptet inte har grupperade ingredienser."
           },
-          measurement: {
-            type: "string",
-            description: "Måttenhet, t.ex. 'dl', 'msk', 'g'"
-          },
-          quantity: {
-            type: "string",
-            description: "Mängd, t.ex. '2', '1/2'"
+          ingredients: {
+            type: "array",
+            items: {
+              type: "object",
+              required: ["name", "measurement", "quantity"],
+              properties: {
+                name: {
+                  type: "string",
+                  description: "Ingrediensens namn"
+                },
+                measurement: {
+                  type: "string",
+                  description: "Måttenhet, t.ex. 'dl', 'msk', 'g'"
+                },
+                quantity: {
+                  type: "string",
+                  description: "Mängd, t.ex. '2', '1/2'"
+                }
+              }
+            }
           }
         }
       }
     },
-    instructions: {
+    instruction_groups: {
       type: "array",
+      description: "Lista av instruktionsgrupper. Varje grupp har ett namn och en lista med steg. Använd en tom sträng som gruppnamn om receptet inte har grupperade instruktioner.",
       items: {
         type: "object",
-        required: ["step"],
+        required: ["group_name", "instructions"],
         properties: {
-          step: {
+          group_name: {
             type: "string",
-            description: "Instruktionssteg"
+            description: "Gruppens namn, t.ex. 'Deg', 'Fyllning', 'Servering'. Använd tom sträng om receptet inte har grupperade instruktioner."
+          },
+          instructions: {
+            type: "array",
+            items: {
+              type: "object",
+              required: ["step"],
+              properties: {
+                step: {
+                  type: "string",
+                  description: "Instruktionssteg"
+                }
+              }
+            }
           }
         }
       }
