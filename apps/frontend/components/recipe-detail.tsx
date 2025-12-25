@@ -45,7 +45,7 @@ function formatDate(dateString: string | null): string {
 
 function PlaceholderImage() {
   return (
-    <div className="absolute inset-0 bg-gradient-to-br from-muted via-muted/80 to-muted/60">
+    <div className="absolute inset-0 bg-linear-to-br from-muted via-muted/80 to-muted/60">
       <div
         className="absolute inset-0 opacity-20"
         style={{
