@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createReadStream, statSync } from 'fs'
 import { join } from 'path'
 import { createHash } from 'crypto'
+import { Readable } from 'stream'
 import { getDataFilesDir } from '@/lib/paths'
 
 const SUPPORTED_FORMATS = ['.webp', '.jpg', '.jpeg', '.png', '.avif'] as const
@@ -53,17 +54,13 @@ export async function GET(
       return new NextResponse(null, { status: 304 })
     }
 
-    // Create read stream for efficient large file handling
-    const stream = createReadStream(imagePath)
-    const chunks: Buffer[] = []
+    // Create a Node.js readable stream
+    const nodeStream = createReadStream(imagePath)
 
-    for await (const chunk of stream) {
-      chunks.push(chunk as Buffer)
-    }
+    // Convert Node.js stream to Web ReadableStream for true streaming
+    const webStream = Readable.toWeb(nodeStream) as ReadableStream<Uint8Array>
 
-    const imageBuffer = Buffer.concat(chunks)
-
-    return new NextResponse(imageBuffer, {
+    return new NextResponse(webStream, {
       headers: {
         'Content-Type': CONTENT_TYPES[ext] || 'application/octet-stream',
         'Cache-Control': 'public, max-age=31536000, immutable',
