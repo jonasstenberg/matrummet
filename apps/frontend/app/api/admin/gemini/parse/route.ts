@@ -5,11 +5,18 @@ import {
   validateParsedRecipe,
 } from "@/lib/recipe-parser/prompt";
 import { RECIPE_SCHEMA } from "@/lib/recipe-parser/types";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Part } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
 
 const GEMINI_MODEL = "gemini-2.5-flash";
 const POSTGREST_URL = process.env.POSTGREST_URL || "http://localhost:4444";
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
+const ALLOWED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+];
 
 async function fetchCategories(): Promise<string[]> {
   try {
@@ -36,12 +43,55 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const body = await request.json();
-    const { text } = body;
+    const contentType = request.headers.get("content-type") || "";
+    let text: string | null = null;
+    let imageData: { base64: string; mimeType: string } | null = null;
 
-    if (!text || typeof text !== "string" || !text.trim()) {
+    // Handle FormData (with image) or JSON (text only)
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await request.formData();
+      text = formData.get("text") as string | null;
+      const image = formData.get("image") as File | null;
+
+      if (image) {
+        // Validate image type
+        if (!ALLOWED_IMAGE_TYPES.includes(image.type)) {
+          return NextResponse.json(
+            {
+              error:
+                "Ogiltig bildtyp. Tillåtna format: JPEG, PNG, WebP, GIF",
+            },
+            { status: 400 }
+          );
+        }
+
+        // Validate image size
+        if (image.size > MAX_IMAGE_SIZE) {
+          return NextResponse.json(
+            { error: "Bilden får vara max 10 MB" },
+            { status: 400 }
+          );
+        }
+
+        // Convert to base64
+        const bytes = await image.arrayBuffer();
+        const base64 = Buffer.from(bytes).toString("base64");
+        imageData = { base64, mimeType: image.type };
+      }
+    } else {
+      const body = await request.json();
+      text = body.text;
+    }
+
+    // Normalize text input
+    const trimmedText =
+      text && typeof text === "string" ? text.trim() : null;
+    const hasText = trimmedText !== null && trimmedText.length > 0;
+    const hasImage = imageData !== null;
+
+    if (!hasText && !hasImage) {
       return NextResponse.json(
-        { error: "Text is required and must be a non-empty string" },
+        { error: "Text eller bild krävs" },
         { status: 400 }
       );
     }
@@ -60,11 +110,37 @@ export async function POST(request: NextRequest) {
 
     const ai = new GoogleGenAI({ apiKey: geminiApiKey });
 
+    // Build content parts for multimodal input
+    const parts: Part[] = [];
+
+    if (imageData) {
+      parts.push({
+        inlineData: {
+          mimeType: imageData.mimeType,
+          data: imageData.base64,
+        },
+      });
+
+      if (trimmedText) {
+        parts.push({
+          text: `Analysera receptet i bilden. Använd även denna extra information: ${trimmedText}`,
+        });
+      } else {
+        parts.push({
+          text: "Analysera receptet i bilden och extrahera all information.",
+        });
+      }
+    } else if (trimmedText) {
+      parts.push({
+        text: `Analysera följande recepttext:\n\n${trimmedText}`,
+      });
+    }
+
     const response = await ai.models.generateContent({
       model: GEMINI_MODEL,
-      contents: `Analysera följande recepttext:\n\n${text.trim()}`,
+      contents: [{ role: "user", parts }],
       config: {
-        systemInstruction: buildSystemInstruction(categories),
+        systemInstruction: buildSystemInstruction(categories, hasImage),
         responseMimeType: "application/json",
         responseSchema: RECIPE_SCHEMA,
       },

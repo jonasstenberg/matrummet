@@ -33,7 +33,7 @@ export function SettingsForm() {
     // Client-side validation
     const result = updateProfileSchema.safeParse({ name })
     if (!result.success) {
-      setProfileError(result.error.errors[0].message)
+      setProfileError(result.error.issues[0].message)
       return
     }
 
@@ -75,7 +75,7 @@ export function SettingsForm() {
     // Client-side validation
     const result = changePasswordSchema.safeParse({ oldPassword, newPassword })
     if (!result.success) {
-      setPasswordError(result.error.errors[0].message)
+      setPasswordError(result.error.issues[0].message)
       return
     }
 

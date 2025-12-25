@@ -2,11 +2,17 @@ import type { ParsedRecipe } from "./types";
 
 /**
  * Builds a system instruction for Gemini with dynamic categories.
+ * @param categories - Available categories from the database
+ * @param isImageInput - Whether the input includes an image
  */
-export function buildSystemInstruction(categories?: string[]): string {
-  const categoryList = categories && categories.length > 0
-    ? categories.map(c => `- ${c}`).join("\n")
-    : `- Huvudrätt
+export function buildSystemInstruction(
+  categories?: string[],
+  isImageInput?: boolean
+): string {
+  const categoryList =
+    categories && categories.length > 0
+      ? categories.map((c) => `- ${c}`).join("\n")
+      : `- Huvudrätt
 - Förrätt
 - Efterrätt
 - Vegetariskt
@@ -22,12 +28,24 @@ export function buildSystemInstruction(categories?: string[]): string {
 - Snabbt & enkelt
 - Helg`;
 
+  const imageInstructions = isImageInput
+    ? `
+BILDANALYS:
+- Analysera bilden noggrant för att identifiera receptet
+- Extrahera receptnamn, ingredienser, mängder och instruktioner från bilden
+- Om bilden visar en kokbok eller tidningsartikel, läs texten i bilden
+- Om bilden visar en maträtt utan recept, identifiera rätten och skapa ett passande recept
+- Om det finns handskriven text, gör ditt bästa för att tolka den
+- Kombinera information från bilden med eventuell extra text som anges`
+    : "";
+
   return `Du är en svensk receptexpert. Din uppgift är att:
 
-1. Om du får en komplett recepttext: Extrahera och strukturera informationen
+1. Om du får en komplett recepttext eller bild: Extrahera och strukturera informationen
 2. Om du bara får ett receptnamn eller kort beskrivning: Skapa ett komplett, autentiskt svenskt recept
 
 Oavsett input, returnera ALLTID ett komplett recept med ingredienser och instruktioner. Om information saknas, skapa rimliga värden baserat på traditionella svenska recept.
+${imageInstructions}
 
 TILLGÄNGLIGA KATEGORIER (välj endast från dessa):
 ${categoryList}

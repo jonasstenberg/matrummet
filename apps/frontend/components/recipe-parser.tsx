@@ -1,13 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CreateRecipeInput } from '@/lib/types'
-import { ChevronDown, ChevronRight, Sparkles, Loader2, FileJson } from 'lucide-react'
+import { ChevronDown, ChevronRight, Sparkles, Loader2, FileJson, ImageIcon, X } from 'lucide-react'
 
 interface RecipeParserProps {
   onParse: (data: Partial<CreateRecipeInput>) => void
@@ -33,6 +34,9 @@ const JSON_EXAMPLE = `{
   ]
 }`
 
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024 // 10MB
+
 export function RecipeParser({ onParse }: RecipeParserProps) {
   // AI parsing state
   const [aiText, setAiText] = useState('')
@@ -40,6 +44,14 @@ export function RecipeParser({ onParse }: RecipeParserProps) {
 
   // JSON paste state
   const [jsonText, setJsonText] = useState('')
+
+  // Image parsing state
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [imageText, setImageText] = useState('')
+  const [isImageLoading, setIsImageLoading] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Shared state
   const [error, setError] = useState<string | null>(null)
@@ -137,6 +149,104 @@ export function RecipeParser({ onParse }: RecipeParserProps) {
     }
   }
 
+  function handleImageSelect(file: File) {
+    setError(null)
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      setError('Ogiltig bildtyp. Tillåtna format: JPEG, PNG, WebP, GIF')
+      return
+    }
+
+    if (file.size > MAX_IMAGE_SIZE) {
+      setError('Bilden får vara max 10 MB')
+      return
+    }
+
+    setImageFile(file)
+
+    // Create preview
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      setImagePreview(e.target?.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  function handleFileInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) {
+      handleImageSelect(file)
+    }
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  function handleDragLeave(e: React.DragEvent) {
+    e.preventDefault()
+    setIsDragging(false)
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault()
+    setIsDragging(false)
+
+    const file = e.dataTransfer.files?.[0]
+    if (file) {
+      handleImageSelect(file)
+    }
+  }
+
+  function clearImage() {
+    setImageFile(null)
+    setImagePreview(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  async function handleImageParse(e: React.FormEvent) {
+    e.preventDefault()
+
+    if (!imageFile) return
+
+    setIsImageLoading(true)
+    setError(null)
+
+    try {
+      const formData = new FormData()
+      formData.append('image', imageFile)
+      if (imageText.trim()) {
+        formData.append('text', imageText.trim())
+      }
+
+      const response = await fetch('/api/admin/gemini/parse', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        const message = errorData.details
+          ? `${errorData.error}: ${errorData.details}`
+          : errorData.error || 'Tolkning misslyckades'
+        throw new Error(message)
+      }
+
+      const data = await response.json()
+      onParse(data.recipe)
+      setIsExpanded(false)
+      clearImage()
+      setImageText('')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Tolkning misslyckades')
+    } finally {
+      setIsImageLoading(false)
+    }
+  }
+
   return (
     <Card className="bg-muted/50">
       <button
@@ -158,14 +268,18 @@ export function RecipeParser({ onParse }: RecipeParserProps) {
       {isExpanded && (
         <div className="border-t px-4 pb-4 pt-4">
           <Tabs defaultValue="ai" className="w-full">
-            <TabsList className="mb-4 grid w-full grid-cols-2">
+            <TabsList className="mb-4 grid w-full grid-cols-3">
               <TabsTrigger value="ai" className="flex items-center gap-2">
                 <Sparkles className="h-3 w-3" />
-                AI-tolkning
+                AI-text
+              </TabsTrigger>
+              <TabsTrigger value="image" className="flex items-center gap-2">
+                <ImageIcon className="h-3 w-3" />
+                AI-bild
               </TabsTrigger>
               <TabsTrigger value="json" className="flex items-center gap-2">
                 <FileJson className="h-3 w-3" />
-                Klistra in JSON
+                JSON
               </TabsTrigger>
             </TabsList>
 
@@ -203,6 +317,89 @@ export function RecipeParser({ onParse }: RecipeParserProps) {
                     </>
                   ) : (
                     'Tolka recept'
+                  )}
+                </Button>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="image" className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Ladda upp en bild av ett recept (t.ex. från en kokbok eller tidning) och låt AI tolka det.
+              </p>
+
+              <form onSubmit={handleImageParse} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Receptbild</label>
+
+                  {!imagePreview ? (
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors ${
+                        isDragging
+                          ? 'border-primary bg-primary/5'
+                          : 'border-muted-foreground/25 hover:border-muted-foreground/50'
+                      }`}
+                    >
+                      <ImageIcon className="mb-2 h-8 w-8 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">
+                        Dra och släpp en bild här, eller klicka för att välja
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        JPEG, PNG, WebP, GIF (max 10 MB)
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <img
+                        src={imagePreview}
+                        alt="Förhandsvisning"
+                        className="max-h-64 rounded-lg object-contain"
+                      />
+                      <button
+                        type="button"
+                        onClick={clearImage}
+                        className="absolute right-2 top-2 rounded-full bg-background/80 p-1 hover:bg-background"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+
+                  <Input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={handleFileInputChange}
+                    className="hidden"
+                    disabled={isImageLoading}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="image-text" className="text-sm font-medium">
+                    Extra information (valfritt)
+                  </label>
+                  <Textarea
+                    id="image-text"
+                    placeholder="T.ex. antal portioner, anpassningar..."
+                    value={imageText}
+                    onChange={(e) => setImageText(e.target.value)}
+                    className="min-h-[80px]"
+                    disabled={isImageLoading}
+                  />
+                </div>
+
+                <Button type="submit" disabled={!imageFile || isImageLoading}>
+                  {isImageLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Tolkar bild...
+                    </>
+                  ) : (
+                    'Tolka recept från bild'
                   )}
                 </Button>
               </form>
