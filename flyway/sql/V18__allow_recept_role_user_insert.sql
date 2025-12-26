@@ -1,4 +1,4 @@
--- Allow the recept role to insert users for signup_provider function.
+-- Allow the recept role to insert users for signup_provider function
 -- The signup_provider function uses SECURITY DEFINER and runs as 'recept',
 -- but FORCE ROW LEVEL SECURITY is enabled on users table, so we need
 -- an explicit policy to allow inserts during OAuth signup flow.
