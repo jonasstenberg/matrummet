@@ -39,7 +39,9 @@ registerHelpers();
 
 const processEmails = async (): Promise<void> => {
   const messages = await fetchQueuedTransactionalMessages(pool);
-  logger.debug({ count: messages.length }, "Fetched queued messages");
+  if (messages.length > 0) {
+    logger.info({ count: messages.length }, "Processing queued messages");
+  }
 
   for (const msg of messages) {
     try {
