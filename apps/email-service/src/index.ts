@@ -38,9 +38,7 @@ const sendEmailFn = (message: Parameters<typeof sendEmail>[1]) =>
 registerHelpers();
 
 const processEmails = async (): Promise<void> => {
-  logger.debug("Fetching queued messages");
   const messages = await fetchQueuedTransactionalMessages(pool);
-  logger.info({ count: messages.length }, "Fetched queued messages");
 
   for (const msg of messages) {
     try {
@@ -133,9 +131,7 @@ const connect = async () => {
       })();
     });
 
-    logger.info({ batchDelay }, "Starting batch processing interval");
     setInterval(() => {
-      logger.info("Batch interval triggered");
       void processQueues().catch((err) => {
         logger.error({ err }, "Error in scheduled queue processing.");
       });
