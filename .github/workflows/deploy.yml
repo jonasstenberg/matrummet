@@ -244,6 +244,9 @@ jobs:
             deploy/ \
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/recept/apps/frontend/
 
+          # Reinstall sharp for the target platform (linux-x64)
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'cd /opt/recept/apps/frontend && rm -rf node_modules/sharp && npm install --no-save sharp@0.34.5'
+
           echo "Frontend deployed successfully"
 
       - name: Deploy email-service to VPS
