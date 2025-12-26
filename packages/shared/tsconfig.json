@@ -1,0 +1,10 @@
+{
+  "extends": "@recept/tsconfig/node.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "composite": true,
+    "outDir": "./dist"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

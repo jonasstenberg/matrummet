@@ -1,0 +1,53 @@
+{
+  "name": "@recept/testing",
+  "version": "1.0.0",
+  "description": "Shared testing utilities and configuration for recept",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./vitest/node": {
+      "import": "./dist/vitest/node.js",
+      "types": "./dist/vitest/node.d.ts"
+    },
+    "./vitest/jsdom": {
+      "import": "./dist/vitest/jsdom.js",
+      "types": "./dist/vitest/jsdom.d.ts"
+    },
+    "./setup/node": {
+      "import": "./dist/setup/node.js",
+      "types": "./dist/setup/node.d.ts"
+    },
+    "./setup/jsdom": {
+      "import": "./dist/setup/jsdom.js",
+      "types": "./dist/setup/jsdom.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@testing-library/jest-dom": "^6.6.3"
+  },
+  "devDependencies": {
+    "@recept/eslint": "workspace:*",
+    "@recept/tsconfig": "workspace:*",
+    "@types/node": "^22.13.10",
+    "eslint": "^9.22.0",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.2",
+    "vitest": "^4.0.15"
+  },
+  "peerDependencies": {
+    "vitest": "^4.0.0"
+  }
+}

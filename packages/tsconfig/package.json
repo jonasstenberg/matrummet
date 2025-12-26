@@ -1,0 +1,10 @@
+{
+  "name": "@recept/tsconfig",
+  "version": "1.0.0",
+  "description": "Shared TypeScript configurations for recept",
+  "files": [
+    "base.json",
+    "node.json",
+    "web.json"
+  ]
+}

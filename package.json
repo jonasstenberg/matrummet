@@ -1,0 +1,17 @@
+{
+  "name": "recept",
+  "version": "0.0.1",
+  "private": true,
+  "packageManager": "pnpm@10.26.0",
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "inbucket": "docker compose up -d inbucket",
+    "inbucket:stop": "docker compose stop inbucket"
+  }
+}

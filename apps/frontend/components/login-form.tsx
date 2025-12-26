@@ -1,14 +1,21 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
-import { useAuth } from '@/components/auth-provider'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { loginInputSchema } from '@/lib/schemas'
+import { useAuth } from "@/components/auth-provider";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { emailSchema, loginInputSchema } from "@/lib/schemas";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 function GoogleIcon() {
   return (
@@ -30,130 +37,288 @@ function GoogleIcon() {
         fill="#EA4335"
       />
     </svg>
-  )
+  );
 }
 
 export function LoginForm() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const { login } = useAuth()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { login } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Forgot password state
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
 
   useEffect(() => {
-    const errorParam = searchParams.get('error')
+    const errorParam = searchParams.get("error");
     if (errorParam) {
       const errorMessages: Record<string, string> = {
-        oauth_error: 'Google-inloggning misslyckades',
-        no_code: 'Ingen auktoriseringskod mottogs',
-        config_error: 'Google-inloggning är inte konfigurerad',
-        token_error: 'Kunde inte verifiera med Google',
-        userinfo_error: 'Kunde inte hämta användarinfo från Google',
-        signup_error: 'Kunde inte skapa konto',
-        unknown_error: 'Ett okänt fel uppstod',
-      }
-      setError(errorMessages[errorParam] || 'Ett fel uppstod')
+        oauth_error: "Google-inloggning misslyckades",
+        no_code: "Ingen auktoriseringskod mottogs",
+        config_error: "Google-inloggning är inte konfigurerad",
+        token_error: "Kunde inte verifiera med Google",
+        userinfo_error: "Kunde inte hämta användarinfo från Google",
+        signup_error: "Kunde inte skapa konto",
+        unknown_error: "Ett okänt fel uppstod",
+      };
+      setError(errorMessages[errorParam] || "Ett fel uppstod");
     }
-  }, [searchParams])
+
+    // Open forgot password dialog if requested via query param
+    const forgotParam = searchParams.get("forgot");
+    if (forgotParam === "true") {
+      setForgotPasswordOpen(true);
+    }
+  }, [searchParams]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setError(null)
-    setIsLoading(true)
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
 
     try {
       // Validate with Zod
-      const result = loginInputSchema.safeParse({ email, password })
+      const result = loginInputSchema.safeParse({ email, password });
 
       if (!result.success) {
-        const firstError = result.error.issues[0]
-        setError(firstError.message)
-        setIsLoading(false)
-        return
+        const firstError = result.error.issues[0];
+        setError(firstError.message);
+        setIsLoading(false);
+        return;
       }
 
-      await login(result.data.email, result.data.password)
-      router.push('/')
+      await login(result.data.email, result.data.password);
+      router.push("/");
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ett fel uppstod')
+      setError(e instanceof Error ? e.message : "Ett fel uppstod");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
+  async function handleForgotPassword(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setResetError(null);
+
+    // Validate email with Zod
+    const result = emailSchema.safeParse({ email: resetEmail });
+
+    if (!result.success) {
+      const firstError = result.error.issues[0];
+      setResetError(firstError.message);
+      return;
+    }
+
+    setResetLoading(true);
+
+    try {
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: result.data.email }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Ett fel uppstod");
+      }
+
+      setResetSuccess(true);
+    } catch (e) {
+      setResetError(e instanceof Error ? e.message : "Ett fel uppstod");
+    } finally {
+      setResetLoading(false);
+    }
+  }
+
+  function handleForgotPasswordClose() {
+    setForgotPasswordOpen(false);
+    // Reset state after dialog closes
+    setTimeout(() => {
+      setResetEmail("");
+      setResetSuccess(false);
+      setResetError(null);
+    }, 200);
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
+    <>
+      <form onSubmit={handleSubmit} className="space-y-4" autoComplete="on">
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
-      <div className="space-y-2">
-        <Label htmlFor="email">E-post</Label>
-        <Input
-          id="email"
-          type="email"
-          placeholder="din@epost.se"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          disabled={isLoading}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="password">Lösenord</Label>
-        <Input
-          id="password"
-          type="password"
-          placeholder="••••••••"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          disabled={isLoading}
-        />
-      </div>
-
-      <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? 'Loggar in...' : 'Logga in'}
-      </Button>
-
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
+        <div className="space-y-2">
+          <Label htmlFor="login-email">E-post</Label>
+          <Input
+            id="login-email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="din@epost.se"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={isLoading}
+          />
         </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
-            Eller fortsätt med
-          </span>
-        </div>
-      </div>
 
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full"
-        disabled={isLoading}
-        onClick={() => {
-          window.location.href = '/api/auth/google'
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="login-password">Lösenord</Label>
+            <button
+              type="button"
+              className="text-sm text-primary hover:underline font-medium"
+              onClick={() => setForgotPasswordOpen(true)}
+            >
+              Glömt lösenord?
+            </button>
+          </div>
+          <Input
+            id="login-password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            placeholder="********"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            disabled={isLoading}
+          />
+        </div>
+
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? "Loggar in..." : "Logga in"}
+        </Button>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">
+              Eller fortsätt med
+            </span>
+          </div>
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          disabled={isLoading}
+          onClick={() => {
+            window.location.href = "/api/auth/google";
+          }}
+        >
+          <GoogleIcon />
+          <span className="ml-2">Google</span>
+        </Button>
+
+        <p className="text-center text-sm text-muted-foreground">
+          Har du inget konto?{" "}
+          <Link
+            href="/registrera"
+            className="text-primary hover:underline font-medium"
+          >
+            Registrera dig
+          </Link>
+        </p>
+      </form>
+
+      <Dialog
+        open={forgotPasswordOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleForgotPasswordClose();
+          }
         }}
       >
-        <GoogleIcon />
-        <span className="ml-2">Google</span>
-      </Button>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Återställ lösenord</DialogTitle>
+            <DialogDescription>
+              Ange din e-postadress så skickar vi en länk för att återställa
+              ditt lösenord.
+            </DialogDescription>
+          </DialogHeader>
 
-      <p className="text-center text-sm text-muted-foreground">
-        Har du inget konto?{' '}
-        <Link
-          href="/registrera"
-          className="text-primary hover:underline font-medium"
-        >
-          Registrera dig
-        </Link>
-      </p>
-    </form>
-  )
+          {resetSuccess ? (
+            <div className="space-y-4">
+              <Alert>
+                <AlertDescription>
+                  Om ett konto finns med denna e-postadress kommer du att få
+                  ett e-postmeddelande med instruktioner för att återställa
+                  ditt lösenord.
+                </AlertDescription>
+              </Alert>
+              <Button
+                type="button"
+                className="w-full"
+                onClick={handleForgotPasswordClose}
+              >
+                Stäng
+              </Button>
+            </div>
+          ) : (
+            <form
+              onSubmit={handleForgotPassword}
+              className="space-y-4"
+              autoComplete="off"
+            >
+              {resetError && (
+                <Alert variant="destructive">
+                  <AlertDescription>{resetError}</AlertDescription>
+                </Alert>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="reset-email">E-post</Label>
+                <Input
+                  id="reset-email"
+                  name="reset-email"
+                  type="email"
+                  autoComplete="off"
+                  placeholder="din@epost.se"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  disabled={resetLoading}
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={handleForgotPasswordClose}
+                  disabled={resetLoading}
+                >
+                  Avbryt
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1"
+                  disabled={resetLoading || !resetEmail}
+                >
+                  {resetLoading ? "Skickar..." : "Skicka"}
+                </Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
 }

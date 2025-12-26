@@ -14,37 +14,46 @@ ssh jonas@37.27.181.252
 
 ## Services
 
-| Service     | Name               | Purpose                |
-| ----------- | ------------------ | ---------------------- |
-| Next.js app | `recept`           | Main application       |
-| API         | `postgrest-recept` | PostgREST database API |
+| Service       | Name               | Purpose                |
+| ------------- | ------------------ | ---------------------- |
+| Next.js app   | `recept`           | Main frontend          |
+| Email service | `recept-email`     | Email queue processor  |
+| API           | `postgrest-recept` | PostgREST database API |
 
 ### Common commands
 
 ```bash
 # Check status
-sudo systemctl status recept postgrest-recept
+sudo systemctl status recept recept-email postgrest-recept
 
 # View logs (follow mode)
 sudo journalctl -u recept -f
+sudo journalctl -u recept-email -f
 sudo journalctl -u postgrest-recept -f
 
 # View recent logs
 sudo journalctl -u recept --since "10 minutes ago"
+sudo journalctl -u recept-email --since "10 minutes ago"
 
 # Restart services
-sudo systemctl restart postgrest-recept recept
+sudo systemctl restart postgrest-recept recept recept-email
 ```
 
 ## Application layout
 
 ```
 /opt/recept/
-├── server.js          # Next.js standalone server
-├── .next/static/      # Static assets
-├── public/uploads/    # User images (persists across deploys)
-├── scripts/           # Utility scripts
-└── flyway/            # Database migrations
+├── apps/
+│   ├── frontend/         # Next.js application
+│   │   ├── server.js
+│   │   ├── .next/
+│   │   ├── public/uploads/  # User images (persists across deploys)
+│   │   └── scripts/
+│   └── email-service/    # Email queue processor
+│       └── dist/
+├── flyway/               # Database migrations
+├── .flyway.env           # Flyway credentials
+└── .email-service.env    # Email service configuration
 ```
 
 ## Troubleshooting

@@ -63,3 +63,45 @@ export async function getCategories(): Promise<string[]> {
     return [];
   }
 }
+
+export interface TokenValidationResult {
+  valid: boolean;
+  error?: string;
+}
+
+export async function validatePasswordResetToken(token: string): Promise<TokenValidationResult> {
+  try {
+    const res = await fetch(
+      `${env.POSTGREST_URL}/rpc/validate_password_reset_token`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          p_token: token,
+        }),
+        cache: 'no-store',
+      }
+    );
+
+    if (!res.ok) {
+      console.error('Token validation request failed:', await res.text());
+      return { valid: false, error: 'Kunde inte validera token' };
+    }
+
+    const result = await res.json();
+
+    if (result.valid) {
+      return { valid: true };
+    } else {
+      return {
+        valid: false,
+        error: 'Ogiltig eller utgången återställningslänk',
+      };
+    }
+  } catch (error) {
+    console.error('Token validation error:', error);
+    return { valid: false, error: 'Ett fel uppstod vid validering' };
+  }
+}

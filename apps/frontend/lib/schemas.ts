@@ -104,3 +104,28 @@ export const changePasswordSchema = z.object({
 })
 
 export type ChangePasswordSchema = z.infer<typeof changePasswordSchema>
+
+// Reset password schema (for forgot password flow)
+export const resetPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, 'Lösenordet måste vara minst 8 tecken')
+      .regex(/[A-Z]/, 'Lösenordet måste innehålla minst en versal')
+      .regex(/[a-z]/, 'Lösenordet måste innehålla minst en gemen')
+      .regex(/[0-9]/, 'Lösenordet måste innehålla minst en siffra'),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Lösenorden matchar inte',
+    path: ['confirmPassword'],
+  })
+
+export type ResetPasswordSchema = z.infer<typeof resetPasswordSchema>
+
+// Email-only schema (for forgot password form)
+export const emailSchema = z.object({
+  email: z.string().email('Ogiltig e-postadress').trim(),
+})
+
+export type EmailSchema = z.infer<typeof emailSchema>

@@ -5,46 +5,132 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      run_migrations:
+        description: "Run database migrations"
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+      deploy_frontend:
+        description: "Deploy frontend application"
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+      deploy_email_service:
+        description: "Deploy email service"
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
 
 env:
   NODE_VERSION: "22"
-  PNPM_VERSION: "10"
 
 jobs:
-  build-and-deploy:
+  setup:
     runs-on: ubuntu-latest
-
+    outputs:
+      run_migrations: ${{ steps.changes.outputs.run_migrations }}
+      deploy_frontend: ${{ steps.changes.outputs.deploy_frontend }}
+      deploy_email_service: ${{ steps.changes.outputs.deploy_email_service }}
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
         with:
-          version: ${{ env.PNPM_VERSION }}
+          fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: "pnpm"
-          cache-dependency-path: apps/frontend/pnpm-lock.yaml
-
-      - name: Install dependencies
-        working-directory: apps/frontend
-        run: pnpm install --frozen-lockfile
-
-      - name: Build
-        working-directory: apps/frontend
-        run: pnpm build
-
-      - name: Prepare deployment package
+      - name: Detect changes
+        id: changes
         run: |
-          mkdir -p deploy
-          cp -r apps/frontend/.next/standalone/. deploy/
-          cp -r apps/frontend/.next/static deploy/.next/static
-          cp -r apps/frontend/public deploy/public
-          cp -r apps/frontend/scripts deploy/scripts
+          # For push events, compare with parent commit
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            WORKFLOW_SHA=$(git rev-parse HEAD)
+            echo "Using HEAD SHA: $WORKFLOW_SHA"
+          else
+            # For workflow_dispatch, use the current HEAD
+            git fetch origin ${{ github.ref_name }} --depth=100 || echo "Fetching history failed"
+            WORKFLOW_SHA=$(git rev-parse HEAD)
+            echo "Using HEAD SHA: $WORKFLOW_SHA"
+          fi
+
+          # Try to get the parent commit
+          PARENT_SHA=$(git rev-parse $WORKFLOW_SHA^ 2>/dev/null || echo "")
+
+          # Check for migration changes
+          if [[ "${{ github.event.inputs.run_migrations }}" == "false" ]]; then
+            echo "run_migrations=false" >> $GITHUB_OUTPUT
+            echo "Skipping migrations as requested"
+          elif [[ -z "$PARENT_SHA" ]]; then
+            echo "run_migrations=true" >> $GITHUB_OUTPUT
+            echo "First commit, running migrations"
+          else
+            CHANGED_FILES=$(git diff --name-only $PARENT_SHA $WORKFLOW_SHA 2>/dev/null || git ls-files)
+            if echo "$CHANGED_FILES" | grep -q "^flyway/"; then
+              echo "run_migrations=true" >> $GITHUB_OUTPUT
+              echo "Database changes detected"
+            else
+              echo "run_migrations=false" >> $GITHUB_OUTPUT
+              echo "No database changes detected"
+            fi
+          fi
+
+          # Check for frontend changes
+          if [[ "${{ github.event.inputs.deploy_frontend }}" == "false" ]]; then
+            echo "deploy_frontend=false" >> $GITHUB_OUTPUT
+            echo "Skipping frontend deployment as requested"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.deploy_frontend }}" == "true" ]]; then
+            echo "deploy_frontend=true" >> $GITHUB_OUTPUT
+            echo "Manual request to deploy frontend"
+          elif [[ -z "$PARENT_SHA" ]]; then
+            echo "deploy_frontend=true" >> $GITHUB_OUTPUT
+            echo "First commit, deploying frontend"
+          else
+            CHANGED_FILES=$(git diff --name-only $PARENT_SHA $WORKFLOW_SHA 2>/dev/null || git ls-files)
+            if echo "$CHANGED_FILES" | grep -q "^apps/frontend/"; then
+              echo "deploy_frontend=true" >> $GITHUB_OUTPUT
+              echo "Frontend changes detected"
+            else
+              echo "deploy_frontend=false" >> $GITHUB_OUTPUT
+              echo "No frontend changes detected"
+            fi
+          fi
+
+          # Check for email-service changes
+          if [[ "${{ github.event.inputs.deploy_email_service }}" == "false" ]]; then
+            echo "deploy_email_service=false" >> $GITHUB_OUTPUT
+            echo "Skipping email-service deployment as requested"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.deploy_email_service }}" == "true" ]]; then
+            echo "deploy_email_service=true" >> $GITHUB_OUTPUT
+            echo "Manual request to deploy email-service"
+          elif [[ -z "$PARENT_SHA" ]]; then
+            echo "deploy_email_service=true" >> $GITHUB_OUTPUT
+            echo "First commit, deploying email-service"
+          else
+            CHANGED_FILES=$(git diff --name-only $PARENT_SHA $WORKFLOW_SHA 2>/dev/null || git ls-files)
+            if echo "$CHANGED_FILES" | grep -q "^apps/email-service/"; then
+              echo "deploy_email_service=true" >> $GITHUB_OUTPUT
+              echo "Email-service changes detected"
+            else
+              echo "deploy_email_service=false" >> $GITHUB_OUTPUT
+              echo "No email-service changes detected"
+            fi
+          fi
+
+  deploy-migrations:
+    needs: setup
+    if: needs.setup.outputs.run_migrations == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Setup SSH
         run: |
@@ -53,17 +139,143 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy to VPS
-        run: |
-          rsync -avz --delete --exclude='flyway' --exclude='.flyway.env' --exclude='public/uploads' \
-            deploy/ \
-            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/recept/
-
-      - name: Run database migrations
+      - name: Deploy migrations
         run: |
           rsync -avz --exclude='backups' flyway/ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/recept/flyway/
-          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'source /opt/recept/.flyway.env && cd /opt/recept/flyway && ./run-flyway.sh migrate'
 
-      - name: Restart services
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'source /opt/recept/.flyway.env && cd /opt/recept/flyway && ./run-flyway.sh migrate' || {
+            echo "::error::Database migration failed. Please check the logs for details."
+            exit 1
+          }
+
+          echo "Migrations deployed successfully"
+
+      - name: Restart PostgREST
         run: |
-          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'sudo systemctl restart postgrest-recept recept'
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'sudo systemctl restart postgrest-recept'
+
+  deploy-services:
+    needs: [setup, deploy-migrations]
+    if: always() && (needs.setup.outputs.deploy_frontend == 'true' || needs.setup.outputs.deploy_email_service == 'true') && (needs.deploy-migrations.result == 'success' || needs.deploy-migrations.result == 'skipped')
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [frontend, email-service]
+      fail-fast: false
+    steps:
+      - name: Check if service should be deployed
+        id: should-deploy
+        run: |
+          if [[ "${{ matrix.service }}" == "frontend" && "${{ needs.setup.outputs.deploy_frontend }}" == "true" ]]; then
+            echo "deploy=true" >> $GITHUB_OUTPUT
+          elif [[ "${{ matrix.service }}" == "email-service" && "${{ needs.setup.outputs.deploy_email_service }}" == "true" ]]; then
+            echo "deploy=true" >> $GITHUB_OUTPUT
+          else
+            echo "deploy=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout repository
+        if: steps.should-deploy.outputs.deploy == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        if: steps.should-deploy.outputs.deploy == 'true'
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        if: steps.should-deploy.outputs.deploy == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        if: steps.should-deploy.outputs.deploy == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Build frontend
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'frontend'
+        working-directory: apps/frontend
+        run: |
+          pnpm build
+          ls -la .next/standalone/  # Verify build output exists
+
+      - name: Build shared package
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'email-service'
+        working-directory: packages/shared
+        run: |
+          pnpm build
+          ls -la dist/  # Verify build output exists
+
+      - name: Build email-service
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'email-service'
+        working-directory: apps/email-service
+        run: |
+          pnpm build
+          ls -la dist/  # Verify build output exists
+
+      - name: Prepare frontend deployment package
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'frontend'
+        run: |
+          mkdir -p deploy/.next
+          cp -r apps/frontend/.next/standalone/. deploy/
+          cp -r apps/frontend/.next/static deploy/.next/static
+          cp -r apps/frontend/public deploy/public
+          cp -r apps/frontend/scripts deploy/scripts
+
+      - name: Setup SSH
+        if: steps.should-deploy.outputs.deploy == 'true'
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy frontend to VPS
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'frontend'
+        run: |
+          rsync -avz --delete --exclude='public/uploads' \
+            deploy/ \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/recept/apps/frontend/
+
+          echo "Frontend deployed successfully"
+
+      - name: Deploy email-service to VPS
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'email-service'
+        run: |
+          # Deploy email-service dist and package files
+          rsync -avz --delete \
+            apps/email-service/dist/ \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/recept/apps/email-service/dist/
+
+          rsync -avz \
+            apps/email-service/package.json \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/recept/apps/email-service/
+
+          # Install production dependencies on the server
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'cd /opt/recept/apps/email-service && pnpm install --prod'
+
+          echo "Email-service deployed successfully"
+
+      - name: Restart frontend service
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'frontend'
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'sudo systemctl restart recept'
+
+      - name: Restart email-service
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'email-service'
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'sudo systemctl restart recept-email'
+
+  notify:
+    needs: [setup, deploy-migrations, deploy-services]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deployment summary
+        run: |
+          echo "Deployment completed at $(date)"
+          echo "Summary:"
+          echo "- Migrations: ${{ needs.setup.outputs.run_migrations == 'true' && (needs.deploy-migrations.result == 'success' && 'Deployed' || 'Failed') || 'Skipped' }}"
+          echo "- Frontend: ${{ needs.setup.outputs.deploy_frontend == 'true' && 'Deployed' || 'Skipped' }}"
+          echo "- Email-service: ${{ needs.setup.outputs.deploy_email_service == 'true' && 'Deployed' || 'Skipped' }}"
