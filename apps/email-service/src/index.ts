@@ -1,6 +1,6 @@
+import { createLogger, getOptionalEnv } from "@recept/shared";
 import express from "express";
 import pg, { Notification, PoolClient } from "pg";
-import { createLogger, getOptionalEnv } from "@recept/shared";
 
 import { config, EMAIL_BATCH_SIZE, EMAIL_RATE_LIMIT } from "./config.js";
 
@@ -133,7 +133,7 @@ const connect = async () => {
 
     setInterval(() => {
       void processQueues().catch((err) => {
-        logger.error({ err }, "Error in scheduled queue processing");
+        logger.error({ err }, "Error in scheduled queue processing.");
       });
     }, batchDelay);
 

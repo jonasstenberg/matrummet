@@ -243,17 +243,28 @@ jobs:
       - name: Deploy email-service to VPS
         if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'email-service'
         run: |
+          # Deploy shared package (workspace dependency)
+          rsync -avz --delete \
+            packages/shared/dist/ \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/recept/packages/shared/dist/
+          rsync -avz \
+            packages/shared/package.json \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/recept/packages/shared/
+
           # Deploy email-service dist and package files
           rsync -avz --delete \
             apps/email-service/dist/ \
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/recept/apps/email-service/dist/
-
           rsync -avz \
             apps/email-service/package.json \
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/recept/apps/email-service/
 
+          # Deploy workspace config files
+          rsync -avz pnpm-workspace.yaml pnpm-lock.yaml package.json \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/recept/
+
           # Install production dependencies on the server
-          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'cd /opt/recept/apps/email-service && pnpm install --prod'
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'cd /opt/recept && pnpm install --prod --filter @recept/email-service --filter @recept/shared'
 
           echo "Email-service deployed successfully"
 
