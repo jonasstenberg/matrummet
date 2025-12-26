@@ -649,11 +649,11 @@ WHERE em.status = 'queued';
 -- SERVICE ROLE
 -- =============================================================================
 
--- Create email_service role if it doesn't exist
+-- Create email_service role if it doesn't exist (with LOGIN for direct DB connections)
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'email_service') THEN
-        CREATE ROLE email_service;
+        CREATE ROLE email_service WITH LOGIN;
     END IF;
 END
 $$;
