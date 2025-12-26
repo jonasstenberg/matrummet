@@ -11,6 +11,9 @@ const envSchema = z.object({
   GEMINI_API_KEY: z.string().optional(),
   RECIPE_IMPORT_API_KEY: z.string().optional(),
   RECIPE_IMPORT_EMAIL: z.string().email().optional(),
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_SECRET: z.string().optional(),
+  APP_URL: z.string().url().optional(),
 });
 
 type Env = z.infer<typeof envSchema>;
@@ -27,6 +30,9 @@ function getEnv(): Env {
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
     RECIPE_IMPORT_API_KEY: process.env.RECIPE_IMPORT_API_KEY,
     RECIPE_IMPORT_EMAIL: process.env.RECIPE_IMPORT_EMAIL,
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+    GOOGLE_SECRET: process.env.GOOGLE_SECRET,
+    APP_URL: process.env.APP_URL,
   });
 
   if (!result.success) {
@@ -61,5 +67,14 @@ export const env = {
   },
   get RECIPE_IMPORT_EMAIL() {
     return getEnv().RECIPE_IMPORT_EMAIL;
+  },
+  get GOOGLE_CLIENT_ID() {
+    return getEnv().GOOGLE_CLIENT_ID;
+  },
+  get GOOGLE_SECRET() {
+    return getEnv().GOOGLE_SECRET;
+  },
+  get APP_URL() {
+    return getEnv().APP_URL;
   },
 };
