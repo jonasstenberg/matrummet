@@ -218,10 +218,16 @@ jobs:
         if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'frontend'
         run: |
           mkdir -p deploy/.next
-          cp -r apps/frontend/.next/standalone/. deploy/
+          # Next.js standalone preserves monorepo structure, copy from nested path
+          cp -r apps/frontend/.next/standalone/apps/frontend/. deploy/
+          # Copy root node_modules (shared dependencies)
+          cp -r apps/frontend/.next/standalone/node_modules deploy/
+          # Copy static assets
           cp -r apps/frontend/.next/static deploy/.next/static
           cp -r apps/frontend/public deploy/public
           cp -r apps/frontend/scripts deploy/scripts
+          # Verify structure
+          ls -la deploy/
 
       - name: Setup SSH
         if: steps.should-deploy.outputs.deploy == 'true'
