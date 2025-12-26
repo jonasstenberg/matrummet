@@ -1,16 +1,27 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/auth-provider'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { updateProfileSchema, changePasswordSchema } from '@/lib/schemas'
-import { Check } from 'lucide-react'
+import { Check, Trash2 } from 'lucide-react'
 
 export function SettingsForm() {
-  const { user, updateUser } = useAuth()
+  const { user, updateUser, clearUser } = useAuth()
+  const router = useRouter()
 
   // Profile state
   const [name, setName] = useState(user?.name || '')
@@ -24,6 +35,11 @@ export function SettingsForm() {
   const [passwordError, setPasswordError] = useState<string | null>(null)
   const [passwordSuccess, setPasswordSuccess] = useState(false)
   const [isPasswordLoading, setIsPasswordLoading] = useState(false)
+
+  // Delete account state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [isDeleteLoading, setIsDeleteLoading] = useState(false)
 
   async function handleUpdateProfile(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -106,6 +122,34 @@ export function SettingsForm() {
       setPasswordError(e instanceof Error ? e.message : 'Något gick fel')
     } finally {
       setIsPasswordLoading(false)
+    }
+  }
+
+  async function handleDeleteAccount() {
+    setDeleteError(null)
+    setIsDeleteLoading(true)
+
+    try {
+      const response = await fetch('/api/user/delete-account', {
+        method: 'POST',
+        credentials: 'include',
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Något gick fel')
+      }
+
+      // Clear user state and redirect to home
+      clearUser()
+      setDeleteDialogOpen(false)
+      router.push('/')
+      router.refresh()
+    } catch (e) {
+      setDeleteError(e instanceof Error ? e.message : 'Något gick fel')
+    } finally {
+      setIsDeleteLoading(false)
     }
   }
 
@@ -207,6 +251,66 @@ export function SettingsForm() {
           </form>
         </div>
       )}
+
+      {/* Delete account section */}
+      <div className="bg-card border border-destructive/50 rounded-lg p-6">
+        <h2 className="text-xl font-semibold mb-4 text-destructive">Radera konto</h2>
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Om du raderar ditt konto kommer all din kontoinformation att tas bort permanent.
+            Dina recept kommer att bevaras men kommer inte längre att vara kopplade till ditt konto.
+          </p>
+          <p className="text-sm font-medium text-destructive">
+            Denna åtgärd kan inte ångras.
+          </p>
+
+          {deleteError && (
+            <Alert variant="destructive">
+              <AlertDescription>{deleteError}</AlertDescription>
+            </Alert>
+          )}
+
+          <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="destructive">
+                <Trash2 className="h-4 w-4" />
+                Radera mitt konto
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Är du säker?</DialogTitle>
+                <DialogDescription className="space-y-2">
+                  <span className="block">
+                    Du håller på att permanent radera ditt konto. All din kontoinformation
+                    kommer att tas bort och kan inte återställas.
+                  </span>
+                  <span className="block">
+                    Dina recept kommer att bevaras men kommer inte längre att vara kopplade
+                    till ditt konto.
+                  </span>
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button
+                  variant="outline"
+                  onClick={() => setDeleteDialogOpen(false)}
+                  disabled={isDeleteLoading}
+                >
+                  Avbryt
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleDeleteAccount}
+                  disabled={isDeleteLoading}
+                >
+                  {isDeleteLoading ? 'Raderar...' : 'Radera mitt konto'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
     </div>
   )
 }

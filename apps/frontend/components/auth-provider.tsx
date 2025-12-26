@@ -9,6 +9,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<void>
   signup: (name: string, email: string, password: string) => Promise<void>
   logout: () => Promise<void>
+  clearUser: () => void
   updateUser: (updates: Partial<User>) => void
 }
 
@@ -101,8 +102,12 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
     setUser((prev) => prev ? { ...prev, ...updates } : null)
   }
 
+  function clearUser() {
+    setUser(null)
+  }
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, signup, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, isLoading, login, signup, logout, clearUser, updateUser }}>
       {children}
     </AuthContext.Provider>
   )
