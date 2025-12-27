@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dialog'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { LikeButton } from '@/components/like-button'
+import { AddToShoppingListButton } from '@/components/add-to-shopping-list-button'
 import { deleteRecipe } from '@/lib/actions'
 import { Recipe } from '@/lib/types'
 
@@ -71,50 +72,58 @@ export function RecipeDetailWithActions({
 
   return (
     <div className="space-y-6">
-      {/* Owner Actions */}
-      {isOwner && (
+      {/* Actions */}
+      {(isLoggedIn || isOwner) && (
         <div className="flex justify-end gap-2">
-          <Button asChild variant="outline">
-            <Link href={`/recept/${recipe.id}/redigera`}>Redigera</Link>
-          </Button>
+          {/* Shopping list button - only for logged in users */}
+          {isLoggedIn && <AddToShoppingListButton recipe={recipe} />}
 
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="destructive">Ta bort</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Ta bort recept</DialogTitle>
-                <DialogDescription>
-                  Vill du verkligen ta bort detta recept? Denna åtgärd kan inte
-                  ångras.
-                </DialogDescription>
-              </DialogHeader>
+          {/* Owner-only actions */}
+          {isOwner && (
+            <>
+              <Button asChild variant="outline">
+                <Link href={`/recept/${recipe.id}/redigera`}>Redigera</Link>
+              </Button>
 
-              {deleteError && (
-                <Alert variant="destructive">
-                  <AlertDescription>{deleteError}</AlertDescription>
-                </Alert>
-              )}
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="destructive">Ta bort</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Ta bort recept</DialogTitle>
+                    <DialogDescription>
+                      Vill du verkligen ta bort detta recept? Denna atgard kan inte
+                      angras.
+                    </DialogDescription>
+                  </DialogHeader>
 
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                  disabled={isDeleting}
-                >
-                  Avbryt
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={handleDelete}
-                  disabled={isDeleting}
-                >
-                  {isDeleting ? 'Tar bort...' : 'Ta bort'}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+                  {deleteError && (
+                    <Alert variant="destructive">
+                      <AlertDescription>{deleteError}</AlertDescription>
+                    </Alert>
+                  )}
+
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsDialogOpen(false)}
+                      disabled={isDeleting}
+                    >
+                      Avbryt
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={handleDelete}
+                      disabled={isDeleting}
+                    >
+                      {isDeleting ? 'Tar bort...' : 'Ta bort'}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </>
+          )}
         </div>
       )}
 

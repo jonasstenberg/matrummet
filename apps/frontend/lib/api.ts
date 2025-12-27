@@ -38,7 +38,11 @@ export async function getRecipes(options?: {
     next: { revalidate: 60 },
   });
 
-  if (!res.ok) throw new Error("Failed to fetch recipes");
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error("Failed to fetch recipes:", res.status, errorText);
+    throw new Error(`Failed to fetch recipes: ${res.status} ${errorText}`);
+  }
   return res.json();
 }
 
@@ -144,6 +148,43 @@ export async function getLikedRecipes(
   });
 
   if (!res.ok) throw new Error("Failed to fetch liked recipes");
+  return res.json();
+}
+
+export interface ShoppingListItem {
+  id: string;
+  shopping_list_id: string;
+  food_id: string | null;
+  unit_id: string | null;
+  display_name: string;
+  display_unit: string;
+  quantity: number;
+  is_checked: boolean;
+  checked_at: string | null;
+  sort_order: number;
+  item_name: string;
+  unit_name: string;
+  list_name: string;
+  source_recipes: string[] | null;
+  date_published: string;
+}
+
+export async function getShoppingList(token: string, listId?: string): Promise<ShoppingListItem[]> {
+  const params = new URLSearchParams();
+  params.set("order", "is_checked.asc,sort_order.asc");
+
+  if (listId) {
+    params.set("shopping_list_id", `eq.${listId}`);
+  }
+
+  const res = await fetch(`${env.POSTGREST_URL}/shopping_list_view?${params}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    cache: 'no-store',
+  });
+
+  if (!res.ok) throw new Error("Failed to fetch shopping list");
   return res.json();
 }
 

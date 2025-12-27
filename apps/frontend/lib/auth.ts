@@ -74,7 +74,7 @@ export async function getSession(): Promise<JWTPayload | null> {
 }
 
 export async function signPostgrestToken(email: string): Promise<string> {
-  const token = await new SignJWT({ email, role: 'anon' })
+  const token = await new SignJWT({ email, role: 'authenticated' })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('1h')

@@ -150,3 +150,39 @@ export interface PaginatedResponse<T> {
   pageSize: number
   totalPages: number
 }
+
+export interface ShoppingListItem {
+  id: string
+  shopping_list_id: string
+  food_id: string | null
+  unit_id: string | null
+  display_name: string
+  display_unit: string
+  quantity: number
+  is_checked: boolean
+  checked_at: string | null
+  sort_order: number
+  item_name: string
+  unit_name: string
+  list_name: string
+  source_recipes: string[] | null
+  date_published: string
+}
+
+export interface ApiKey {
+  id: string
+  name: string
+  prefix: string
+  last_used_at: string | null
+  date_published: string
+}
+
+export interface ShoppingList {
+  id: string
+  name: string
+  is_default: boolean
+  item_count: number
+  checked_count: number
+  date_published: string
+  date_modified: string
+}

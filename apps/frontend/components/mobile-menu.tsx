@@ -10,7 +10,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { isAdmin } from "@/lib/is-admin";
-import { LogOut, Menu, Settings, UserCog } from "lucide-react";
+import { LogOut, Menu, Settings, ShoppingCart, UserCog } from "lucide-react";
 import Link from "next/link";
 import { Suspense, useState } from "react";
 
@@ -50,18 +50,28 @@ export function MobileMenu() {
             {user ? (
               <>
                 <Link
-                  href="/installningar"
-                  className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                  href="/inkopslista"
+                  className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
                   onClick={() => setOpen(false)}
                 >
+                  <ShoppingCart className="h-4 w-4" />
+                  Inköpslista
+                </Link>
+                <Link
+                  href="/installningar"
+                  className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                  onClick={() => setOpen(false)}
+                >
+                  <UserCog className="h-4 w-4" />
                   Inställningar
                 </Link>
                 {isAdmin(user) && (
                   <Link
                     href="/admin/kategorier"
-                    className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                    className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
                     onClick={() => setOpen(false)}
                   >
+                    <Settings className="h-4 w-4" />
                     Admin
                   </Link>
                 )}
@@ -70,8 +80,9 @@ export function MobileMenu() {
                     logout();
                     setOpen(false);
                   }}
-                  className="rounded-md px-3 py-2 text-left text-sm font-medium hover:bg-accent"
+                  className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium hover:bg-accent"
                 >
+                  <LogOut className="h-4 w-4" />
                   Logga ut
                 </button>
               </>

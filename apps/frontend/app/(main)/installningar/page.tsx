@@ -1,6 +1,8 @@
 import { getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { SettingsForm } from '@/components/settings-form'
+import { ApiKeyManager } from '@/components/api-key-manager'
+import { getApiKeys } from '@/lib/actions'
 
 export default async function SettingsPage() {
   const session = await getSession()
@@ -8,6 +10,9 @@ export default async function SettingsPage() {
   if (!session) {
     redirect('/login')
   }
+
+  const apiKeysResult = await getApiKeys()
+  const apiKeys = 'error' in apiKeysResult ? [] : apiKeysResult
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -17,7 +22,10 @@ export default async function SettingsPage() {
           Hantera ditt konto och dina inställningar
         </p>
       </div>
-      <SettingsForm />
+      <div className="space-y-8">
+        <SettingsForm />
+        <ApiKeyManager initialKeys={apiKeys} />
+      </div>
     </div>
   )
 }
