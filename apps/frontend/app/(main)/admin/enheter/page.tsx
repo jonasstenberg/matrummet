@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/components/auth-provider'
 import { Unit } from '@/lib/types'
@@ -75,13 +75,7 @@ export default function AdminUnitsPage() {
   const [newUnitAbbreviation, setNewUnitAbbreviation] = useState('')
   const [isAdding, setIsAdding] = useState(false)
 
-  useEffect(() => {
-    if (!authLoading && user) {
-      loadUnits()
-    }
-  }, [authLoading, user, currentPage, searchQuery])
-
-  async function loadUnits() {
+  const loadUnits = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -114,7 +108,13 @@ export default function AdminUnitsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentPage, searchQuery])
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      loadUnits()
+    }
+  }, [authLoading, user, loadUnits])
 
   function handleSearchChange(value: string) {
     // Clear any existing timeout

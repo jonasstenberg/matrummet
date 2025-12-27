@@ -485,7 +485,7 @@ export function RecipeForm({
       </Card>
 
       {/* Submit Section */}
-      <div className="sticky bottom-0 -mx-4 border-t bg-background/95 px-4 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+      <div className="md:sticky md:bottom-0 -mx-4 border-t bg-background/95 px-4 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
         {hasErrors && (
           <Alert variant="destructive" className="mb-4">
             <AlertDescription>

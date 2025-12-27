@@ -268,7 +268,6 @@ export function formatRecipeForInstructionsPrompt(
 
   // Add ingredients with their groups
   lines.push("INGREDIENSER:")
-  const groupMap = new Map(ingredientGroups.map(g => [g.id, g.name]))
 
   // Group ingredients by group_id for display
   const grouped = new Map<string | null, Ingredient[]>()

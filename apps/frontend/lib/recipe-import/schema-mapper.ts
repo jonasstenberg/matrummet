@@ -1,5 +1,5 @@
 import { CreateRecipeInput } from '@/lib/types'
-import { JsonLdRecipe, HowToStep, HowToSection, ParsedIngredient } from './types'
+import { JsonLdRecipe, HowToSection } from './types'
 import { parseIngredient } from './ingredient-parser'
 import { parseDuration } from './duration-parser'
 

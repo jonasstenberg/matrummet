@@ -193,6 +193,16 @@ jobs:
         if: steps.should-deploy.outputs.deploy == 'true'
         run: pnpm install --frozen-lockfile
 
+      - name: Cache Next.js build
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'frontend'
+        uses: actions/cache@v4
+        with:
+          path: apps/frontend/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/frontend/**/*.js', 'apps/frontend/**/*.jsx', 'apps/frontend/**/*.ts', 'apps/frontend/**/*.tsx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('pnpm-lock.yaml') }}-
+            ${{ runner.os }}-nextjs-
+
       - name: Build frontend
         if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'frontend'
         working-directory: apps/frontend

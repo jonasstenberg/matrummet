@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/components/auth-provider'
 import { Button } from '@/components/ui/button'
@@ -90,14 +90,7 @@ export default function AdminFoodsPage() {
   const [newFoodName, setNewFoodName] = useState('')
   const [isAdding, setIsAdding] = useState(false)
 
-  // Load foods when auth is ready and page/search/status params change
-  useEffect(() => {
-    if (!authLoading && user) {
-      loadFoods()
-    }
-  }, [authLoading, user, page, search, statusFilter])
-
-  async function loadFoods() {
+  const loadFoods = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -134,7 +127,14 @@ export default function AdminFoodsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [page, search, statusFilter])
+
+  // Load foods when auth is ready and page/search/status params change
+  useEffect(() => {
+    if (!authLoading && user) {
+      loadFoods()
+    }
+  }, [authLoading, user, loadFoods])
 
   async function handleRename(id: string, newName: string) {
     if (!newName.trim()) {

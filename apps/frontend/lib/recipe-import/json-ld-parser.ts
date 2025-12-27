@@ -41,7 +41,7 @@ export function extractJsonLdRecipe(html: string): JsonLdRecipe | null {
           return recipe as JsonLdRecipe
         }
       }
-    } catch (error) {
+    } catch {
       // Skip invalid JSON
       continue
     }

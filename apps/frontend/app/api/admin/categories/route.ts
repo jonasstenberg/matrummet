@@ -25,10 +25,14 @@ export async function GET() {
       throw new Error('Failed to fetch categories')
     }
 
-    const data = await response.json()
+    const data: Array<{
+      id: number
+      name: string
+      recipe_categories: Array<{ count: number }>
+    }> = await response.json()
 
     // Transform the data to include recipe_count
-    const categoriesWithCount = data.map((cat: any) => ({
+    const categoriesWithCount = data.map((cat) => ({
       id: cat.id,
       name: cat.name,
       recipe_count: cat.recipe_categories?.[0]?.count ?? 0,

@@ -3,8 +3,15 @@
 import { useAuth } from "@/components/auth-provider";
 import { SearchBar } from "@/components/search-bar";
 import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { isAdmin } from "@/lib/is-admin";
-import { ChefHat, LogOut, Menu, Settings, User, UserCog, X } from "lucide-react";
+import { ChefHat, LogOut, Menu, Settings, User, UserCog } from "lucide-react";
 import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
 
@@ -111,84 +118,79 @@ export function Header() {
           )}
         </div>
 
-        {/* Mobile Menu Button */}
-        <button
-          className="md:hidden"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label={mobileMenuOpen ? "Stäng meny" : "Öppna meny"}
-        >
-          {mobileMenuOpen ? (
-            <X className="h-6 w-6" />
-          ) : (
-            <Menu className="h-6 w-6" />
-          )}
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="border-t border-border bg-background md:hidden">
-          <div className="container mx-auto space-y-4 px-4 py-4">
-            {/* Mobile Search */}
-            <Suspense
-              fallback={
-                <div className="w-full h-9 bg-muted rounded-md animate-pulse" />
-              }
-            >
-              <SearchBar />
-            </Suspense>
-
-            {/* Mobile Navigation */}
-            <nav className="flex flex-col gap-2">
-              <Link
-                href="/"
-                className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
-                onClick={() => setMobileMenuOpen(false)}
+        {/* Mobile Menu */}
+        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+          <SheetTrigger asChild className="md:hidden">
+            <button aria-label="Öppna meny">
+              <Menu className="h-6 w-6" />
+            </button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-80">
+            <SheetHeader>
+              <SheetTitle>Meny</SheetTitle>
+            </SheetHeader>
+            <div className="mt-6 space-y-6">
+              {/* Mobile Search */}
+              <Suspense
+                fallback={
+                  <div className="w-full h-9 bg-muted rounded-md animate-pulse" />
+                }
               >
-                Hem
-              </Link>
+                <SearchBar />
+              </Suspense>
 
-              {user ? (
-                <>
-                  <Link
-                    href="/installningar"
-                    className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Inställningar
-                  </Link>
-                  {isAdmin(user) && (
-                    <Link
-                      href="/admin/kategorier"
-                      className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Admin
-                    </Link>
-                  )}
-                  <button
-                    onClick={() => {
-                      logout();
-                      setMobileMenuOpen(false);
-                    }}
-                    className="rounded-md px-3 py-2 text-left text-sm font-medium hover:bg-accent"
-                  >
-                    Logga ut
-                  </button>
-                </>
-              ) : (
+              {/* Mobile Navigation */}
+              <nav className="flex flex-col gap-2">
                 <Link
-                  href="/login"
+                  href="/"
                   className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Logga in
+                  Hem
                 </Link>
-              )}
-            </nav>
-          </div>
-        </div>
-      )}
+
+                {user ? (
+                  <>
+                    <Link
+                      href="/installningar"
+                      className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Inställningar
+                    </Link>
+                    {isAdmin(user) && (
+                      <Link
+                        href="/admin/kategorier"
+                        className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Admin
+                      </Link>
+                    )}
+                    <button
+                      onClick={() => {
+                        logout();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="rounded-md px-3 py-2 text-left text-sm font-medium hover:bg-accent"
+                    >
+                      Logga ut
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Logga in
+                  </Link>
+                )}
+              </nav>
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
     </header>
   );
 }

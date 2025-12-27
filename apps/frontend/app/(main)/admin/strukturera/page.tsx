@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/components/auth-provider'
@@ -134,13 +134,7 @@ export default function AdminRestructurePage() {
   const [includeIngredients, setIncludeIngredients] = useState(true)
   const [includeInstructions, setIncludeInstructions] = useState(false)
 
-  useEffect(() => {
-    if (!authLoading && user) {
-      loadRecipes()
-    }
-  }, [authLoading, user, page, search, includeIngredients, includeInstructions])
-
-  async function loadRecipes() {
+  const loadRecipes = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -173,7 +167,13 @@ export default function AdminRestructurePage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [page, search, includeIngredients, includeInstructions])
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      loadRecipes()
+    }
+  }, [authLoading, user, loadRecipes])
 
   async function handlePreview(recipe: RecipeItem, instructions?: string, ingFlag?: boolean, instrFlag?: boolean) {
     setSelectedRecipe(recipe)
