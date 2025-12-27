@@ -152,6 +152,7 @@ export function RecipeForm({
   );
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   function clearFieldError(field: string) {
     if (fieldErrors[field]) {
@@ -201,6 +202,7 @@ export function RecipeForm({
     e.preventDefault();
     setFieldErrors({});
     setSubmitError(null);
+    setIsProcessing(true);
 
     // Filter out empty ingredients and instructions
     const validIngredients = ingredients.filter((i) => i.name.trim());
@@ -262,6 +264,7 @@ export function RecipeForm({
           }
         }
         setFieldErrors(errors);
+        setIsProcessing(false);
         return;
       }
 
@@ -270,6 +273,7 @@ export function RecipeForm({
       setSubmitError(
         err instanceof Error ? err.message : "Ett oväntat fel uppstod"
       );
+      setIsProcessing(false);
     }
   }
 
@@ -495,8 +499,8 @@ export function RecipeForm({
           </Alert>
         )}
         <div className="flex gap-4">
-          <Button type="submit" disabled={isSubmitting} size="lg">
-            {isSubmitting
+          <Button type="submit" disabled={isSubmitting || isProcessing} size="lg">
+            {isSubmitting || isProcessing
               ? "Sparar..."
               : initialData?.id
               ? "Uppdatera recept"
@@ -507,7 +511,7 @@ export function RecipeForm({
             variant="outline"
             size="lg"
             onClick={() => window.history.back()}
-            disabled={isSubmitting}
+            disabled={isSubmitting || isProcessing}
           >
             Avbryt
           </Button>
