@@ -651,9 +651,19 @@ GRANT SELECT, INSERT, UPDATE ON "user_passwords" TO "anon";
 -- =============================================================================
 -- SECTION 10: Fix email_service role - Remove LOGIN privilege
 -- HIGH: Service role should not allow direct database connections
+-- NOTE: ALTER ROLE requires superuser. We wrap in exception handler to allow
+--       migration to succeed even if the user lacks privileges.
 -- =============================================================================
 
-ALTER ROLE email_service NOLOGIN;
+DO $$
+BEGIN
+    ALTER ROLE email_service NOLOGIN;
+    RAISE NOTICE 'Successfully set email_service to NOLOGIN';
+EXCEPTION
+    WHEN insufficient_privilege THEN
+        RAISE WARNING 'Could not ALTER ROLE email_service NOLOGIN - requires superuser. Run manually: ALTER ROLE email_service NOLOGIN;';
+END;
+$$;
 
 -- =============================================================================
 -- SECTION 11: Fix insert_recipe() - Add authentication check

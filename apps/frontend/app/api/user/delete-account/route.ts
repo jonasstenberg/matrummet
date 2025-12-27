@@ -1,8 +1,12 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getSession, signPostgrestToken } from '@/lib/auth'
 import { env } from '@/lib/env'
 
-export async function POST() {
+interface DeleteAccountBody {
+  password: string | null
+}
+
+export async function POST(request: NextRequest) {
   try {
     // Validate session
     const session = await getSession()
@@ -13,10 +17,18 @@ export async function POST() {
       )
     }
 
+    // Parse request body
+    let body: DeleteAccountBody
+    try {
+      body = await request.json()
+    } catch {
+      body = { password: null }
+    }
+
     // Create a PostgREST token for the authenticated user
     const postgrestToken = await signPostgrestToken(session.email)
 
-    // Call PostgREST delete_account endpoint
+    // Call PostgREST delete_account endpoint with password
     const postgrestResponse = await fetch(
       `${env.POSTGREST_URL}/rpc/delete_account`,
       {
@@ -25,7 +37,7 @@ export async function POST() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${postgrestToken}`,
         },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ p_password: body.password }),
       }
     )
 
@@ -40,6 +52,10 @@ export async function POST() {
           errorMessage = 'Ej autentiserad'
         } else if (dbMessage.includes('user-not-found')) {
           errorMessage = 'Användaren hittades inte'
+        } else if (dbMessage.includes('invalid-password')) {
+          errorMessage = 'Fel lösenord'
+        } else if (dbMessage.includes('password-required')) {
+          errorMessage = 'Lösenord krävs'
         }
       } catch {
         // If parsing fails, use default error message

@@ -38,6 +38,7 @@ export function SettingsForm() {
 
   // Delete account state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deletePassword, setDeletePassword] = useState('')
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [isDeleteLoading, setIsDeleteLoading] = useState(false)
 
@@ -127,12 +128,24 @@ export function SettingsForm() {
 
   async function handleDeleteAccount() {
     setDeleteError(null)
+
+    // Require password for non-OAuth users
+    const isOAuthUser = user?.provider !== null
+    if (!isOAuthUser && !deletePassword) {
+      setDeleteError('Ange ditt lösenord för att bekräfta')
+      return
+    }
+
     setIsDeleteLoading(true)
 
     try {
       const response = await fetch('/api/user/delete-account', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         credentials: 'include',
+        body: JSON.stringify({ password: isOAuthUser ? null : deletePassword }),
       })
 
       const data = await response.json()
@@ -144,12 +157,21 @@ export function SettingsForm() {
       // Clear user state and redirect to home
       clearUser()
       setDeleteDialogOpen(false)
+      setDeletePassword('')
       router.push('/')
       router.refresh()
     } catch (e) {
       setDeleteError(e instanceof Error ? e.message : 'Något gick fel')
     } finally {
       setIsDeleteLoading(false)
+    }
+  }
+
+  function handleDeleteDialogChange(open: boolean) {
+    setDeleteDialogOpen(open)
+    if (!open) {
+      setDeletePassword('')
+      setDeleteError(null)
     }
   }
 
@@ -264,13 +286,7 @@ export function SettingsForm() {
             Denna åtgärd kan inte ångras.
           </p>
 
-          {deleteError && (
-            <Alert variant="destructive">
-              <AlertDescription>{deleteError}</AlertDescription>
-            </Alert>
-          )}
-
-          <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <Dialog open={deleteDialogOpen} onOpenChange={handleDeleteDialogChange}>
             <DialogTrigger asChild>
               <Button variant="destructive">
                 <Trash2 className="h-4 w-4" />
@@ -291,10 +307,32 @@ export function SettingsForm() {
                   </span>
                 </DialogDescription>
               </DialogHeader>
+
+              {/* Password confirmation for non-OAuth users */}
+              {user?.provider === null && (
+                <div className="space-y-2">
+                  <Label htmlFor="deletePassword">Bekräfta med ditt lösenord</Label>
+                  <Input
+                    id="deletePassword"
+                    type="password"
+                    value={deletePassword}
+                    onChange={(e) => setDeletePassword(e.target.value)}
+                    placeholder="Ange ditt lösenord"
+                    disabled={isDeleteLoading}
+                  />
+                </div>
+              )}
+
+              {deleteError && (
+                <Alert variant="destructive">
+                  <AlertDescription>{deleteError}</AlertDescription>
+                </Alert>
+              )}
+
               <DialogFooter className="gap-2 sm:gap-0">
                 <Button
                   variant="outline"
-                  onClick={() => setDeleteDialogOpen(false)}
+                  onClick={() => handleDeleteDialogChange(false)}
                   disabled={isDeleteLoading}
                 >
                   Avbryt
