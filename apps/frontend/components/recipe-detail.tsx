@@ -1,9 +1,8 @@
 "use client";
 
 import type { Recipe } from "@/lib/types";
-import { getImageUrl } from "@/lib/utils";
+import { getImageUrl, getImageSrcSet } from "@/lib/utils";
 import { Calendar, ChefHat, Clock, Users, UtensilsCrossed } from "lucide-react";
-import Image from "next/image";
 import { useState } from "react";
 import { IngredientsList } from "./ingredients-list";
 import { InstructionsChecklist } from "./instructions-checklist";
@@ -66,7 +65,8 @@ function PlaceholderImage() {
 }
 
 export function RecipeDetail({ recipe }: RecipeDetailProps) {
-  const imageUrl = getImageUrl(recipe.image);
+  const imageUrl = getImageUrl(recipe.image, 'large');
+  const imageSrcSet = getImageSrcSet(recipe.image);
   const hasImage = !!imageUrl;
   const totalTime = calculateTotalTime(recipe.prep_time, recipe.cook_time);
   const hasDescription = recipe.description && recipe.description !== "-";
@@ -153,11 +153,14 @@ export function RecipeDetail({ recipe }: RecipeDetailProps) {
         <div className="order-1 md:order-2">
           <div className="relative aspect-4/3 w-full overflow-hidden rounded-2xl shadow-[0_4px_20px_-4px_rgba(139,90,60,0.15)]">
             {hasImage && imageUrl ? (
-              <Image
+              <img
                 src={imageUrl}
+                srcSet={imageSrcSet ?? undefined}
+                sizes="(max-width: 768px) 100vw, 50vw"
                 alt={recipe.name}
-                fill
-                className="object-cover"
+                loading="eager"
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover"
               />
             ) : (
               <PlaceholderImage />
