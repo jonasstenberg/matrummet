@@ -7,7 +7,7 @@ services:
   # SMTP: localhost:1025 (no auth required)
   # POP3: localhost:1100 (optional)
   inbucket:
-    image: inbucket/inbucket:3.1.1
+    image: inbucket/inbucket:latest
     container_name: recept-inbucket
     ports:
       - "9000:9000"   # Web UI + REST API
