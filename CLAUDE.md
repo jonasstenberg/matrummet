@@ -1,98 +1,53 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## What
 
-## Overview
+Recept is a Swedish recipe management app. Monorepo with:
 
-This is a recipe management database backend using PostgreSQL with PostgREST as the REST API layer. The system stores recipes with ingredients, instructions, and categories, and uses JWT-based authentication with row-level security (RLS).
+- `apps/frontend` — Next.js 16, React 19, Tailwind v4, Radix UI
+- `apps/email-service` — Email notifications
+- `packages/` — Shared configs (eslint, tsconfig, testing, shared utils)
+- PostgreSQL database with PostgREST REST API layer
 
-## Commands
+## Why
 
-### Database Migrations (Flyway)
+Personal recipe collection with Swedish full-text search, JWT auth, and row-level security (RLS) ensuring users only modify their own data.
 
-```bash
-# Install Flyway (macOS)
-brew install flyway
+## How
 
-# Check migration status
-./flyway/run-flyway.sh info
-
-# Apply pending migrations (auto-creates backup first)
-./flyway/run-flyway.sh migrate
-
-# Apply migrations and import seeddata (auto-creates backup first)
-./flyway/run-flyway.sh migrate-seed
-
-# Import seed data only
-./flyway/run-flyway.sh seed
-
-# For existing database, baseline first (marks V1 as applied)
-./flyway/run-flyway.sh baseline
-
-# Validate migrations
-./flyway/run-flyway.sh validate
-```
-
-Migrations are stored in `flyway/sql/` with naming convention `V{version}__{description}.sql`.
-Seed data is stored in `data/data.sql`.
-
-### Database Backup/Restore
-
-Backups are automatically created before migrations. You can also manage them manually:
+### Quick Commands
 
 ```bash
-# Create a manual backup
-./flyway/run-flyway.sh backup
-
-# List available backups
-./flyway/run-flyway.sh list-backups
-
-# Restore from most recent backup
-./flyway/run-flyway.sh restore
-
-# Restore from a specific backup file
-./flyway/run-flyway.sh restore recept_pre-migrate_20231215_143022.sql
+pnpm dev                    # Start all apps (frontend uses Turbopack)
+pnpm build                  # Build all apps
+pnpm lint                   # Lint all packages
+./start-postgrest.sh        # Start PostgREST API on port 4444
+./flyway/run-flyway.sh info # Check migration status
+./flyway/run-flyway.sh migrate  # Apply migrations (auto-backup)
 ```
 
-Backups are stored in `flyway/backups/` and are excluded from git.
+### Database
 
-### Running PostgREST
+Migrations: `flyway/sql/V{version}__{description}.sql`
+Seed data: `data/data.sql`
+Backups: `flyway/run-flyway.sh backup|restore|list-backups`
 
-```bash
-# Start the API server using the startup script
-./start-postgrest.sh
+### Key Patterns
 
-# Or run directly (requires postgrest to be installed)
-postgrest postgrest.cfg
-```
+**RLS**: All tables use JWT email claim (`request.jwt.claims->>'email'`) for ownership. SELECT is public, INSERT/UPDATE/DELETE is owner-only.
 
-The API runs on port 4444 and connects to the `recept` database.
+**Atomic Operations**: Use `insert_recipe()` / `update_recipe()` functions — they handle categories, ingredients, and instructions together.
 
-## Architecture
+**Full-text Search**: Swedish text search via `recipes_and_categories` view's `full_tsv` column.
 
-### Database Schema
+### Schema Overview
 
-The schema uses JWT claims for ownership (`request.jwt.claims->>'email'`) and enforces row-level security on all tables:
+- `users` / `user_passwords` — Auth with bcrypt trigger
+- `recipes` — Core data with `tsv` search vector
+- `ingredients` — Measurements and quantities
+- `instructions` — Recipe steps
+- `categories` — Many-to-many via `recipe_categories`
 
-- **users** / **user_passwords**: Authentication with bcrypt password hashing via trigger
-- **recipes**: Core recipe data with full-text search vector (`tsv`)
-- **ingredients**: Recipe ingredients with measurement and quantity
-- **instructions**: Recipe steps
-- **categories**: Recipe categories (many-to-many via `recipe_categories`)
+### Auth Functions
 
-### Key Database Functions
-
-- `insert_recipe()` / `update_recipe()`: Atomic recipe operations that handle categories, ingredients, and instructions together
-- `login()` / `signup()` / `signup_provider()`: Authentication functions
-- `reset_password()`: Password change with validation
-
-### Views
-
-- `recipes_and_categories`: Aggregates recipes with their categories, ingredients, and instructions; includes Swedish full-text search vector (`full_tsv`)
-
-### Row-Level Security Pattern
-
-All tables follow the same RLS pattern:
-
-- SELECT: Public read (`USING (true)`) except for user tables
-- INSERT/UPDATE/DELETE: Owner-only based on JWT email claim
+`login()`, `signup()`, `signup_provider()`, `reset_password()`
