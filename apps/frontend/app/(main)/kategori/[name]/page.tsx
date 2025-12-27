@@ -29,11 +29,10 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   const categoryName = decodeURIComponent(name)
 
   const session = await getSession()
-  const isLoggedIn = !!session
   const token = session ? await signPostgrestToken(session.email) : undefined
 
   // When logged in, show user's recipes. When not logged in, show all.
-  const ownerEmail = isLoggedIn ? session.email : undefined
+  const ownerEmail = session ? session.email : undefined
 
   const recipes = await getRecipes({
     category: categoryName,
@@ -64,7 +63,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       </header>
 
       {/* View Toggle Tabs */}
-      <RecipeViewToggle isLoggedIn={isLoggedIn} categoryName={categoryName} activeView="mine" />
+      <RecipeViewToggle categoryName={categoryName} activeView="mine" />
 
       {/* Category Filter */}
       <CategoryFilter activeCategory={categoryName} />

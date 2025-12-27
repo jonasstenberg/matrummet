@@ -29,7 +29,6 @@ export default async function AllRecipesCategoryPage({ params }: CategoryPagePro
   const categoryName = decodeURIComponent(name)
 
   const session = await getSession()
-  const isLoggedIn = !!session
   const token = session ? await signPostgrestToken(session.email) : undefined
 
   // Show all recipes (no owner filter)
@@ -61,7 +60,7 @@ export default async function AllRecipesCategoryPage({ params }: CategoryPagePro
       </header>
 
       {/* View Toggle Tabs */}
-      <RecipeViewToggle isLoggedIn={isLoggedIn} categoryName={categoryName} activeView="all" />
+      <RecipeViewToggle categoryName={categoryName} activeView="all" />
 
       {/* Category Filter */}
       <CategoryFilter activeCategory={categoryName} basePath="/alla-recept" />

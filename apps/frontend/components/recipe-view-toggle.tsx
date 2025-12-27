@@ -1,23 +1,24 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/components/auth-provider";
 import Link from "next/link";
 
 interface RecipeViewToggleProps {
-  isLoggedIn: boolean;
   categoryName?: string;
   activeView?: "mine" | "all" | "liked";
   className?: string;
 }
 
 export function RecipeViewToggle({
-  isLoggedIn,
   categoryName,
   activeView = "mine",
   className,
 }: RecipeViewToggleProps) {
+  const { user } = useAuth();
+
   // Don't render if not logged in
-  if (!isLoggedIn) {
+  if (!user) {
     return null;
   }
 

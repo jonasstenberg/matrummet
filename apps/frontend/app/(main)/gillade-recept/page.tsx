@@ -38,7 +38,7 @@ export default async function LikedRecipesPage() {
 
       {/* View Toggle Tabs */}
       <Suspense fallback={null}>
-        <RecipeViewToggle isLoggedIn activeView="liked" />
+        <RecipeViewToggle activeView="liked" />
       </Suspense>
 
       {/* Category Filter */}

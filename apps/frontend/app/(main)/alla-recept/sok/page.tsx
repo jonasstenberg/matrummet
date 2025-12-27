@@ -27,7 +27,6 @@ export default async function AllRecipesSearchPage({ searchParams }: SearchPageP
   const query = params.q || ''
 
   const session = await getSession()
-  const isLoggedIn = !!session
   const token = session ? await signPostgrestToken(session.email) : undefined
 
   // Search all recipes (no owner filter)
@@ -51,7 +50,7 @@ export default async function AllRecipesSearchPage({ searchParams }: SearchPageP
                 {recipes.length > 1 && `${recipes.length} recept hittades`}
               </p>
             </div>
-            <RecipeViewToggleSearch isLoggedIn={isLoggedIn} showAll />
+            <RecipeViewToggleSearch showAll />
           </header>
 
           <RecipeGrid recipes={recipes} />

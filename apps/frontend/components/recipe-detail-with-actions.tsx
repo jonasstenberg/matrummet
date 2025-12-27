@@ -17,25 +17,25 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { LikeButton } from '@/components/like-button'
 import { AddToShoppingListButton } from '@/components/add-to-shopping-list-button'
+import { useAuth } from '@/components/auth-provider'
 import { deleteRecipe } from '@/lib/actions'
 import { Recipe } from '@/lib/types'
 
 interface RecipeDetailWithActionsProps {
   recipe: Recipe
-  userEmail?: string
 }
 
 export function RecipeDetailWithActions({
   recipe,
-  userEmail,
 }: RecipeDetailWithActionsProps) {
   const router = useRouter()
+  const { user } = useAuth()
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
-  const isOwner = userEmail && recipe.owner === userEmail
-  const isLoggedIn = !!userEmail
+  const isOwner = user?.email && recipe.owner === user.email
+  const isLoggedIn = !!user
 
   async function handleDelete() {
     setIsDeleting(true)

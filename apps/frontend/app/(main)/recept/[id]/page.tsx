@@ -54,7 +54,6 @@ export default async function RecipePage({ params }: RecipePageProps) {
   return (
     <RecipeDetailWithActions
       recipe={recipe}
-      userEmail={session?.email}
     />
   )
 }

@@ -1,25 +1,25 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/components/auth-provider";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
 interface RecipeViewToggleSearchProps {
-  isLoggedIn: boolean;
   showAll?: boolean;
   className?: string;
 }
 
 export function RecipeViewToggleSearch({
-  isLoggedIn,
   showAll = false,
   className,
 }: RecipeViewToggleSearchProps) {
+  const { user } = useAuth();
   const searchParams = useSearchParams();
   const query = searchParams.get("q") || "";
 
   // Don't render if not logged in
-  if (!isLoggedIn) {
+  if (!user) {
     return null;
   }
 

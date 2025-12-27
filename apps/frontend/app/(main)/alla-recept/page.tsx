@@ -15,7 +15,6 @@ async function RecipeList({ token }: { token?: string }) {
 
 export default async function AllRecipesPage() {
   const session = await getSession();
-  const isLoggedIn = !!session;
   const token = session ? await signPostgrestToken(session.email) : undefined;
 
   return (
@@ -32,7 +31,7 @@ export default async function AllRecipesPage() {
 
       {/* View Toggle Tabs */}
       <Suspense fallback={null}>
-        <RecipeViewToggle isLoggedIn={isLoggedIn} activeView="all" />
+        <RecipeViewToggle activeView="all" />
       </Suspense>
 
       {/* Category Filter */}

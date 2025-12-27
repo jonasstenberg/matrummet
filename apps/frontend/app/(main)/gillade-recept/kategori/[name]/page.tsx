@@ -70,7 +70,6 @@ export default async function LikedRecipesCategoryPage({
 
       {/* View Toggle Tabs */}
       <RecipeViewToggle
-        isLoggedIn
         categoryName={categoryName}
         activeView="liked"
       />
