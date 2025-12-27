@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { getRecipes } from '@/lib/api'
-import { getSession } from '@/lib/auth'
+import { getSession, signPostgrestToken } from '@/lib/auth'
 import { RecipeGrid } from '@/components/recipe-grid'
 import { CategoryFilter } from '@/components/category-filter'
 import { RecipeViewToggle } from '@/components/recipe-view-toggle'
@@ -30,10 +30,12 @@ export default async function AllRecipesCategoryPage({ params }: CategoryPagePro
 
   const session = await getSession()
   const isLoggedIn = !!session
+  const token = session ? await signPostgrestToken(session.email) : undefined
 
   // Show all recipes (no owner filter)
   const recipes = await getRecipes({
     category: categoryName,
+    token,
   })
 
   return (
@@ -59,7 +61,7 @@ export default async function AllRecipesCategoryPage({ params }: CategoryPagePro
       </header>
 
       {/* View Toggle Tabs */}
-      <RecipeViewToggle isLoggedIn={isLoggedIn} categoryName={categoryName} showAll />
+      <RecipeViewToggle isLoggedIn={isLoggedIn} categoryName={categoryName} activeView="all" />
 
       {/* Category Filter */}
       <CategoryFilter activeCategory={categoryName} basePath="/alla-recept" />

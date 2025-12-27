@@ -4,20 +4,21 @@ import { RecipeGridSkeleton } from "@/components/recipe-grid-skeleton";
 import { RecipeViewToggle } from "@/components/recipe-view-toggle";
 import { Button } from "@/components/ui/button";
 import { getRecipes } from "@/lib/api";
-import { getSession } from "@/lib/auth";
+import { getSession, signPostgrestToken } from "@/lib/auth";
 import Link from "next/link";
 import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
 
-async function RecipeList({ ownerEmail }: { ownerEmail?: string }) {
-  const recipes = await getRecipes(ownerEmail ? { owner: ownerEmail } : undefined);
+async function RecipeList({ ownerEmail, token }: { ownerEmail?: string; token?: string }) {
+  const recipes = await getRecipes(ownerEmail ? { owner: ownerEmail, token } : { token });
   return <RecipeGrid recipes={recipes} />;
 }
 
 export default async function HomePage() {
   const session = await getSession();
   const isLoggedIn = !!session;
+  const token = session ? await signPostgrestToken(session.email) : undefined;
 
   // When logged in, show user's recipes. When not logged in, show all.
   const ownerEmail = isLoggedIn ? session.email : undefined;
@@ -44,7 +45,7 @@ export default async function HomePage() {
       </header>
 
       {/* View Toggle Tabs */}
-      <RecipeViewToggle isLoggedIn={isLoggedIn} />
+      <RecipeViewToggle isLoggedIn={isLoggedIn} activeView="mine" />
 
       {/* Category Filter */}
       <Suspense fallback={<div className="h-10" />}>
@@ -52,7 +53,7 @@ export default async function HomePage() {
       </Suspense>
 
       <Suspense fallback={<RecipeGridSkeleton />}>
-        <RecipeList ownerEmail={ownerEmail} />
+        <RecipeList ownerEmail={ownerEmail} token={token} />
       </Suspense>
     </div>
   );

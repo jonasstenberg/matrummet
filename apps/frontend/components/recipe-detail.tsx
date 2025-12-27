@@ -10,6 +10,7 @@ import { ServingsSlider } from "./servings-slider";
 
 interface RecipeDetailProps {
   recipe: Recipe;
+  actionButton?: React.ReactNode;
 }
 
 function calculateTotalTime(
@@ -64,7 +65,7 @@ function PlaceholderImage() {
   );
 }
 
-export function RecipeDetail({ recipe }: RecipeDetailProps) {
+export function RecipeDetail({ recipe, actionButton }: RecipeDetailProps) {
   const imageUrl = getImageUrl(recipe.image, 'large');
   const imageSrcSet = getImageSrcSet(recipe.image);
   const hasImage = !!imageUrl;
@@ -164,6 +165,12 @@ export function RecipeDetail({ recipe }: RecipeDetailProps) {
               />
             ) : (
               <PlaceholderImage />
+            )}
+            {/* Action button overlay */}
+            {actionButton && (
+              <div className="absolute right-3 top-3">
+                {actionButton}
+              </div>
             )}
           </div>
         </div>

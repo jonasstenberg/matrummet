@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { getRecipes } from '@/lib/api'
-import { getSession } from '@/lib/auth'
+import { getSession, signPostgrestToken } from '@/lib/auth'
 import { RecipeGrid } from '@/components/recipe-grid'
 import { RecipeViewToggleSearch } from '@/components/recipe-view-toggle-search'
 
@@ -28,12 +28,13 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
   const session = await getSession()
   const isLoggedIn = !!session
+  const token = session ? await signPostgrestToken(session.email) : undefined
 
   // Search only user's recipes when logged in
   const ownerEmail = isLoggedIn ? session.email : undefined
 
   const recipes = query
-    ? await getRecipes({ search: query, owner: ownerEmail })
+    ? await getRecipes({ search: query, owner: ownerEmail, token })
     : []
 
   return (

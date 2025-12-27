@@ -7,6 +7,7 @@ export async function getRecipes(options?: {
   owner?: string;
   limit?: number;
   offset?: number;
+  token?: string;
 }): Promise<Recipe[]> {
   const params = new URLSearchParams();
   params.set("order", "date_published.desc");
@@ -27,7 +28,13 @@ export async function getRecipes(options?: {
     params.set("offset", String(options.offset));
   }
 
+  const headers: HeadersInit = {};
+  if (options?.token) {
+    headers['Authorization'] = `Bearer ${options.token}`;
+  }
+
   const res = await fetch(`${env.POSTGREST_URL}/recipes_and_categories?${params}`, {
+    headers,
     next: { revalidate: 60 },
   });
 
@@ -35,8 +42,14 @@ export async function getRecipes(options?: {
   return res.json();
 }
 
-export async function getRecipe(id: string): Promise<Recipe | null> {
+export async function getRecipe(id: string, token?: string): Promise<Recipe | null> {
+  const headers: HeadersInit = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${env.POSTGREST_URL}/recipes_and_categories?id=eq.${id}`, {
+    headers,
     next: { revalidate: 300 },
   });
 
@@ -105,3 +118,32 @@ export async function validatePasswordResetToken(token: string): Promise<TokenVa
     return { valid: false, error: 'Ett fel uppstod vid validering' };
   }
 }
+
+export async function getLikedRecipes(
+  token: string,
+  options?: {
+    category?: string;
+    search?: string;
+  }
+): Promise<Recipe[]> {
+  const params = new URLSearchParams();
+  params.set("order", "liked_at.desc");
+
+  if (options?.category) {
+    params.set("categories", `cs.{"${options.category}"}`);
+  }
+  if (options?.search) {
+    params.set("full_tsv", `phfts(swedish).${options.search}`);
+  }
+
+  const res = await fetch(`${env.POSTGREST_URL}/liked_recipes?${params}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    cache: 'no-store',
+  });
+
+  if (!res.ok) throw new Error("Failed to fetch liked recipes");
+  return res.json();
+}
+

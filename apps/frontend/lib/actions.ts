@@ -415,3 +415,58 @@ export async function downloadAndSaveImage(
     return { error: 'Ett fel uppstod vid nedladdning av bilden' }
   }
 }
+
+export async function toggleRecipeLike(
+  recipeId: string
+): Promise<{ liked: boolean } | { error: string }> {
+  try {
+    const token = await getPostgrestToken()
+
+    if (!token) {
+      return { error: 'Du måste vara inloggad för att gilla recept' }
+    }
+
+    const response = await fetch(`${POSTGREST_URL}/rpc/toggle_recipe_like`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ p_recipe_id: recipeId }),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Failed to toggle recipe like:', errorText)
+
+      // Parse PostgREST error to get the error code
+      try {
+        const errorJson = JSON.parse(errorText)
+        const errorCode = errorJson.code || errorJson.message
+
+        if (errorCode === 'cannot-like-own-recipe') {
+          return { error: 'Du kan inte gilla dina egna recept' }
+        }
+        if (errorCode === 'recipe-not-found') {
+          return { error: 'Receptet hittades inte' }
+        }
+      } catch {
+        // If we can't parse the error, fall through to generic message
+      }
+
+      return { error: 'Kunde inte uppdatera gillning' }
+    }
+
+    const result = await response.json()
+
+    // Revalidate relevant paths
+    revalidatePath('/gillade-recept')
+    revalidatePath(`/recept/${recipeId}`)
+
+    // DB function returns { liked: boolean }
+    return { liked: result.liked }
+  } catch (error) {
+    console.error('Error toggling recipe like:', error)
+    return { error: 'Kunde inte uppdatera gillning' }
+  }
+}

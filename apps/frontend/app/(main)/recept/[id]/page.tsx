@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { RecipeDetailWithActions } from '@/components/recipe-detail-with-actions'
 import { getRecipe } from '@/lib/api'
-import { getSession } from '@/lib/auth'
+import { getSession, signPostgrestToken } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,13 +43,13 @@ export async function generateMetadata({ params }: RecipePageProps): Promise<Met
 
 export default async function RecipePage({ params }: RecipePageProps) {
   const { id } = await params
-  const recipe = await getRecipe(id)
+  const session = await getSession()
+  const token = session ? await signPostgrestToken(session.email) : undefined
+  const recipe = await getRecipe(id, token)
 
   if (!recipe) {
     notFound()
   }
-
-  const session = await getSession()
 
   return (
     <RecipeDetailWithActions

@@ -65,6 +65,7 @@ export interface Recipe {
   ingredients: Ingredient[]
   instruction_groups: InstructionGroup[]
   instructions: Instruction[]
+  is_liked?: boolean
 }
 
 export interface CreateRecipeInput {

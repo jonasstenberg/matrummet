@@ -1,6 +1,6 @@
 import type { Recipe } from "@/lib/types";
 import { cn, getImageUrl, getImageSrcSet } from "@/lib/utils";
-import { Clock, Users, UtensilsCrossed } from "lucide-react";
+import { Clock, Heart, Users, UtensilsCrossed } from "lucide-react";
 import Link from "next/link";
 
 interface RecipeCardProps {
@@ -81,6 +81,15 @@ export function RecipeCard({ recipe, className }: RecipeCardProps) {
             </>
           ) : (
             <PlaceholderImage />
+          )}
+
+          {/* Like indicator */}
+          {recipe.is_liked && (
+            <div className="absolute right-2 top-2">
+              <div className="rounded-full bg-white/90 p-1.5 shadow-sm backdrop-blur-sm">
+                <Heart className="h-4 w-4 fill-red-500 text-red-500" />
+              </div>
+            </div>
           )}
 
           {recipe.categories && recipe.categories.length > 0 && (

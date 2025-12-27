@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { getRecipes } from '@/lib/api'
-import { getSession } from '@/lib/auth'
+import { getSession, signPostgrestToken } from '@/lib/auth'
 import { RecipeGrid } from '@/components/recipe-grid'
 import { CategoryFilter } from '@/components/category-filter'
 import { RecipeViewToggle } from '@/components/recipe-view-toggle'
@@ -30,6 +30,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
   const session = await getSession()
   const isLoggedIn = !!session
+  const token = session ? await signPostgrestToken(session.email) : undefined
 
   // When logged in, show user's recipes. When not logged in, show all.
   const ownerEmail = isLoggedIn ? session.email : undefined
@@ -37,6 +38,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   const recipes = await getRecipes({
     category: categoryName,
     owner: ownerEmail,
+    token,
   })
 
   return (
@@ -62,7 +64,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       </header>
 
       {/* View Toggle Tabs */}
-      <RecipeViewToggle isLoggedIn={isLoggedIn} categoryName={categoryName} />
+      <RecipeViewToggle isLoggedIn={isLoggedIn} categoryName={categoryName} activeView="mine" />
 
       {/* Category Filter */}
       <CategoryFilter activeCategory={categoryName} />

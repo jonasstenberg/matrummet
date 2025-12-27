@@ -15,6 +15,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { LikeButton } from '@/components/like-button'
 import { deleteRecipe } from '@/lib/actions'
 import { Recipe } from '@/lib/types'
 
@@ -33,6 +34,7 @@ export function RecipeDetailWithActions({
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   const isOwner = userEmail && recipe.owner === userEmail
+  const isLoggedIn = !!userEmail
 
   async function handleDelete() {
     setIsDeleting(true)
@@ -56,6 +58,16 @@ export function RecipeDetailWithActions({
       setIsDeleting(false)
     }
   }
+
+  // Like button for image overlay (only for logged-in non-owners)
+  const likeButton = isLoggedIn && !isOwner ? (
+    <LikeButton
+      recipeId={recipe.id}
+      initialLiked={recipe.is_liked ?? false}
+      isOwner={false}
+      className="h-10 w-10 rounded-full bg-white/90 shadow-md backdrop-blur-sm hover:bg-white"
+    />
+  ) : null
 
   return (
     <div className="space-y-6">
@@ -107,7 +119,7 @@ export function RecipeDetailWithActions({
       )}
 
       {/* Recipe Detail */}
-      <RecipeDetail recipe={recipe} />
+      <RecipeDetail recipe={recipe} actionButton={likeButton} />
     </div>
   )
 }
