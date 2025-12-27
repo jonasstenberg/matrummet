@@ -1,31 +1,11 @@
-import { getSession } from '@/lib/auth'
-import { redirect } from 'next/navigation'
-import { SettingsForm } from '@/components/settings-form'
-import { ApiKeyManager } from '@/components/api-key-manager'
-import { getApiKeys } from '@/lib/actions'
+import { ProfileForm } from '@/components/profile-form'
+import { SettingsViewToggle } from '@/components/settings-view-toggle'
 
-export default async function SettingsPage() {
-  const session = await getSession()
-
-  if (!session) {
-    redirect('/login')
-  }
-
-  const apiKeysResult = await getApiKeys()
-  const apiKeys = 'error' in apiKeysResult ? [] : apiKeysResult
-
+export default function SettingsProfilePage() {
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="space-y-2 mb-8">
-        <h1 className="font-heading text-3xl font-bold">Inställningar</h1>
-        <p className="text-muted-foreground">
-          Hantera ditt konto och dina inställningar
-        </p>
-      </div>
-      <div className="space-y-8">
-        <SettingsForm />
-        <ApiKeyManager initialKeys={apiKeys} />
-      </div>
+    <div className="space-y-6">
+      <SettingsViewToggle activeView="profil" />
+      <ProfileForm />
     </div>
   )
 }

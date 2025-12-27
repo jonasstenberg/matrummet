@@ -617,7 +617,15 @@ export async function getApiKeys(): Promise<ApiKey[] | { error: string }> {
     }
 
     const result = await response.json()
-    return result as ApiKey[]
+
+    // Map database field names to ApiKey interface
+    return result.map((key: { id: string; name: string; api_key_prefix: string; last_used_at: string | null; date_published: string }) => ({
+      id: key.id,
+      name: key.name,
+      prefix: key.api_key_prefix,
+      last_used_at: key.last_used_at,
+      date_published: key.date_published,
+    })) as ApiKey[]
   } catch (error) {
     console.error('Error getting API keys:', error)
     return { error: 'Kunde inte hamta API-nycklar' }

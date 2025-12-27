@@ -46,6 +46,8 @@ export async function PATCH(request: NextRequest) {
     )
 
     if (!postgrestResponse.ok) {
+      const errorText = await postgrestResponse.text()
+      console.error('PostgREST error:', postgrestResponse.status, errorText)
       throw new Error('Uppdatering misslyckades')
     }
 

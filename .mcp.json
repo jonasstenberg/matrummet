@@ -6,7 +6,7 @@
       "args": [
         "-y",
         "@modelcontextprotocol/server-postgres",
-        "postgresql://recept@localhost:5532/recept"
+        "postgresql://recept@localhost:5432/recept"
       ],
       "env": {}
     }

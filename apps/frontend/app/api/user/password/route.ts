@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth'
+import { getSession, signPostgrestToken } from '@/lib/auth'
 import { env } from '@/lib/env'
 import { changePasswordSchema } from '@/lib/schemas'
 
@@ -28,6 +28,9 @@ export async function POST(request: NextRequest) {
 
     const { oldPassword, newPassword } = result.data
 
+    // Get PostgREST token for authenticated request
+    const postgrestToken = await signPostgrestToken(session.email)
+
     // Call PostgREST reset_password endpoint
     const postgrestResponse = await fetch(
       `${env.POSTGREST_URL}/rpc/reset_password`,
@@ -35,6 +38,7 @@ export async function POST(request: NextRequest) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${postgrestToken}`,
         },
         body: JSON.stringify({
           p_email: session.email,
@@ -50,6 +54,7 @@ export async function POST(request: NextRequest) {
 
       try {
         const errorData = await postgrestResponse.json()
+        console.error('PostgREST password error:', postgrestResponse.status, errorData)
         const dbMessage = errorData?.message || ''
 
         // Map database errors to Swedish
@@ -61,7 +66,8 @@ export async function POST(request: NextRequest) {
           errorMessage = 'Användaren hittades inte'
         }
       } catch {
-        // If parsing fails, use default error message
+        const text = await postgrestResponse.text().catch(() => 'unknown')
+        console.error('PostgREST password error (non-JSON):', postgrestResponse.status, text)
       }
 
       return NextResponse.json(
