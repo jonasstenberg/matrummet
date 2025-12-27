@@ -202,6 +202,7 @@ export async function deleteRecipe(
 
     // Revalidate relevant paths
     revalidatePath('/recept')
+    revalidatePath('/alla-recept')
     revalidatePath('/')
 
     return { success: true }
