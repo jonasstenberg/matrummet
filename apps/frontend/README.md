@@ -20,16 +20,6 @@ Recipe management frontend built with Next.js 16, React 19, and TypeScript.
 pnpm install
 ```
 
-### Setup Recipe Images
-
-Images are served statically from `/public/uploads/` via symlinks to `/data/files/`:
-
-```bash
-./scripts/setup-images.sh
-```
-
-This creates symlinks for all images in the data directory, enabling optimal static serving by Next.js.
-
 ### Environment Variables
 
 Create a `.env.local` file (copy from `.env.example` if available):
@@ -61,10 +51,20 @@ The dev server runs on http://localhost:3000
 
 ### Static Serving (Primary)
 
-Images are served from `/public/uploads/` as symlinks to `/data/files/`:
+Images are served from `/public/uploads/` with pre-optimized variants:
 
+```
+public/uploads/
+└── {uuid}/
+    ├── thumb.webp   # Thumbnail
+    ├── small.webp   # Small size
+    ├── medium.webp  # Medium size
+    ├── large.webp   # Large size
+    └── full.webp    # Full resolution
+```
+
+- **Pre-optimized**: Multiple sizes generated at upload time
 - **Optimal performance**: Direct static file serving by Next.js
-- **Automatic optimization**: Next.js Image component converts to AVIF/WebP
 - **Long cache**: 1 year cache for immutable images
 - **Lazy loading**: Recipe cards use `loading="lazy"`
 - **Priority loading**: Hero images use `priority` prop
@@ -110,7 +110,7 @@ apps/frontend/
 │   ├── types.ts         # TypeScript types
 │   └── actions.ts       # Server actions
 ├── public/              # Static files
-│   └── uploads/        # Recipe images (symlinks)
+│   └── uploads/        # Recipe images (optimized variants)
 └── scripts/            # Utility scripts
 ```
 
@@ -231,10 +231,6 @@ Registrera = Sign up
 Sök recept... = Search recipes...
 Nytt recept = New recipe
 ```
-
-## Scripts
-
-- `./scripts/setup-images.sh` - Setup image symlinks
 
 ## License
 

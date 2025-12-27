@@ -85,8 +85,3 @@ Run without --dry-run to apply changes.
 - Original files are only deleted after successful conversion to WebP
 - Symlinks are ignored (only real files are processed)
 
-## setup-images.sh
-
-Shell script for symlinking recipe images from `data/files` to the public directory.
-
-See the script file for usage details.
