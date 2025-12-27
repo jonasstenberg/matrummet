@@ -54,7 +54,7 @@ export function Header() {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden items-center gap-6 md:flex">
+        <nav aria-label="Huvudnavigering" className="hidden items-center gap-6 md:flex">
           {/* Search Bar */}
           <Suspense
             fallback={
@@ -140,7 +140,7 @@ export function Header() {
               </Suspense>
 
               {/* Mobile Navigation */}
-              <nav className="flex flex-col gap-2">
+              <nav aria-label="Mobilmeny" className="flex flex-col gap-2">
                 <Link
                   href="/"
                   className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"

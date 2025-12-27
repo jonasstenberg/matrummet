@@ -155,7 +155,7 @@ export function InstructionsChecklist({
             if (item.type === "group-header") {
               return (
                 <li key={item.key} className="relative pb-4 pt-2 first:pt-0">
-                  <div className="ml-14 text-xs font-semibold uppercase tracking-wider text-primary/80">
+                  <div className="ml-14 text-xs font-semibold uppercase tracking-wider text-primary">
                     {item.name}
                   </div>
                 </li>

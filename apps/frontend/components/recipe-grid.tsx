@@ -10,7 +10,7 @@ export function RecipeGrid({ recipes }: RecipeGridProps) {
     return (
       <div className="flex min-h-[400px] items-center justify-center rounded-lg border border-dashed">
         <div className="text-center">
-          <h3 className="text-lg font-semibold text-foreground">Inga recept hittades</h3>
+          <h2 className="text-lg font-semibold text-foreground">Inga recept hittades</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Prova att justera dina filter eller sök efter något annat.
           </p>

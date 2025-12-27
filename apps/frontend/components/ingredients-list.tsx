@@ -73,7 +73,7 @@ export function IngredientsList({
             <div key={groupId || "ungrouped"} className="py-1">
               {groupName && (
                 <div className="px-5 pb-1 pt-4">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-primary/80">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-primary">
                     {groupName}
                   </span>
                 </div>

@@ -192,10 +192,16 @@ export function AsyncAutocompleteInput({
         )}
       </div>
       {showSuggestions && (
-        <ul className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-white py-1 shadow-lg">
+        <ul
+          role="listbox"
+          tabIndex={0}
+          className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-white py-1 shadow-lg"
+        >
           {suggestions.map((option, index) => (
             <li
               key={option.value}
+              role="option"
+              aria-selected={index === highlightedIndex}
               className={cn(
                 'cursor-pointer px-3 py-2 text-sm',
                 index === highlightedIndex

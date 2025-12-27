@@ -30,7 +30,7 @@ export function RecipeViewToggle({
     : "/alla-recept";
 
   return (
-    <nav className={cn("flex gap-6 border-b border-border", className)}>
+    <nav aria-label="Receptvisning" className={cn("flex gap-6 border-b border-border", className)}>
       <Link
         href={mineUrl}
         className={cn(

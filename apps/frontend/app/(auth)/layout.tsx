@@ -8,7 +8,7 @@ interface AuthLayoutProps {
 export default function AuthLayout({ children }: AuthLayoutProps) {
   return (
     <AuthProvider initialUser={null}>
-      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <main className="min-h-screen flex items-center justify-center bg-background px-4">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-primary mb-2">{APP_NAME}</h1>
@@ -18,7 +18,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
             {children}
           </div>
         </div>
-      </div>
+      </main>
     </AuthProvider>
   )
 }
