@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createReadStream, statSync, existsSync } from 'fs'
+import { createReadStream, statSync } from 'fs'
 import { join } from 'path'
 import { createHash } from 'crypto'
 import { Readable } from 'stream'
@@ -20,13 +20,8 @@ export async function GET(
     }
 
     // Extract imageId and size from path
-    let imageId = path[0]
+    const imageId = path[0]
     let size: ImageSize = 'full'
-
-    // Remove .webp extension from imageId if present
-    if (imageId.endsWith('.webp')) {
-      imageId = imageId.slice(0, -5)
-    }
 
     // Validate imageId to prevent directory traversal
     if (!imageId || imageId.includes('..') || imageId.includes('/') || imageId.includes('\\')) {
@@ -35,12 +30,7 @@ export async function GET(
 
     // Handle size parameter if present
     if (path.length === 2) {
-      let sizeParam = path[1]
-
-      // Remove .webp extension from size if present
-      if (sizeParam.endsWith('.webp')) {
-        sizeParam = sizeParam.slice(0, -5)
-      }
+      const sizeParam = path[1]
 
       // Validate size
       if (!VALID_SIZES.includes(sizeParam as ImageSize)) {
@@ -54,26 +44,14 @@ export async function GET(
 
     const uploadsDir = getDataFilesDir()
 
-    // Try new format first: {uploadsDir}/{imageId}/{size}.webp
-    let imagePath = join(uploadsDir, imageId, `${size}.webp`)
+    // Image path format: {uploadsDir}/{imageId}/{size}.webp
+    const imagePath = join(uploadsDir, imageId, `${size}.webp`)
     let stats
 
-    if (existsSync(imagePath)) {
-      try {
-        stats = statSync(imagePath)
-      } catch {
-        // Fall through to legacy format
-      }
-    }
-
-    // Fall back to legacy format: {uploadsDir}/{imageId}.webp
-    if (!stats) {
-      imagePath = join(uploadsDir, `${imageId}.webp`)
-      try {
-        stats = statSync(imagePath)
-      } catch {
-        return new NextResponse('Image not found', { status: 404 })
-      }
+    try {
+      stats = statSync(imagePath)
+    } catch {
+      return new NextResponse('Image not found', { status: 404 })
     }
 
     // Generate ETag based on file stats

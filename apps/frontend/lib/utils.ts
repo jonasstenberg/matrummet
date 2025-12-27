@@ -15,9 +15,7 @@ export function getImageUrl(
   size: ImageSize = 'full'
 ): string | null {
   if (!image) return null
-  // Remove .webp extension if present (for backward compatibility)
-  const imageId = image.replace(/\.webp$/, '')
-  return `/api/images/${imageId}/${size}`
+  return `/api/images/${image}/${size}`
 }
 
 /**
@@ -25,13 +23,12 @@ export function getImageUrl(
  */
 export function getImageSrcSet(image: string | null | undefined): string | null {
   if (!image) return null
-  const imageId = image.replace(/\.webp$/, '')
   return [
-    `/api/images/${imageId}/thumb 320w`,
-    `/api/images/${imageId}/small 640w`,
-    `/api/images/${imageId}/medium 960w`,
-    `/api/images/${imageId}/large 1280w`,
-    `/api/images/${imageId}/full 1920w`,
+    `/api/images/${image}/thumb 320w`,
+    `/api/images/${image}/small 640w`,
+    `/api/images/${image}/medium 960w`,
+    `/api/images/${image}/large 1280w`,
+    `/api/images/${image}/full 1920w`,
   ].join(', ')
 }
 
