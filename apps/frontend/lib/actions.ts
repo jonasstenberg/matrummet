@@ -2,12 +2,11 @@
 
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
-import { unlink } from 'fs/promises'
-import { join } from 'path'
 import { CreateRecipeInput, UpdateRecipeInput } from '@/lib/types'
 import { verifyToken, signPostgrestToken } from '@/lib/auth'
 import { extractJsonLdRecipe, mapJsonLdToRecipeInput } from '@/lib/recipe-import'
 import { downloadImage } from '@/lib/recipe-import/image-downloader'
+import { deleteImageVariants } from './image-processing'
 
 const POSTGREST_URL = process.env.POSTGREST_URL || 'http://localhost:4444'
 
@@ -145,18 +144,11 @@ export async function updateRecipe(
 
 async function deleteImageFile(filename: string | null): Promise<void> {
   if (!filename) return
-
   // Skip if it's a URL (external image)
   if (filename.startsWith('http://') || filename.startsWith('https://')) return
-
-  try {
-    const dataDir = join(process.cwd(), '..', '..', 'data', 'files')
-    const filepath = join(dataDir, filename)
-    await unlink(filepath)
-  } catch (error) {
-    // File might not exist, that's ok
-    console.error('Failed to delete image file:', error)
-  }
+  // Strip .webp extension if present
+  const imageId = filename.replace(/\.webp$/, '')
+  await deleteImageVariants(imageId)
 }
 
 export async function deleteRecipe(

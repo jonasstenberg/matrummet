@@ -1,12 +1,9 @@
-import { writeFile } from 'fs/promises'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
-import sharp from 'sharp'
 import { getDataFilesDir } from '@/lib/paths'
+import { generateImageVariants } from '@/lib/image-processing'
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024 // 5MB
-const MAX_DIMENSION = 1920
-const WEBP_QUALITY = 85
 
 const ALLOWED_CONTENT_TYPES = [
   'image/jpeg',
@@ -23,8 +20,8 @@ export interface DownloadResult {
 }
 
 /**
- * Download an image from a URL, optimize it, and save locally as webp.
- * Returns the local filename on success.
+ * Download an image from a URL, optimize it, and save locally as multiple size variants.
+ * Returns the image ID (directory name) on success.
  */
 export async function downloadImage(imageUrl: string): Promise<DownloadResult> {
   try {
@@ -79,22 +76,14 @@ export async function downloadImage(imageUrl: string): Promise<DownloadResult> {
       }
     }
 
-    // Always save as webp for optimization
-    const filename = `${randomUUID()}.webp`
-    const filepath = join(getDataFilesDir(), filename)
+    // Generate unique image ID (no extension - it's a directory)
+    const imageId = randomUUID()
+    const imageDir = join(getDataFilesDir(), imageId)
 
-    // Resize if larger than max dimension, convert to webp
-    const optimizedBuffer = await sharp(buffer)
-      .resize(MAX_DIMENSION, MAX_DIMENSION, {
-        fit: 'inside',
-        withoutEnlargement: true,
-      })
-      .webp({ quality: WEBP_QUALITY })
-      .toBuffer()
+    // Generate all image size variants
+    await generateImageVariants(buffer, imageDir)
 
-    await writeFile(filepath, optimizedBuffer)
-
-    return { success: true, filename }
+    return { success: true, filename: imageId }
   } catch (error) {
     console.error('Image download error:', error)
     return {

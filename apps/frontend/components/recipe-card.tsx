@@ -1,7 +1,6 @@
 import type { Recipe } from "@/lib/types";
-import { cn, getImageUrl } from "@/lib/utils";
+import { cn, getImageUrl, getImageSrcSet } from "@/lib/utils";
 import { Clock, Users, UtensilsCrossed } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 
 interface RecipeCardProps {
@@ -50,7 +49,8 @@ function PlaceholderImage() {
 
 export function RecipeCard({ recipe, className }: RecipeCardProps) {
   const totalTime = calculateTotalTime(recipe.prep_time, recipe.cook_time);
-  const imageUrl = getImageUrl(recipe.image);
+  const imageUrl = getImageUrl(recipe.image, 'medium');
+  const imageSrcSet = getImageSrcSet(recipe.image);
   const hasImage = !!imageUrl;
 
   return (
@@ -68,12 +68,14 @@ export function RecipeCard({ recipe, className }: RecipeCardProps) {
         <div className="relative aspect-4/3 w-full overflow-hidden">
           {hasImage && imageUrl ? (
             <>
-              <Image
+              <img
                 src={imageUrl}
-                alt={recipe.name}
-                fill
+                srcSet={imageSrcSet ?? undefined}
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                alt={recipe.name}
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-linear-to-t from-black/40 via-black/5 to-transparent opacity-60 transition-opacity duration-300 group-hover:opacity-40" />
             </>

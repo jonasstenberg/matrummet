@@ -3,21 +3,24 @@
 import { useAuth } from "@/components/auth-provider";
 import { SearchBar } from "@/components/search-bar";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import { isAdmin } from "@/lib/is-admin";
 import { ChefHat, LogOut, Menu, Settings, User, UserCog } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
 
+// Dynamic import with ssr: false to prevent hydration mismatch from Radix UI's dynamic IDs
+const MobileMenu = dynamic(() => import("./mobile-menu").then((m) => m.MobileMenu), {
+  ssr: false,
+  loading: () => (
+    <button aria-label="Öppna meny" className="md:hidden">
+      <Menu className="h-6 w-6" />
+    </button>
+  ),
+});
+
 export function Header() {
   const { user, logout } = useAuth();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -119,77 +122,7 @@ export function Header() {
         </div>
 
         {/* Mobile Menu */}
-        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-          <SheetTrigger asChild className="md:hidden">
-            <button aria-label="Öppna meny">
-              <Menu className="h-6 w-6" />
-            </button>
-          </SheetTrigger>
-          <SheetContent side="right" className="w-80">
-            <SheetHeader>
-              <SheetTitle>Meny</SheetTitle>
-            </SheetHeader>
-            <div className="mt-6 space-y-6">
-              {/* Mobile Search */}
-              <Suspense
-                fallback={
-                  <div className="w-full h-9 bg-muted rounded-md animate-pulse" />
-                }
-              >
-                <SearchBar />
-              </Suspense>
-
-              {/* Mobile Navigation */}
-              <nav aria-label="Mobilmeny" className="flex flex-col gap-2">
-                <Link
-                  href="/"
-                  className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Hem
-                </Link>
-
-                {user ? (
-                  <>
-                    <Link
-                      href="/installningar"
-                      className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Inställningar
-                    </Link>
-                    {isAdmin(user) && (
-                      <Link
-                        href="/admin/kategorier"
-                        className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Admin
-                      </Link>
-                    )}
-                    <button
-                      onClick={() => {
-                        logout();
-                        setMobileMenuOpen(false);
-                      }}
-                      className="rounded-md px-3 py-2 text-left text-sm font-medium hover:bg-accent"
-                    >
-                      Logga ut
-                    </button>
-                  </>
-                ) : (
-                  <Link
-                    href="/login"
-                    className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Logga in
-                  </Link>
-                )}
-              </nav>
-            </div>
-          </SheetContent>
-        </Sheet>
+        <MobileMenu />
       </div>
     </header>
   );

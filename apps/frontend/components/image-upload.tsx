@@ -32,7 +32,9 @@ function getPreviewUrl(value: string | null | undefined): string | null {
   if (isUrl(value)) {
     return value
   }
-  return `/api/images/${value}`
+  // Use medium size for preview, strip .webp if present
+  const imageId = value.replace(/\.webp$/, '')
+  return `/api/images/${imageId}/medium`
 }
 
 export function ImageUpload({

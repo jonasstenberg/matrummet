@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile } from 'fs/promises'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
-import sharp from 'sharp'
 import { getSession } from '@/lib/auth'
 import { getDataFilesDir } from '@/lib/paths'
-
-const MAX_DIMENSION = 1920
-const WEBP_QUALITY = 85
+import { generateImageVariants } from '@/lib/image-processing'
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,26 +36,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Generate unique filename (always save as webp for optimization)
-    const filename = `${randomUUID()}.webp`
-    const filepath = join(getDataFilesDir(), filename)
+    // Generate unique image ID (no extension - it's a directory)
+    const imageId = randomUUID()
+    const imageDir = join(getDataFilesDir(), imageId)
 
-    // Convert file to buffer and optimize with sharp
+    // Convert file to buffer
     const bytes = await file.arrayBuffer()
     const inputBuffer = Buffer.from(bytes)
 
-    // Resize if larger than max dimension, convert to webp
-    const optimizedBuffer = await sharp(inputBuffer)
-      .resize(MAX_DIMENSION, MAX_DIMENSION, {
-        fit: 'inside',
-        withoutEnlargement: true,
-      })
-      .webp({ quality: WEBP_QUALITY })
-      .toBuffer()
+    // Generate all image size variants
+    await generateImageVariants(inputBuffer, imageDir)
 
-    await writeFile(filepath, optimizedBuffer)
-
-    return NextResponse.json({ filename })
+    return NextResponse.json({ filename: imageId })
   } catch (error) {
     console.error('Upload error:', error)
     return NextResponse.json(

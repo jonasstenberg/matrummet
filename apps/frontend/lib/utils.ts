@@ -1,17 +1,38 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import type { ImageSize } from './image-processing'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
 /**
- * Get the URL for a recipe image.
- * Images are served via /api/images/ which reads from /data/files/
+ * Get the URL for a recipe image at a specific size.
+ * Images are served via /api/images/{id}/{size}
  */
-export function getImageUrl(image: string | null | undefined): string | null {
+export function getImageUrl(
+  image: string | null | undefined,
+  size: ImageSize = 'full'
+): string | null {
   if (!image) return null
-  return `/api/images/${image}`
+  // Remove .webp extension if present (for backward compatibility)
+  const imageId = image.replace(/\.webp$/, '')
+  return `/api/images/${imageId}/${size}`
+}
+
+/**
+ * Get srcSet string for responsive images.
+ */
+export function getImageSrcSet(image: string | null | undefined): string | null {
+  if (!image) return null
+  const imageId = image.replace(/\.webp$/, '')
+  return [
+    `/api/images/${imageId}/thumb 320w`,
+    `/api/images/${imageId}/small 640w`,
+    `/api/images/${imageId}/medium 960w`,
+    `/api/images/${imageId}/large 1280w`,
+    `/api/images/${imageId}/full 1920w`,
+  ].join(', ')
 }
 
 // Neutral warm beige blur placeholder for food images
