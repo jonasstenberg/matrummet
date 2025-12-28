@@ -8,19 +8,29 @@ interface RecipeCardProps {
   className?: string;
 }
 
+function formatDuration(totalMinutes: number): string {
+  if (totalMinutes < 60) {
+    return `${totalMinutes} min`;
+  }
+
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (minutes === 0) {
+    return `${hours} tim`;
+  }
+
+  return `${hours} tim ${minutes} min`;
+}
+
 function calculateTotalTime(
   prepTime: number | null,
   cookTime: number | null
 ): string | null {
   if (!prepTime && !cookTime) return null;
 
-  const parseMinutes = (time: number | null): number => {
-    if (!time) return 0;
-    return time;
-  };
-
-  const totalMinutes = parseMinutes(prepTime) + parseMinutes(cookTime);
-  return totalMinutes > 0 ? `${totalMinutes} min` : null;
+  const totalMinutes = (prepTime ?? 0) + (cookTime ?? 0);
+  return totalMinutes > 0 ? formatDuration(totalMinutes) : null;
 }
 
 function PlaceholderImage() {
