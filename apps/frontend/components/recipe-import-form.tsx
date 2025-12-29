@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { CreateRecipeInput } from '@/lib/types'
-import { ChevronDown, ChevronRight, Link, Loader2 } from 'lucide-react'
+import { ChevronDown, Link, Loader2 } from 'lucide-react'
 
 interface RecipeImportFormProps {
   onImport: (data: Partial<CreateRecipeInput>, lowConfidenceIndices?: number[]) => void
@@ -50,30 +50,32 @@ export function RecipeImportForm({ onImport }: RecipeImportFormProps) {
   }
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex w-full items-center justify-between p-4"
+        className="flex w-full items-center justify-between p-4 transition-colors hover:bg-muted/50"
       >
-        <div className="flex items-center gap-2">
-          <Link className="h-4 w-4" />
-          <span className="font-medium">Importera recept från URL</span>
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary/10">
+            <Link className="h-4 w-4 text-secondary" />
+          </div>
+          <div className="text-left">
+            <span className="font-medium">Importera recept från URL</span>
+            <p className="text-xs text-muted-foreground">
+              Hämta recept automatiskt från en webbsida
+            </p>
+          </div>
         </div>
-        {isExpanded ? (
-          <ChevronDown className="h-4 w-4" />
-        ) : (
-          <ChevronRight className="h-4 w-4" />
-        )}
+        <ChevronDown
+          className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${
+            isExpanded ? '' : '-rotate-90'
+          }`}
+        />
       </button>
 
       {isExpanded && (
-        <div className="space-y-4 border-t px-4 pb-4 pt-4">
-          <p className="text-sm text-muted-foreground">
-            Klistra in en URL till ett recept så försöker vi hämta receptdata
-            automatiskt.
-          </p>
-
+        <div className="space-y-4 border-t bg-muted/20 px-4 pb-4 pt-4">
           <form onSubmit={handleImport} className="flex gap-2">
             <Input
               type="url"

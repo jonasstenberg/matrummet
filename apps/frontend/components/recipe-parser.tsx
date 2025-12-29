@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CreateRecipeInput } from '@/lib/types'
-import { ChevronDown, ChevronRight, Sparkles, Loader2, FileJson, ImageIcon, X } from 'lucide-react'
+import { ChevronDown, Sparkles, Loader2, FileJson, ImageIcon, X } from 'lucide-react'
 
 interface RecipeParserProps {
   onParse: (data: Partial<CreateRecipeInput>) => void
@@ -265,25 +265,32 @@ export function RecipeParser({ onParse }: RecipeParserProps) {
   }
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex w-full items-center justify-between p-4"
+        className="flex w-full items-center justify-between p-4 transition-colors hover:bg-muted/50"
       >
-        <div className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4" />
-          <span className="font-medium">Importera recept</span>
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+            <Sparkles className="h-4 w-4 text-primary" />
+          </div>
+          <div className="text-left">
+            <span className="font-medium">Importera recept med AI</span>
+            <p className="text-xs text-muted-foreground">
+              Tolka text, bild eller JSON automatiskt
+            </p>
+          </div>
         </div>
-        {isExpanded ? (
-          <ChevronDown className="h-4 w-4" />
-        ) : (
-          <ChevronRight className="h-4 w-4" />
-        )}
+        <ChevronDown
+          className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${
+            isExpanded ? '' : '-rotate-90'
+          }`}
+        />
       </button>
 
       {isExpanded && (
-        <div className="border-t px-4 pb-4 pt-4">
+        <div className="border-t bg-muted/20 px-4 pb-4 pt-4">
           <Tabs defaultValue="ai" className="w-full">
             <TabsList className="mb-4 grid w-full grid-cols-3">
               <TabsTrigger value="ai" className="flex items-center gap-2">
