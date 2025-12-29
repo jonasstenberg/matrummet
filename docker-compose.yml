@@ -3,14 +3,14 @@
 
 services:
   # Inbucket - Disposable email testing server
-  # Web UI: http://localhost:9000 (also serves REST API)
+  # Web UI: http://localhost:9050 (also serves REST API)
   # SMTP: localhost:1025 (no auth required)
   # POP3: localhost:1100 (optional)
   inbucket:
     image: inbucket/inbucket:latest
     container_name: recept-inbucket
     ports:
-      - "9000:9000"   # Web UI + REST API
+      - "9050:9000"   # Web UI + REST API
       - "1025:2500"   # SMTP (mapped from container's 2500 to host's 1025)
       - "1100:1100"   # POP3 (optional)
     environment:
