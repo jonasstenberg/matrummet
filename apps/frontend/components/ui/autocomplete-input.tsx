@@ -2,10 +2,10 @@
 
 import * as React from 'react'
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { Input, InputProps } from '@/components/ui/input'
+import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 
-interface AutocompleteInputProps extends Omit<InputProps, 'onChange'> {
+interface AutocompleteInputProps extends Omit<React.ComponentProps<'input'>, 'onChange'> {
   suggestions: string[]
   value: string
   onChange: (value: string) => void

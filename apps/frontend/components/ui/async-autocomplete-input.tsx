@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { Input, InputProps } from '@/components/ui/input'
+import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 
 export interface AutocompleteOption {
@@ -10,7 +10,7 @@ export interface AutocompleteOption {
   value: string
 }
 
-interface AsyncAutocompleteInputProps extends Omit<InputProps, 'onChange'> {
+interface AsyncAutocompleteInputProps extends Omit<React.ComponentProps<'input'>, 'onChange'> {
   fetchUrl: string
   value: string
   onChange: (value: string) => void

@@ -1,7 +1,8 @@
-'use client'
+"use client";
 
-import { useState, useMemo, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -9,28 +10,31 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Slider } from '@/components/ui/slider'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Input } from '@/components/ui/input'
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { addRecipeToShoppingList, getUserShoppingLists, createShoppingList } from '@/lib/actions'
-import { scaleQuantity } from '@/lib/quantity-utils'
-import { RotateCcw, Plus, Loader2 } from 'lucide-react'
-import type { Recipe, Ingredient, ShoppingList } from '@/lib/types'
+} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import {
+  addRecipeToShoppingList,
+  createShoppingList,
+  getUserShoppingLists,
+} from "@/lib/actions";
+import { scaleQuantity } from "@/lib/quantity-utils";
+import type { Ingredient, Recipe, ShoppingList } from "@/lib/types";
+import { Loader2, Plus, RotateCcw } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
 interface AddToShoppingListDialogProps {
-  recipe: Recipe
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  recipe: Recipe;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function AddToShoppingListDialog({
@@ -38,114 +42,117 @@ export function AddToShoppingListDialog({
   open,
   onOpenChange,
 }: AddToShoppingListDialogProps) {
-  const router = useRouter()
-  const originalServings = recipe.recipe_yield ?? 4
-  const [servings, setServings] = useState(originalServings)
+  const router = useRouter();
+  const originalServings = recipe.recipe_yield ?? 4;
+  const [servings, setServings] = useState(originalServings);
   const [selectedIngredients, setSelectedIngredients] = useState<Set<string>>(
     () => new Set(recipe.ingredients.map((i) => i.id ?? i.name))
-  )
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Shopping list selection state
-  const [lists, setLists] = useState<ShoppingList[]>([])
-  const [selectedListId, setSelectedListId] = useState<string>('')
-  const [isLoadingLists, setIsLoadingLists] = useState(false)
-  const [isCreatingList, setIsCreatingList] = useState(false)
-  const [newListName, setNewListName] = useState('')
+  const [lists, setLists] = useState<ShoppingList[]>([]);
+  const [selectedListId, setSelectedListId] = useState<string>("");
+  const [isLoadingLists, setIsLoadingLists] = useState(false);
+  const [isCreatingList, setIsCreatingList] = useState(false);
+  const [newListName, setNewListName] = useState("");
 
   // Fetch shopping lists when dialog opens
   useEffect(() => {
     if (open) {
-      setIsLoadingLists(true)
+      setIsLoadingLists(true);
       getUserShoppingLists()
         .then((result) => {
-          if (!('error' in result)) {
-            setLists(result)
+          if (!("error" in result)) {
+            setLists(result);
             // Select the default list, or the first one if no default
-            const defaultList = result.find((l) => l.is_default) || result[0]
+            const defaultList = result.find((l) => l.is_default) || result[0];
             if (defaultList) {
-              setSelectedListId(defaultList.id)
+              setSelectedListId(defaultList.id);
             }
           }
         })
-        .finally(() => setIsLoadingLists(false))
+        .finally(() => setIsLoadingLists(false));
     }
-  }, [open])
+  }, [open]);
 
-  const scaleFactor = originalServings > 0 ? servings / originalServings : 1
-  const maxServings = Math.max(originalServings * 3, 12)
-  const isModified = servings !== originalServings
+  const scaleFactor = originalServings > 0 ? servings / originalServings : 1;
+  const maxServings = Math.max(originalServings * 3, 12);
+  const isModified = servings !== originalServings;
 
-  const allSelected = selectedIngredients.size === recipe.ingredients.length
-  const someSelected = selectedIngredients.size > 0 && !allSelected
+  const allSelected = selectedIngredients.size === recipe.ingredients.length;
+  const someSelected = selectedIngredients.size > 0 && !allSelected;
 
   function toggleIngredient(id: string) {
     setSelectedIngredients((prev) => {
-      const next = new Set(prev)
+      const next = new Set(prev);
       if (next.has(id)) {
-        next.delete(id)
+        next.delete(id);
       } else {
-        next.add(id)
+        next.add(id);
       }
-      return next
-    })
+      return next;
+    });
   }
 
   function toggleAll() {
     if (allSelected) {
-      setSelectedIngredients(new Set())
+      setSelectedIngredients(new Set());
     } else {
       setSelectedIngredients(
         new Set(recipe.ingredients.map((i) => i.id ?? i.name))
-      )
+      );
     }
   }
 
   // Group ingredients by their group_id for display
   const groupedIngredients = useMemo(() => {
-    const groups = new Map<string | null, Ingredient[]>()
-    const groupDetails = new Map<string, { name: string; sort_order: number }>()
+    const groups = new Map<string | null, Ingredient[]>();
+    const groupDetails = new Map<
+      string,
+      { name: string; sort_order: number }
+    >();
 
     recipe.ingredient_groups?.forEach((group) => {
       if (group.id) {
         groupDetails.set(group.id, {
           name: group.name,
           sort_order: group.sort_order || 0,
-        })
+        });
       }
-    })
+    });
 
     recipe.ingredients.forEach((ingredient) => {
-      const groupId = ingredient.group_id || null
+      const groupId = ingredient.group_id || null;
       if (!groups.has(groupId)) {
-        groups.set(groupId, [])
+        groups.set(groupId, []);
       }
-      groups.get(groupId)!.push(ingredient)
-    })
+      groups.get(groupId)!.push(ingredient);
+    });
 
     return Array.from(groups.entries())
       .sort(([aId], [bId]) => {
-        if (aId === null) return 1
-        if (bId === null) return -1
-        const aOrder = groupDetails.get(aId)?.sort_order || 0
-        const bOrder = groupDetails.get(bId)?.sort_order || 0
-        return aOrder - bOrder
+        if (aId === null) return 1;
+        if (bId === null) return -1;
+        const aOrder = groupDetails.get(aId)?.sort_order || 0;
+        const bOrder = groupDetails.get(bId)?.sort_order || 0;
+        return aOrder - bOrder;
       })
       .map(([groupId, ingredients]) => ({
         groupId,
         groupName: groupId ? groupDetails.get(groupId)?.name : null,
         ingredients,
-      }))
-  }, [recipe.ingredients, recipe.ingredient_groups])
+      }));
+  }, [recipe.ingredients, recipe.ingredient_groups]);
 
   async function handleCreateList() {
-    if (!newListName.trim()) return
+    if (!newListName.trim()) return;
 
-    setIsCreatingList(true)
+    setIsCreatingList(true);
     try {
-      const result = await createShoppingList(newListName.trim())
-      if ('id' in result) {
+      const result = await createShoppingList(newListName.trim());
+      if ("id" in result) {
         // Add the new list to the local state and select it
         const newList: ShoppingList = {
           id: result.id,
@@ -155,62 +162,60 @@ export function AddToShoppingListDialog({
           checked_count: 0,
           date_published: new Date().toISOString(),
           date_modified: new Date().toISOString(),
-        }
-        setLists((prev) => [newList, ...prev])
-        setSelectedListId(result.id)
-        setNewListName('')
+        };
+        setLists((prev) => [newList, ...prev]);
+        setSelectedListId(result.id);
+        setNewListName("");
       } else {
-        setError(result.error)
+        setError(result.error);
       }
     } finally {
-      setIsCreatingList(false)
+      setIsCreatingList(false);
     }
   }
 
   async function handleSubmit() {
     if (selectedIngredients.size === 0) {
-      setError('Välj minst en ingrediens')
-      return
+      setError("Välj minst en ingrediens");
+      return;
     }
 
-    setIsSubmitting(true)
-    setError(null)
+    setIsSubmitting(true);
+    setError(null);
 
     try {
-      const ingredientIds = Array.from(selectedIngredients).filter(
-        (id) => recipe.ingredients.some((i) => i.id === id)
-      )
+      const ingredientIds = Array.from(selectedIngredients).filter((id) =>
+        recipe.ingredients.some((i) => i.id === id)
+      );
 
       const result = await addRecipeToShoppingList(recipe.id, {
         servings,
         ingredientIds: ingredientIds.length > 0 ? ingredientIds : undefined,
         listId: selectedListId || undefined,
-      })
+      });
 
-      if ('error' in result) {
-        setError(result.error)
-        setIsSubmitting(false)
-        return
+      if ("error" in result) {
+        setError(result.error);
+        setIsSubmitting(false);
+        return;
       }
 
       // Close dialog and redirect to shopping list
-      onOpenChange(false)
-      router.push('/inkopslista')
+      onOpenChange(false);
+      router.push("/inkopslista");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Ett oväntat fel uppstod'
-      )
-      setIsSubmitting(false)
+      setError(err instanceof Error ? err.message : "Ett oväntat fel uppstod");
+      setIsSubmitting(false);
     }
   }
 
   function handleOpenChange(newOpen: boolean) {
     if (!newOpen) {
       // Reset state when closing
-      setError(null)
-      setNewListName('')
+      setError(null);
+      setNewListName("");
     }
-    onOpenChange(newOpen)
+    onOpenChange(newOpen);
   }
 
   return (
@@ -259,9 +264,9 @@ export function AddToShoppingListDialog({
                   value={newListName}
                   onChange={(e) => setNewListName(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault()
-                      handleCreateList()
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleCreateList();
                     }
                   }}
                   className="flex-1"
@@ -289,7 +294,7 @@ export function AddToShoppingListDialog({
         <div className="space-y-3 pb-4 border-b">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-foreground">
-              {servings} {recipe.recipe_yield_name || 'portioner'}
+              {servings} {recipe.recipe_yield_name || "portioner"}
             </span>
             {isModified && (
               <button
@@ -318,14 +323,14 @@ export function AddToShoppingListDialog({
             id="select-all"
             checked={allSelected}
             onCheckedChange={toggleAll}
-            aria-label={allSelected ? 'Avmarkera alla' : 'Välj alla'}
-            className={someSelected ? 'data-[state=checked]:bg-primary/50' : ''}
+            aria-label={allSelected ? "Avmarkera alla" : "Välj alla"}
+            className={someSelected ? "data-[state=checked]:bg-primary/50" : ""}
           />
           <label
             htmlFor="select-all"
             className="text-sm font-medium cursor-pointer select-none"
           >
-            {allSelected ? 'Avmarkera alla' : 'Välj alla'}
+            {allSelected ? "Avmarkera alla" : "Välj alla"}
           </label>
           <span className="ml-auto text-xs text-muted-foreground">
             {selectedIngredients.size} av {recipe.ingredients.length} valda
@@ -336,7 +341,7 @@ export function AddToShoppingListDialog({
         <div className="flex-1 overflow-y-auto -mx-6 px-6 py-2 min-h-0">
           <div className="space-y-4">
             {groupedIngredients.map(({ groupId, groupName, ingredients }) => (
-              <div key={groupId || 'ungrouped'}>
+              <div key={groupId || "ungrouped"}>
                 {groupName && (
                   <div className="text-xs font-semibold uppercase tracking-wider text-primary mb-2">
                     {groupName}
@@ -344,8 +349,8 @@ export function AddToShoppingListDialog({
                 )}
                 <div className="space-y-1">
                   {ingredients.map((ingredient, index) => {
-                    const id = ingredient.id ?? `${groupId}-${index}`
-                    const isSelected = selectedIngredients.has(id)
+                    const id = ingredient.id ?? `${groupId}-${index}`;
+                    const isSelected = selectedIngredients.has(id);
 
                     return (
                       <label
@@ -362,14 +367,14 @@ export function AddToShoppingListDialog({
                             {scaleQuantity(ingredient.quantity, scaleFactor)}
                             {ingredient.measurement
                               ? ` ${ingredient.measurement}`
-                              : ''}
-                          </span>{' '}
+                              : ""}
+                          </span>{" "}
                           <span className="text-muted-foreground">
                             {ingredient.name}
                           </span>
                         </span>
                       </label>
-                    )
+                    );
                   })}
                 </div>
               </div>
@@ -395,10 +400,10 @@ export function AddToShoppingListDialog({
             onClick={handleSubmit}
             disabled={isSubmitting || selectedIngredients.size === 0}
           >
-            {isSubmitting ? 'Lägger till...' : 'Lägg till i inköpslista'}
+            {isSubmitting ? "Lägger till..." : "Lägg till i inköpslista"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -7,11 +7,24 @@ import { InstructionEditor } from "@/components/instruction-editor";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldSet,
+  FieldLegend,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@/components/ui/input-group";
 import { Textarea } from "@/components/ui/textarea";
 import { recipeInputSchema } from "@/lib/schemas";
-import { cn } from "@/lib/utils";
 import { CreateRecipeInput, Recipe } from "@/lib/types";
 import { downloadAndSaveImage } from "@/lib/actions";
 import { useState } from "react";
@@ -283,160 +296,172 @@ export function RecipeForm({
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* Basic Information */}
       <Card className="p-6">
-        <h2 className="mb-4 text-xl font-semibold">
-          Grundläggande information
-        </h2>
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="name">Receptnamn *</Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                clearFieldError("recipe_name");
-              }}
-              placeholder="T.ex. Köttbullar med potatismos"
-              className={cn(fieldErrors.recipe_name && "border-destructive")}
-            />
-            {fieldErrors.recipe_name && (
-              <p className="mt-1 text-sm text-destructive">
-                {fieldErrors.recipe_name}
-              </p>
-            )}
-          </div>
+        <FieldSet>
+          <FieldLegend className="text-xl font-semibold">
+            Grundläggande information
+          </FieldLegend>
 
-          <div>
-            <Label htmlFor="description">Beskrivning *</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => {
-                setDescription(e.target.value);
-                clearFieldError("description");
-              }}
-              placeholder="En kort beskrivning av receptet"
-              className={cn(
-                "min-h-[100px]",
-                fieldErrors.description && "border-destructive"
-              )}
-            />
-            {fieldErrors.description && (
-              <p className="mt-1 text-sm text-destructive">
-                {fieldErrors.description}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="author">Författare</Label>
-            <Input
-              id="author"
-              value={author}
-              onChange={(e) => setAuthor(e.target.value)}
-              placeholder="T.ex. Mormor Inga"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="url">Källa (URL)</Label>
-            <Input
-              id="url"
-              type="url"
-              value={url}
-              onChange={(e) => {
-                setUrl(e.target.value);
-                clearFieldError("url");
-              }}
-              placeholder="https://..."
-              className={cn(fieldErrors.url && "border-destructive")}
-            />
-            {fieldErrors.url && (
-              <p className="mt-1 text-sm text-destructive">{fieldErrors.url}</p>
-            )}
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <Label htmlFor="recipe-yield">Portioner</Label>
+          <FieldGroup>
+            <Field data-invalid={!!fieldErrors.recipe_name}>
+              <FieldLabel htmlFor="name">Receptnamn *</FieldLabel>
               <Input
-                id="recipe-yield"
-                value={recipeYield}
-                onChange={(e) => setRecipeYield(e.target.value)}
-                placeholder="T.ex. 4"
-              />
-            </div>
-            <div>
-              <Label htmlFor="recipe-yield-name">Enhet</Label>
-              <Input
-                id="recipe-yield-name"
-                value={recipeYieldName}
-                onChange={(e) => setRecipeYieldName(e.target.value)}
-                placeholder="T.ex. portioner"
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <Label htmlFor="prep-time">Förberedelse (min)</Label>
-              <Input
-                id="prep-time"
-                type="number"
-                min="0"
-                value={prepTime}
+                id="name"
+                value={name}
                 onChange={(e) => {
-                  setPrepTime(e.target.value);
-                  clearFieldError("prep_time");
+                  setName(e.target.value);
+                  clearFieldError("recipe_name");
                 }}
-                placeholder="T.ex. 15"
-                className={cn(fieldErrors.prep_time && "border-destructive")}
+                placeholder="T.ex. Köttbullar med potatismos"
+                aria-invalid={!!fieldErrors.recipe_name}
+                aria-describedby={fieldErrors.recipe_name ? "name-error" : undefined}
               />
-              {fieldErrors.prep_time && (
-                <p className="mt-1 text-sm text-destructive">
-                  {fieldErrors.prep_time}
-                </p>
-              )}
-            </div>
-            <div>
-              <Label htmlFor="cook-time">Tillagning (min)</Label>
-              <Input
-                id="cook-time"
-                type="number"
-                min="0"
-                value={cookTime}
+              <FieldError id="name-error">{fieldErrors.recipe_name}</FieldError>
+            </Field>
+
+            <Field data-invalid={!!fieldErrors.description}>
+              <FieldLabel htmlFor="description">Beskrivning *</FieldLabel>
+              <Textarea
+                id="description"
+                value={description}
                 onChange={(e) => {
-                  setCookTime(e.target.value);
-                  clearFieldError("cook_time");
+                  setDescription(e.target.value);
+                  clearFieldError("description");
                 }}
-                placeholder="T.ex. 30"
-                className={cn(fieldErrors.cook_time && "border-destructive")}
+                placeholder="En kort beskrivning av receptet"
+                className="min-h-[100px]"
+                aria-invalid={!!fieldErrors.description}
+                aria-describedby={fieldErrors.description ? "description-error" : undefined}
               />
-              {fieldErrors.cook_time && (
-                <p className="mt-1 text-sm text-destructive">
-                  {fieldErrors.cook_time}
-                </p>
-              )}
+              <FieldError id="description-error">{fieldErrors.description}</FieldError>
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="author">Författare</FieldLabel>
+              <Input
+                id="author"
+                value={author}
+                onChange={(e) => setAuthor(e.target.value)}
+                placeholder="T.ex. Mormor Inga"
+              />
+              <FieldDescription>
+                Vem har skapat eller inspirerat detta recept
+              </FieldDescription>
+            </Field>
+
+            <Field data-invalid={!!fieldErrors.url}>
+              <FieldLabel htmlFor="url">Källa (URL)</FieldLabel>
+              <Input
+                id="url"
+                type="url"
+                value={url}
+                onChange={(e) => {
+                  setUrl(e.target.value);
+                  clearFieldError("url");
+                }}
+                placeholder="https://..."
+                aria-invalid={!!fieldErrors.url}
+                aria-describedby={fieldErrors.url ? "url-error" : "url-description"}
+              />
+              <FieldDescription id="url-description">
+                Länk till originalreceptet om det finns
+              </FieldDescription>
+              <FieldError id="url-error">{fieldErrors.url}</FieldError>
+            </Field>
+
+            <div className="grid gap-6 sm:grid-cols-2">
+              <Field>
+                <FieldLabel htmlFor="recipe-yield">Portioner</FieldLabel>
+                <Input
+                  id="recipe-yield"
+                  type="number"
+                  min="1"
+                  value={recipeYield}
+                  onChange={(e) => setRecipeYield(e.target.value)}
+                  placeholder="T.ex. 4"
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="recipe-yield-name">Enhet</FieldLabel>
+                <Input
+                  id="recipe-yield-name"
+                  value={recipeYieldName}
+                  onChange={(e) => setRecipeYieldName(e.target.value)}
+                  placeholder="T.ex. portioner"
+                />
+                <FieldDescription>
+                  T.ex. portioner, bitar, eller liter
+                </FieldDescription>
+              </Field>
             </div>
-          </div>
 
-          <div>
-            <Label htmlFor="cuisine">Kök/Ursprung</Label>
-            <Input
-              id="cuisine"
-              value={cuisine}
-              onChange={(e) => setCuisine(e.target.value)}
-              placeholder="T.ex. Svenskt, Italienskt"
+            <div className="grid gap-6 sm:grid-cols-2">
+              <Field data-invalid={!!fieldErrors.prep_time}>
+                <FieldLabel htmlFor="prep-time">Förberedelse</FieldLabel>
+                <InputGroup>
+                  <InputGroupInput
+                    id="prep-time"
+                    type="number"
+                    min="0"
+                    value={prepTime}
+                    onChange={(e) => {
+                      setPrepTime(e.target.value);
+                      clearFieldError("prep_time");
+                    }}
+                    placeholder="15"
+                    aria-invalid={!!fieldErrors.prep_time}
+                    aria-describedby={fieldErrors.prep_time ? "prep-time-error" : undefined}
+                  />
+                  <InputGroupAddon align="inline-end">
+                    <InputGroupText>min</InputGroupText>
+                  </InputGroupAddon>
+                </InputGroup>
+                <FieldError id="prep-time-error">{fieldErrors.prep_time}</FieldError>
+              </Field>
+              <Field data-invalid={!!fieldErrors.cook_time}>
+                <FieldLabel htmlFor="cook-time">Tillagning</FieldLabel>
+                <InputGroup>
+                  <InputGroupInput
+                    id="cook-time"
+                    type="number"
+                    min="0"
+                    value={cookTime}
+                    onChange={(e) => {
+                      setCookTime(e.target.value);
+                      clearFieldError("cook_time");
+                    }}
+                    placeholder="30"
+                    aria-invalid={!!fieldErrors.cook_time}
+                    aria-describedby={fieldErrors.cook_time ? "cook-time-error" : undefined}
+                  />
+                  <InputGroupAddon align="inline-end">
+                    <InputGroupText>min</InputGroupText>
+                  </InputGroupAddon>
+                </InputGroup>
+                <FieldError id="cook-time-error">{fieldErrors.cook_time}</FieldError>
+              </Field>
+            </div>
+
+            <Field>
+              <FieldLabel htmlFor="cuisine">Kök/Ursprung</FieldLabel>
+              <Input
+                id="cuisine"
+                value={cuisine}
+                onChange={(e) => setCuisine(e.target.value)}
+                placeholder="T.ex. Svenskt, Italienskt"
+              />
+              <FieldDescription>
+                Vilket matlagningskultur receptet kommer från
+              </FieldDescription>
+            </Field>
+
+            <ImageUpload
+              value={image}
+              onChange={setImage}
+              pendingFile={pendingImageFile}
+              onFileSelect={setPendingImageFile}
             />
-          </div>
-
-          <ImageUpload
-            value={image}
-            onChange={setImage}
-            pendingFile={pendingImageFile}
-            onFileSelect={setPendingImageFile}
-          />
-        </div>
+          </FieldGroup>
+        </FieldSet>
       </Card>
 
       {/* Categories */}
@@ -449,43 +474,41 @@ export function RecipeForm({
 
       {/* Ingredients */}
       <Card
-        className={cn("p-6", fieldErrors.ingredients && "border-destructive")}
+        className="p-6"
+        data-invalid={!!fieldErrors.ingredients}
       >
-        <IngredientEditor
-          ingredients={ingredients}
-          groups={ingredientGroups}
-          lowConfidenceIndices={lowConfidenceIngredients}
-          onChange={(newIngredients, newGroups) => {
-            setIngredients(newIngredients);
-            setIngredientGroups(newGroups);
-            clearFieldError("ingredients");
-          }}
-        />
-        {fieldErrors.ingredients && (
-          <p className="mt-2 text-sm text-destructive">
-            {fieldErrors.ingredients}
-          </p>
-        )}
+        <Field data-invalid={!!fieldErrors.ingredients}>
+          <IngredientEditor
+            ingredients={ingredients}
+            groups={ingredientGroups}
+            lowConfidenceIndices={lowConfidenceIngredients}
+            onChange={(newIngredients, newGroups) => {
+              setIngredients(newIngredients);
+              setIngredientGroups(newGroups);
+              clearFieldError("ingredients");
+            }}
+          />
+          <FieldError>{fieldErrors.ingredients}</FieldError>
+        </Field>
       </Card>
 
       {/* Instructions */}
       <Card
-        className={cn("p-6", fieldErrors.instructions && "border-destructive")}
+        className="p-6"
+        data-invalid={!!fieldErrors.instructions}
       >
-        <InstructionEditor
-          instructions={instructions}
-          groups={instructionGroups}
-          onChange={(newInstructions, newGroups) => {
-            setInstructions(newInstructions);
-            setInstructionGroups(newGroups);
-            clearFieldError("instructions");
-          }}
-        />
-        {fieldErrors.instructions && (
-          <p className="mt-2 text-sm text-destructive">
-            {fieldErrors.instructions}
-          </p>
-        )}
+        <Field data-invalid={!!fieldErrors.instructions}>
+          <InstructionEditor
+            instructions={instructions}
+            groups={instructionGroups}
+            onChange={(newInstructions, newGroups) => {
+              setInstructions(newInstructions);
+              setInstructionGroups(newGroups);
+              clearFieldError("instructions");
+            }}
+          />
+          <FieldError>{fieldErrors.instructions}</FieldError>
+        </Field>
       </Card>
 
       {/* Submit Section */}

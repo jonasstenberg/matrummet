@@ -265,7 +265,7 @@ export function RecipeParser({ onParse }: RecipeParserProps) {
   }
 
   return (
-    <Card className="bg-muted/50">
+    <Card>
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
