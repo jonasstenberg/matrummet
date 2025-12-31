@@ -30,7 +30,8 @@ export function parseIngredient(ingredient: string): ParsedIngredient {
 
   // Pattern: (quantity) (unit) (name)
   // Quantity can be: number, fraction, range, or empty
-  const quantityPattern = /^(\d+(?:[.,]\d+)?(?:\s*[-–—]\s*\d+(?:[.,]\d+)?)?|\d+\/\d+|ca\.?\s*\d+(?:[.,]\d+)?)?/
+  // Order matters: fractions must come before simple numbers to avoid partial matches
+  const quantityPattern = /^(ca\.?\s*\d+(?:[.,]\d+)?|\d+\/\d+|\d+(?:[.,]\d+)?(?:\s*[-–—]\s*\d+(?:[.,]\d+)?)?)?/
   const quantityMatch = trimmed.match(quantityPattern)
   
   if (!quantityMatch || !quantityMatch[1]) {

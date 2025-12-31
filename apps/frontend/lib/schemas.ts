@@ -24,9 +24,9 @@ const instructionItemSchema = z.union([
 
 // Recipe input schema (for creating/updating recipes)
 export const recipeInputSchema = z.object({
-  recipe_name: z.string().min(1, 'Receptnamn är obligatoriskt').trim(),
+  recipe_name: z.string().trim().min(1, 'Receptnamn är obligatoriskt'),
   author: z.string().trim().nullable().optional(),
-  description: z.string().min(1, 'Beskrivning är obligatorisk').trim(),
+  description: z.string().trim().min(1, 'Beskrivning är obligatorisk'),
   url: z
     .string()
     .url('Ogiltig URL')
@@ -65,7 +65,7 @@ export type RecipeInputSchema = z.infer<typeof recipeInputSchema>
 
 // Login input schema
 export const loginInputSchema = z.object({
-  email: z.string().email('Ogiltig e-postadress').trim(),
+  email: z.string().trim().email('Ogiltig e-postadress'),
   password: z.string().min(1, 'Lösenord är obligatoriskt'),
 })
 
@@ -73,8 +73,8 @@ export type LoginInputSchema = z.infer<typeof loginInputSchema>
 
 // Signup input schema
 export const signupInputSchema = z.object({
-  name: z.string().min(1, 'Namn är obligatoriskt').trim(),
-  email: z.string().email('Ogiltig e-postadress').trim(),
+  name: z.string().trim().min(1, 'Namn är obligatoriskt'),
+  email: z.string().trim().email('Ogiltig e-postadress'),
   password: z
     .string()
     .min(8, 'Lösenordet måste vara minst 8 tecken')
@@ -87,7 +87,7 @@ export type SignupInputSchema = z.infer<typeof signupInputSchema>
 
 // Update profile schema
 export const updateProfileSchema = z.object({
-  name: z.string().min(1, 'Namn är obligatoriskt').trim(),
+  name: z.string().trim().min(1, 'Namn är obligatoriskt'),
 })
 
 export type UpdateProfileSchema = z.infer<typeof updateProfileSchema>
@@ -125,7 +125,7 @@ export type ResetPasswordSchema = z.infer<typeof resetPasswordSchema>
 
 // Email-only schema (for forgot password form)
 export const emailSchema = z.object({
-  email: z.string().email('Ogiltig e-postadress').trim(),
+  email: z.string().trim().email('Ogiltig e-postadress'),
 })
 
 export type EmailSchema = z.infer<typeof emailSchema>
