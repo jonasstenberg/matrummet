@@ -1,5 +1,8 @@
 import { getRequiredEnv, getOptionalEnv } from "@recept/shared";
 
+// Re-export constants for backwards compatibility
+export { MAX_RETRIES } from "./constants.js";
+
 export const config = {
   db: {
     url: getRequiredEnv("DATABASE_URL"),
@@ -24,7 +27,6 @@ export const EMAIL_RATE_LIMIT = Number(
 export const EMAIL_BATCH_SIZE = Number(
   getOptionalEnv("EMAIL_BATCH_SIZE", "10")
 );
-export const MAX_RETRIES = 3;
 
 export const smtpUser = getOptionalEnv("SMTP_USER", "");
 export const smtpPass = getOptionalEnv("SMTP_PASS", "");

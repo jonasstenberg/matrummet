@@ -124,9 +124,35 @@ jobs:
             fi
           fi
 
-  deploy-migrations:
+  test:
     needs: setup
-    if: needs.setup.outputs.run_migrations == 'true'
+    if: needs.setup.outputs.deploy_frontend == 'true' || needs.setup.outputs.deploy_email_service == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build shared package
+        run: pnpm --filter @recept/shared build
+
+      - name: Run tests
+        run: pnpm vitest run
+
+  deploy-migrations:
+    needs: [setup, test]
+    if: always() && needs.setup.outputs.run_migrations == 'true' && (needs.test.result == 'success' || needs.test.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -155,8 +181,8 @@ jobs:
           ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'sudo systemctl restart postgrest-recept'
 
   deploy-services:
-    needs: [setup, deploy-migrations]
-    if: always() && (needs.setup.outputs.deploy_frontend == 'true' || needs.setup.outputs.deploy_email_service == 'true') && (needs.deploy-migrations.result == 'success' || needs.deploy-migrations.result == 'skipped')
+    needs: [setup, test, deploy-migrations]
+    if: always() && (needs.setup.outputs.deploy_frontend == 'true' || needs.setup.outputs.deploy_email_service == 'true') && (needs.test.result == 'success' || needs.test.result == 'skipped') && (needs.deploy-migrations.result == 'success' || needs.deploy-migrations.result == 'skipped')
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -295,7 +321,7 @@ jobs:
           ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'sudo systemctl restart recept-email'
 
   notify:
-    needs: [setup, deploy-migrations, deploy-services]
+    needs: [setup, test, deploy-migrations, deploy-services]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -303,6 +329,7 @@ jobs:
         run: |
           echo "Deployment completed at $(date)"
           echo "Summary:"
+          echo "- Tests: ${{ needs.test.result == 'success' && 'Passed' || needs.test.result == 'skipped' && 'Skipped' || 'Failed' }}"
           echo "- Migrations: ${{ needs.setup.outputs.run_migrations == 'true' && (needs.deploy-migrations.result == 'success' && 'Deployed' || 'Failed') || 'Skipped' }}"
           echo "- Frontend: ${{ needs.setup.outputs.deploy_frontend == 'true' && 'Deployed' || 'Skipped' }}"
           echo "- Email-service: ${{ needs.setup.outputs.deploy_email_service == 'true' && 'Deployed' || 'Skipped' }}"

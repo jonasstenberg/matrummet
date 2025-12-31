@@ -1,4 +1,4 @@
-import { MAX_RETRIES } from "./config.js";
+import { MAX_RETRIES } from "./constants.js";
 
 export type RetryResult = {
   shouldRetry: boolean;
