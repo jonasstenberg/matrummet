@@ -1,20 +1,26 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import * as SliderPrimitive from "@radix-ui/react-slider"
+import * as React from "react";
+import * as SliderPrimitive from "@radix-ui/react-slider";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 const Slider = React.forwardRef<
   React.ElementRef<typeof SliderPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>
->(({ className, "aria-label": ariaLabel, ...props }, ref) => (
+>(({ className, "aria-label": ariaLabel, onPointerDown, ...props }, ref) => (
   <SliderPrimitive.Root
     ref={ref}
     className={cn(
       "relative flex w-full touch-none select-none items-center",
       className
     )}
+    onPointerDown={(e) => {
+      // Prevent Dialog/Sheet from capturing pointer events
+      // This fixes the releasePointerCapture error in modals
+      e.stopPropagation();
+      onPointerDown?.(e);
+    }}
     {...props}
   >
     <SliderPrimitive.Track className="relative h-2 w-full grow overflow-hidden rounded-full bg-secondary">
@@ -25,7 +31,7 @@ const Slider = React.forwardRef<
       aria-label={ariaLabel}
     />
   </SliderPrimitive.Root>
-))
-Slider.displayName = SliderPrimitive.Root.displayName
+));
+Slider.displayName = SliderPrimitive.Root.displayName;
 
-export { Slider }
+export { Slider };

@@ -11,6 +11,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -25,6 +33,7 @@ import {
   createShoppingList,
   getUserShoppingLists,
 } from "@/lib/actions";
+import { useIsMobile } from "@/lib/hooks/use-media-query";
 import { scaleQuantity } from "@/lib/quantity-utils";
 import type { Ingredient, Recipe, ShoppingList } from "@/lib/types";
 import { Loader2, Plus, RotateCcw } from "lucide-react";
@@ -218,190 +227,227 @@ export function AddToShoppingListDialog({
     onOpenChange(newOpen);
   }
 
+  const isMobile = useIsMobile();
+
+  const content = (
+    <>
+      {/* Shopping list selector */}
+      <div className="shrink-0 space-y-3 py-4 rounded-lg bg-muted/30">
+        <label className="text-sm font-medium">Välj inköpslista</label>
+        {isLoadingLists ? (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Laddar listor...</span>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <Select value={selectedListId} onValueChange={setSelectedListId}>
+              <SelectTrigger className="flex-1 bg-background">
+                <SelectValue placeholder="Välj lista" />
+              </SelectTrigger>
+              <SelectContent>
+                {lists.map((list) => (
+                  <SelectItem key={list.id} value={list.id}>
+                    {list.name}
+                    {list.is_default && (
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        (standard)
+                      </span>
+                    )}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Create new list inline */}
+            <Input
+              placeholder="Ny lista..."
+              value={newListName}
+              onChange={(e) => setNewListName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleCreateList();
+                }
+              }}
+              className="w-24 sm:w-28 bg-background"
+            />
+            <Button
+              type="button"
+              size="icon"
+              variant="outline"
+              onClick={handleCreateList}
+              disabled={!newListName.trim() || isCreatingList}
+              aria-label="Skapa ny lista"
+              className="shrink-0 bg-background"
+            >
+              {isCreatingList ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Plus className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Servings adjuster */}
+      <div className="shrink-0 space-y-3 py-4">
+        <div className="flex items-center justify-between">
+          <span className="text-base font-semibold text-foreground">
+            {servings} {recipe.recipe_yield_name || "portioner"}
+          </span>
+          {isModified && (
+            <button
+              onClick={() => setServings(originalServings)}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+              aria-label="Återställ till originalportioner"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              <span>Återställ ({originalServings})</span>
+            </button>
+          )}
+        </div>
+        <Slider
+          value={[servings]}
+          onValueChange={(values) => setServings(values[0])}
+          min={1}
+          max={maxServings}
+          step={1}
+          aria-label="Antal portioner"
+        />
+      </div>
+
+      {/* Select all toggle */}
+      <div className="shrink-0 flex items-center gap-3 py-3 border-y">
+        <Checkbox
+          id="select-all"
+          checked={allSelected}
+          onCheckedChange={toggleAll}
+          aria-label={allSelected ? "Avmarkera alla" : "Välj alla"}
+          className={someSelected ? "data-[state=checked]:bg-primary/50" : ""}
+        />
+        <label
+          htmlFor="select-all"
+          className="text-sm font-medium cursor-pointer select-none flex-1"
+        >
+          {allSelected ? "Avmarkera alla" : "Välj alla"}
+        </label>
+        <span className="text-xs text-muted-foreground tabular-nums">
+          {selectedIngredients.size} av {recipe.ingredients.length} valda
+        </span>
+      </div>
+
+      {/* Ingredients list */}
+      <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="py-2 space-y-1">
+          {groupedIngredients.map(({ groupId, groupName, ingredients }) => (
+            <div key={groupId || "ungrouped"}>
+              {groupName && (
+                <div className="sticky top-0 text-xs font-semibold uppercase tracking-wider text-primary py-2 px-1 bg-background/95 backdrop-blur-sm border-b border-border/50 mb-1">
+                  {groupName}
+                </div>
+              )}
+              <div className="space-y-0.5">
+                {ingredients.map((ingredient, index) => {
+                  const id = ingredient.id ?? `${groupId}-${index}`;
+                  const isSelected = selectedIngredients.has(id);
+
+                  return (
+                    <label
+                      key={id}
+                      className="flex items-center gap-3 py-3 sm:py-2 px-2 rounded-lg hover:bg-muted/50 active:bg-muted cursor-pointer transition-colors"
+                    >
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => toggleIngredient(id)}
+                        aria-label={`Välj ${ingredient.name}`}
+                        className="h-5 w-5 sm:h-4 sm:w-4 shrink-0"
+                      />
+                      <span className="flex-1 text-sm">
+                        <span className="font-semibold tabular-nums text-foreground">
+                          {scaleQuantity(ingredient.quantity, scaleFactor)}
+                          {ingredient.measurement
+                            ? ` ${ingredient.measurement}`
+                            : ""}
+                        </span>{" "}
+                        <span className="text-muted-foreground">
+                          {ingredient.name}
+                        </span>
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {error && (
+        <Alert variant="destructive" className="shrink-0 mt-3">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+    </>
+  );
+
+  const footer = (
+    <>
+      <Button
+        variant="outline"
+        onClick={() => onOpenChange(false)}
+        disabled={isSubmitting}
+      >
+        Avbryt
+      </Button>
+      <Button
+        onClick={handleSubmit}
+        disabled={isSubmitting || selectedIngredients.size === 0}
+      >
+        {isSubmitting ? "Lägger till..." : "Lägg till i inköpslista"}
+      </Button>
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <Sheet open={open} onOpenChange={handleOpenChange}>
+        <SheetContent
+          side="bottom"
+          className="h-[100dvh] flex flex-col gap-0 px-4 rounded-t-xl"
+        >
+          <SheetHeader className="shrink-0 pb-4 text-left">
+            <SheetTitle>Lägg till i inköpslista</SheetTitle>
+            <SheetDescription>
+              Välj ingredienser från {recipe.name} att lägga till i din
+              inköpslista.
+            </SheetDescription>
+          </SheetHeader>
+          {content}
+          <SheetFooter className="shrink-0 pt-4 border-t flex-row gap-2">
+            {footer}
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-h-[85vh] overflow-hidden flex flex-col sm:max-w-md">
-        <DialogHeader>
+      <DialogContent className="max-h-[90vh] overflow-hidden flex flex-col sm:max-w-lg gap-0">
+        <DialogHeader className="shrink-0 pb-4">
           <DialogTitle>Lägg till i inköpslista</DialogTitle>
           <DialogDescription>
             Välj ingredienser från {recipe.name} att lägga till i din
             inköpslista.
           </DialogDescription>
         </DialogHeader>
-
-        {/* Shopping list selector */}
-        <div className="space-y-2 pb-4 border-b">
-          <label className="text-sm font-medium">Välj inköpslista</label>
-          {isLoadingLists ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Laddar listor...</span>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <Select value={selectedListId} onValueChange={setSelectedListId}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Välj lista" />
-                </SelectTrigger>
-                <SelectContent>
-                  {lists.map((list) => (
-                    <SelectItem key={list.id} value={list.id}>
-                      {list.name}
-                      {list.is_default && (
-                        <span className="ml-2 text-xs text-muted-foreground">
-                          (standard)
-                        </span>
-                      )}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Create new list inline */}
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Ny lista..."
-                  value={newListName}
-                  onChange={(e) => setNewListName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleCreateList();
-                    }
-                  }}
-                  className="flex-1"
-                />
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="outline"
-                  onClick={handleCreateList}
-                  disabled={!newListName.trim() || isCreatingList}
-                  aria-label="Skapa ny lista"
-                >
-                  {isCreatingList ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Plus className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-            </div>
-          )}
+        <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+          {content}
         </div>
-
-        {/* Servings adjuster */}
-        <div className="space-y-3 pb-4 border-b">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-foreground">
-              {servings} {recipe.recipe_yield_name || "portioner"}
-            </span>
-            {isModified && (
-              <button
-                onClick={() => setServings(originalServings)}
-                className="flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
-                aria-label="Återställ till originalportioner"
-              >
-                <RotateCcw className="h-3.5 w-3.5" />
-                <span>Återställ ({originalServings})</span>
-              </button>
-            )}
-          </div>
-          <Slider
-            value={[servings]}
-            onValueChange={(values) => setServings(values[0])}
-            min={1}
-            max={maxServings}
-            step={1}
-            aria-label="Antal portioner"
-          />
-        </div>
-
-        {/* Select all toggle */}
-        <div className="flex items-center gap-2 py-2 border-b">
-          <Checkbox
-            id="select-all"
-            checked={allSelected}
-            onCheckedChange={toggleAll}
-            aria-label={allSelected ? "Avmarkera alla" : "Välj alla"}
-            className={someSelected ? "data-[state=checked]:bg-primary/50" : ""}
-          />
-          <label
-            htmlFor="select-all"
-            className="text-sm font-medium cursor-pointer select-none"
-          >
-            {allSelected ? "Avmarkera alla" : "Välj alla"}
-          </label>
-          <span className="ml-auto text-xs text-muted-foreground">
-            {selectedIngredients.size} av {recipe.ingredients.length} valda
-          </span>
-        </div>
-
-        {/* Ingredients list */}
-        <div className="flex-1 overflow-y-auto -mx-6 px-6 py-2 min-h-0">
-          <div className="space-y-4">
-            {groupedIngredients.map(({ groupId, groupName, ingredients }) => (
-              <div key={groupId || "ungrouped"}>
-                {groupName && (
-                  <div className="text-xs font-semibold uppercase tracking-wider text-primary mb-2">
-                    {groupName}
-                  </div>
-                )}
-                <div className="space-y-1">
-                  {ingredients.map((ingredient, index) => {
-                    const id = ingredient.id ?? `${groupId}-${index}`;
-                    const isSelected = selectedIngredients.has(id);
-
-                    return (
-                      <label
-                        key={id}
-                        className="flex items-center gap-3 py-2 px-2 -mx-2 rounded-md hover:bg-muted/50 cursor-pointer transition-colors"
-                      >
-                        <Checkbox
-                          checked={isSelected}
-                          onCheckedChange={() => toggleIngredient(id)}
-                          aria-label={`Välj ${ingredient.name}`}
-                        />
-                        <span className="flex-1 text-sm">
-                          <span className="font-semibold tabular-nums">
-                            {scaleQuantity(ingredient.quantity, scaleFactor)}
-                            {ingredient.measurement
-                              ? ` ${ingredient.measurement}`
-                              : ""}
-                          </span>{" "}
-                          <span className="text-muted-foreground">
-                            {ingredient.name}
-                          </span>
-                        </span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {error && (
-          <Alert variant="destructive" className="mt-2">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        <DialogFooter className="pt-4 border-t">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isSubmitting}
-          >
-            Avbryt
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={isSubmitting || selectedIngredients.size === 0}
-          >
-            {isSubmitting ? "Lägger till..." : "Lägg till i inköpslista"}
-          </Button>
+        <DialogFooter className="shrink-0 pt-4 border-t gap-2">
+          {footer}
         </DialogFooter>
       </DialogContent>
     </Dialog>
