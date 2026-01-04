@@ -3,7 +3,7 @@ import { randomUUID } from 'crypto'
 import { getDataFilesDir } from '@/lib/paths'
 import { generateImageVariants } from '@/lib/image-processing'
 
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024 // 5MB
+const MAX_IMAGE_SIZE = 20 * 1024 * 1024 // 20MB
 
 const ALLOWED_CONTENT_TYPES = [
   'image/jpeg',
@@ -60,7 +60,7 @@ export async function downloadImage(imageUrl: string): Promise<DownloadResult> {
     if (contentLength && parseInt(contentLength, 10) > MAX_IMAGE_SIZE) {
       return {
         success: false,
-        error: 'Image too large (max 5MB)',
+        error: 'Image too large (max 20MB)',
       }
     }
 
@@ -72,7 +72,7 @@ export async function downloadImage(imageUrl: string): Promise<DownloadResult> {
     if (buffer.length > MAX_IMAGE_SIZE) {
       return {
         success: false,
-        error: 'Image too large (max 5MB)',
+        error: 'Image too large (max 20MB)',
       }
     }
 

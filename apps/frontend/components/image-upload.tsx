@@ -84,8 +84,8 @@ export function ImageUpload({
       return
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Bilden får vara max 5 MB')
+    if (file.size > 20 * 1024 * 1024) {
+      setError('Bilden får vara max 20 MB')
       return
     }
 
@@ -271,7 +271,7 @@ export function ImageUpload({
             <Upload className="h-4 w-4" />
             Välj bild
           </Button>
-          <p className="mt-4 text-xs text-muted-foreground">Max 5 MB</p>
+          <p className="mt-4 text-xs text-muted-foreground">Max 20 MB</p>
         </div>
       )}
 
@@ -319,7 +319,7 @@ export function ImageUpload({
                   Hämta
                 </Button>
               </div>
-              <p className="mt-4 text-xs text-muted-foreground">Max 5 MB</p>
+              <p className="mt-4 text-xs text-muted-foreground">Max 20 MB</p>
             </>
           ) : (
             <div className="w-full space-y-4">

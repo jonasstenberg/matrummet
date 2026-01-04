@@ -28,10 +28,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
+    // Validate file size (20MB max)
+    if (file.size > 20 * 1024 * 1024) {
       return NextResponse.json(
-        { error: 'Bilden får vara max 5 MB' },
+        { error: 'Bilden får vara max 20 MB' },
         { status: 400 }
       )
     }
