@@ -1,7 +1,6 @@
 "use client";
 
 import { useAuth } from "@/components/auth-provider";
-import { SearchBar } from "@/components/search-bar";
 import {
   Sheet,
   SheetContent,
@@ -10,9 +9,9 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { isAdmin } from "@/lib/is-admin";
-import { LogOut, Menu, Settings, ShoppingCart, UserCog } from "lucide-react";
+import { LogOut, Menu, Plus, Settings, ShoppingCart, UserCog } from "lucide-react";
 import Link from "next/link";
-import { Suspense, useState } from "react";
+import { useState } from "react";
 
 export function MobileMenu() {
   const { user, logout } = useAuth();
@@ -30,14 +29,6 @@ export function MobileMenu() {
           <SheetTitle>Meny</SheetTitle>
         </SheetHeader>
         <div className="mt-6 space-y-6">
-          <Suspense
-            fallback={
-              <div className="w-full h-9 bg-muted rounded-md animate-pulse" />
-            }
-          >
-            <SearchBar />
-          </Suspense>
-
           <nav aria-label="Mobilmeny" className="flex flex-col gap-2">
             <Link
               href="/"
@@ -49,6 +40,14 @@ export function MobileMenu() {
 
             {user ? (
               <>
+                <Link
+                  href="/recept/nytt"
+                  className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                  onClick={() => setOpen(false)}
+                >
+                  <Plus className="h-4 w-4" />
+                  Lägg till recept
+                </Link>
                 <Link
                   href="/inkopslista"
                   className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"

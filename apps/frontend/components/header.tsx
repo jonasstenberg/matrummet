@@ -41,48 +41,49 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-        {/* Logo */}
-        <Link
-          href="/"
-          className="flex items-center gap-3"
-        >
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-warm">
-            <ChefHat className="h-5 w-5 text-warm-foreground" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-heading text-xl font-semibold text-foreground">Stenberg&apos;s</span>
-            <span className="text-xs font-medium tracking-[0.2em] text-warm">RECEPT</span>
-          </div>
-        </Link>
-
-        {/* Desktop Navigation */}
-        <nav aria-label="Huvudnavigering" className="hidden items-center gap-6 md:flex">
-          {/* Search Bar */}
-          <Suspense
-            fallback={
-              <div className="w-96 h-10 bg-muted rounded-full animate-pulse" />
-            }
+      <div className="container mx-auto max-w-7xl px-4">
+        <div className="flex h-16 items-center justify-between">
+          {/* Logo */}
+          <Link
+            href="/"
+            className="flex items-center gap-3"
           >
-            <SearchBar className="w-96" />
-          </Suspense>
-        </nav>
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-warm">
+              <ChefHat className="h-5 w-5 text-warm-foreground" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-heading text-xl font-semibold text-foreground">Stenberg&apos;s</span>
+              <span className="text-xs font-medium tracking-[0.2em] text-warm">RECEPT</span>
+            </div>
+          </Link>
 
-        {/* Desktop Auth Section */}
-        <div className="hidden items-center gap-4 md:flex">
-          {user ? (
-            <div ref={userMenuRef} className="relative">
-              <Button
-                variant="ghost"
-                onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="gap-2"
-              >
-                <User className="h-4 w-4" />
-                {user.name || user.email}
-              </Button>
+          {/* Desktop Navigation */}
+          <nav aria-label="Huvudnavigering" className="hidden items-center gap-6 md:flex">
+            {/* Search Bar */}
+            <Suspense
+              fallback={
+                <div className="w-96 h-10 bg-muted rounded-full animate-pulse" />
+              }
+            >
+              <SearchBar className="w-96" />
+            </Suspense>
+          </nav>
 
-              {userMenuOpen && (
-                <div className="absolute right-0 top-12 z-50 w-48 rounded-md border border-border bg-popover p-1 shadow-md">
+          {/* Desktop Auth Section */}
+          <div className="hidden items-center gap-4 md:flex">
+            {user ? (
+              <div ref={userMenuRef} className="relative">
+                <Button
+                  variant="ghost"
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="gap-2"
+                >
+                  <User className="h-4 w-4" />
+                  {user.name || user.email}
+                </Button>
+
+                {userMenuOpen && (
+                  <div className="absolute right-0 top-12 z-50 w-48 rounded-md border border-border bg-popover p-1 shadow-md">
                     <Link
                       href="/inkopslista"
                       className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
@@ -120,17 +121,29 @@ export function Header() {
                       Logga ut
                     </button>
                   </div>
-              )}
-            </div>
-          ) : (
-            <Button asChild>
-              <Link href="/login">Logga in</Link>
-            </Button>
-          )}
+                )}
+              </div>
+            ) : (
+              <Button asChild>
+                <Link href="/login">Logga in</Link>
+              </Button>
+            )}
+          </div>
+
+          {/* Mobile Menu */}
+          <MobileMenu />
         </div>
 
-        {/* Mobile Menu */}
-        <MobileMenu />
+        {/* Mobile Search Bar - below header row */}
+        <div className="pb-3 md:hidden">
+          <Suspense
+            fallback={
+              <div className="w-full h-10 bg-muted rounded-full animate-pulse" />
+            }
+          >
+            <SearchBar className="w-full" />
+          </Suspense>
+        </div>
       </div>
     </header>
   );
