@@ -9,14 +9,42 @@ export async function getRecipes(options?: {
   offset?: number;
   token?: string;
 }): Promise<Recipe[]> {
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+  if (options?.token) {
+    headers['Authorization'] = `Bearer ${options.token}`;
+  }
+
+  // Use RPC function for search (supports substring matching like "sås" → "vaniljsås")
+  if (options?.search) {
+    const res = await fetch(`${env.POSTGREST_URL}/rpc/search_recipes`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        p_query: options.search,
+        p_owner: options.owner ?? null,
+        p_category: options.category ?? null,
+        p_limit: options.limit ?? 50,
+        p_offset: options.offset ?? 0,
+      }),
+      next: { revalidate: 60 },
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Failed to search recipes:", res.status, errorText);
+      throw new Error(`Failed to search recipes: ${res.status} ${errorText}`);
+    }
+    return res.json();
+  }
+
+  // Regular fetch without search
   const params = new URLSearchParams();
   params.set("order", "date_published.desc");
 
   if (options?.category) {
     params.set("categories", `cs.{"${options.category}"}`);
-  }
-  if (options?.search) {
-    params.set("full_tsv", `phfts(swedish).${options.search}`);
   }
   if (options?.owner) {
     params.set("owner", `eq.${options.owner}`);
@@ -26,11 +54,6 @@ export async function getRecipes(options?: {
   }
   if (options?.offset) {
     params.set("offset", String(options.offset));
-  }
-
-  const headers: HeadersInit = {};
-  if (options?.token) {
-    headers['Authorization'] = `Bearer ${options.token}`;
   }
 
   const res = await fetch(`${env.POSTGREST_URL}/recipes_and_categories?${params}`, {
@@ -130,20 +153,37 @@ export async function getLikedRecipes(
     search?: string;
   }
 ): Promise<Recipe[]> {
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+  };
+
+  // Use RPC function for search (supports substring matching)
+  if (options?.search) {
+    const res = await fetch(`${env.POSTGREST_URL}/rpc/search_liked_recipes`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        p_query: options.search,
+        p_category: options.category ?? null,
+      }),
+      cache: 'no-store',
+    });
+
+    if (!res.ok) throw new Error("Failed to search liked recipes");
+    return res.json();
+  }
+
+  // Regular fetch without search
   const params = new URLSearchParams();
   params.set("order", "liked_at.desc");
 
   if (options?.category) {
     params.set("categories", `cs.{"${options.category}"}`);
   }
-  if (options?.search) {
-    params.set("full_tsv", `phfts(swedish).${options.search}`);
-  }
 
   const res = await fetch(`${env.POSTGREST_URL}/liked_recipes?${params}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers,
     cache: 'no-store',
   });
 
