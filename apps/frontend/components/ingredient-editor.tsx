@@ -102,10 +102,35 @@ export function IngredientEditor({
   }
 
   function addIngredient(groupId?: string | null) {
-    updateWithGroups([
-      ...ingredients,
-      { name: "", measurement: "", quantity: "", group_id: groupId || null },
-    ]);
+    const newIngredient = { name: "", measurement: "", quantity: "", group_id: groupId || null };
+
+    if (!groupId) {
+      // No group specified - add at end
+      updateWithGroups([...ingredients, newIngredient]);
+      return;
+    }
+
+    // Find the last index of an ingredient in this group
+    let insertIndex = -1;
+    for (let i = ingredients.length - 1; i >= 0; i--) {
+      if (ingredients[i].group_id === groupId) {
+        insertIndex = i + 1; // Insert after the last ingredient in the group
+        break;
+      }
+    }
+
+    if (insertIndex === -1) {
+      // Group has no ingredients yet, add at end
+      updateWithGroups([...ingredients, newIngredient]);
+      return;
+    }
+
+    const updated = [
+      ...ingredients.slice(0, insertIndex),
+      newIngredient,
+      ...ingredients.slice(insertIndex),
+    ];
+    updateWithGroups(updated);
   }
 
   function addGroup() {
@@ -161,19 +186,19 @@ export function IngredientEditor({
     const currentIngredient = updated[index];
     const adjacentIngredient = updated[newIndex];
 
-    // When crossing group boundary, adopt the adjacent item's group
     const currentGroupId = currentIngredient.group_id || null;
     const adjacentGroupId = adjacentIngredient.group_id || null;
 
     if (currentGroupId !== adjacentGroupId) {
-      // Crossing boundary - change the moving ingredient's group_id
+      // Crossing group boundary - only change group_id, don't swap
+      // This makes the item move exactly one visual position (across the header)
       updated[index] = { ...currentIngredient, group_id: adjacentGroupId };
+      updateWithGroups(updated);
+    } else {
+      // Same group - swap positions
+      [updated[index], updated[newIndex]] = [updated[newIndex], updated[index]];
+      updateWithGroups(updated);
     }
-
-    // Swap positions
-    [updated[index], updated[newIndex]] = [updated[newIndex], updated[index]];
-
-    updateWithGroups(updated);
   }
 
   function getGroupOrder(): string[] {

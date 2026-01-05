@@ -97,10 +97,35 @@ export function InstructionEditor({
   }
 
   function addInstruction(groupId?: string | null) {
-    updateWithGroups([
-      ...instructions,
-      { step: "", group_id: groupId || null },
-    ]);
+    const newInstruction = { step: "", group_id: groupId || null };
+
+    if (!groupId) {
+      // No group specified - add at end
+      updateWithGroups([...instructions, newInstruction]);
+      return;
+    }
+
+    // Find the last index of an instruction in this group
+    let insertIndex = -1;
+    for (let i = instructions.length - 1; i >= 0; i--) {
+      if (instructions[i].group_id === groupId) {
+        insertIndex = i + 1; // Insert after the last instruction in the group
+        break;
+      }
+    }
+
+    if (insertIndex === -1) {
+      // Group has no instructions yet, add at end
+      updateWithGroups([...instructions, newInstruction]);
+      return;
+    }
+
+    const updated = [
+      ...instructions.slice(0, insertIndex),
+      newInstruction,
+      ...instructions.slice(insertIndex),
+    ];
+    updateWithGroups(updated);
   }
 
   function addGroup() {
@@ -146,8 +171,22 @@ export function InstructionEditor({
 
     const updated = [...instructions];
     const newIndex = direction === "up" ? index - 1 : index + 1;
-    [updated[index], updated[newIndex]] = [updated[newIndex], updated[index]];
-    updateWithGroups(updated);
+    const currentInstruction = updated[index];
+    const adjacentInstruction = updated[newIndex];
+
+    const currentGroupId = currentInstruction.group_id || null;
+    const adjacentGroupId = adjacentInstruction.group_id || null;
+
+    if (currentGroupId !== adjacentGroupId) {
+      // Crossing group boundary - only change group_id, don't swap
+      // This makes the item move exactly one visual position (across the header)
+      updated[index] = { ...currentInstruction, group_id: adjacentGroupId };
+      updateWithGroups(updated);
+    } else {
+      // Same group - swap positions
+      [updated[index], updated[newIndex]] = [updated[newIndex], updated[index]];
+      updateWithGroups(updated);
+    }
   }
 
   function updateGroupName(groupId: string, newName: string) {
