@@ -52,7 +52,7 @@ export function Header() {
               <ChefHat className="h-5 w-5 text-warm-foreground" />
             </div>
             <div className="flex flex-col">
-              <span className="font-heading text-xl font-semibold text-foreground">Stenberg&apos;s</span>
+              <span className="font-heading text-xl font-semibold text-foreground">Matrummet&apos;s</span>
               <span className="text-xs font-medium tracking-[0.2em] text-warm">RECEPT</span>
             </div>
           </Link>
