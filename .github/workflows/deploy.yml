@@ -50,24 +50,31 @@ jobs:
       - name: Detect changes
         id: changes
         run: |
-          # For push events, compare with parent commit
-          if [[ "${{ github.event_name }}" == "push" ]]; then
-            WORKFLOW_SHA=$(git rev-parse HEAD)
-            echo "Using HEAD SHA: $WORKFLOW_SHA"
-          else
-            # For workflow_dispatch, use the current HEAD
-            git fetch origin ${{ github.ref_name }} --depth=100 || echo "Fetching history failed"
-            WORKFLOW_SHA=$(git rev-parse HEAD)
-            echo "Using HEAD SHA: $WORKFLOW_SHA"
-          fi
+          WORKFLOW_SHA=$(git rev-parse HEAD)
+          echo "Using HEAD SHA: $WORKFLOW_SHA"
 
-          # Try to get the parent commit
-          PARENT_SHA=$(git rev-parse $WORKFLOW_SHA^ 2>/dev/null || echo "")
+          # For push events, compare against the before SHA (catches multi-commit pushes)
+          # For workflow_dispatch, compare against parent commit
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            PARENT_SHA="${{ github.event.before }}"
+            # Handle initial push (all zeros)
+            if [[ "$PARENT_SHA" == "0000000000000000000000000000000000000000" ]]; then
+              PARENT_SHA=""
+            fi
+            echo "Using push before SHA: $PARENT_SHA"
+          else
+            git fetch origin ${{ github.ref_name }} --depth=100 || echo "Fetching history failed"
+            PARENT_SHA=$(git rev-parse $WORKFLOW_SHA^ 2>/dev/null || echo "")
+            echo "Using parent SHA: $PARENT_SHA"
+          fi
 
           # Check for migration changes
           if [[ "${{ github.event.inputs.run_migrations }}" == "false" ]]; then
             echo "run_migrations=false" >> $GITHUB_OUTPUT
             echo "Skipping migrations as requested"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.run_migrations }}" == "true" ]]; then
+            echo "run_migrations=true" >> $GITHUB_OUTPUT
+            echo "Manual request to run migrations"
           elif [[ -z "$PARENT_SHA" ]]; then
             echo "run_migrations=true" >> $GITHUB_OUTPUT
             echo "First commit, running migrations"
