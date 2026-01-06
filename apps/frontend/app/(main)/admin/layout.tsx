@@ -14,6 +14,7 @@ const adminLinks = [
   { href: '/admin/enheter', label: 'Enheter' },
   { href: '/admin/strukturera', label: 'Strukturera' },
   { href: '/admin/anvandare', label: 'Användare' },
+  { href: '/admin/ai-granskning', label: 'AI-granskning' },
 ]
 
 export default function AdminLayout({

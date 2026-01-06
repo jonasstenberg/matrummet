@@ -39,6 +39,8 @@ TABLES=(
     "ingredients"
     "instructions"
     "recipe_categories"
+    "foods"
+    "user_pantry"
 )
 
 echo "Exporting data from production..."
@@ -93,7 +95,7 @@ echo "Importing to local database..."
 # Clear existing data in reverse order (to respect foreign keys)
 echo "  Clearing existing data..."
 psql -d "$LOCAL_DB" -c "
-    TRUNCATE recipe_categories, instructions, ingredients, recipes, categories CASCADE;
+    TRUNCATE user_pantry, foods, recipe_categories, instructions, ingredients, recipes, categories CASCADE;
 " 2>/dev/null || true
 
 # Disable triggers during import (to avoid RLS and password encryption issues)
@@ -105,6 +107,8 @@ psql -d "$LOCAL_DB" -c "
     ALTER TABLE instructions DISABLE TRIGGER ALL;
     ALTER TABLE categories DISABLE TRIGGER ALL;
     ALTER TABLE recipe_categories DISABLE TRIGGER ALL;
+    ALTER TABLE foods DISABLE TRIGGER ALL;
+    ALTER TABLE user_pantry DISABLE TRIGGER ALL;
 "
 
 # Import the data
@@ -120,6 +124,8 @@ psql -d "$LOCAL_DB" -c "
     ALTER TABLE instructions ENABLE TRIGGER ALL;
     ALTER TABLE categories ENABLE TRIGGER ALL;
     ALTER TABLE recipe_categories ENABLE TRIGGER ALL;
+    ALTER TABLE foods ENABLE TRIGGER ALL;
+    ALTER TABLE user_pantry ENABLE TRIGGER ALL;
 "
 
 # Cleanup
@@ -138,7 +144,11 @@ psql -d "$LOCAL_DB" -t -c "
     UNION ALL
     SELECT 'instructions: ' || COUNT(*) FROM instructions
     UNION ALL
-    SELECT 'categories: ' || COUNT(*) FROM categories;
+    SELECT 'categories: ' || COUNT(*) FROM categories
+    UNION ALL
+    SELECT 'foods: ' || COUNT(*) FROM foods
+    UNION ALL
+    SELECT 'user_pantry: ' || COUNT(*) FROM user_pantry;
 "
 
 echo ""

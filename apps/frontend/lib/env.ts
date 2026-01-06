@@ -14,6 +14,7 @@ const envSchema = z.object({
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_SECRET: z.string().optional(),
   APP_URL: z.string().url().optional(),
+  CRON_SECRET: z.string().optional(),
 });
 
 type Env = z.infer<typeof envSchema>;
@@ -33,6 +34,7 @@ function getEnv(): Env {
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
     GOOGLE_SECRET: process.env.GOOGLE_SECRET,
     APP_URL: process.env.APP_URL,
+    CRON_SECRET: process.env.CRON_SECRET,
   });
 
   if (!result.success) {
@@ -76,5 +78,8 @@ export const env = {
   },
   get APP_URL() {
     return getEnv().APP_URL;
+  },
+  get CRON_SECRET() {
+    return getEnv().CRON_SECRET;
   },
 };
