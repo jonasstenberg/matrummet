@@ -188,6 +188,8 @@ export interface RecipeFormData {
   ingredientGroups: Array<{ id: string; name: string }>
   instructions: Array<{ step: string; group_id?: string | null }>
   instructionGroups: Array<{ id: string; name: string }>
+  // Original prompt used for AI import (for display and refinement)
+  originalPrompt: string | null
 }
 
 const initialFormData: RecipeFormData = {
@@ -207,6 +209,7 @@ const initialFormData: RecipeFormData = {
   ingredientGroups: [],
   instructions: [{ step: "" }],
   instructionGroups: [],
+  originalPrompt: null,
 }
 
 const STEPS: Step[] = [
@@ -350,7 +353,7 @@ export function CreateRecipeWizard() {
   }, [updateHistoryState])
 
   const handleImport = useCallback(
-    (data: ImportData, lowConfidenceIndices?: number[]) => {
+    (data: ImportData, lowConfidenceIndices?: number[], originalPrompt?: string) => {
       const { groups: ingredientGroups, items: ingredients } =
         processIngredients(data)
       const { groups: instructionGroups, items: instructions } =
@@ -383,6 +386,7 @@ export function CreateRecipeWizard() {
         })),
         instructions:
           instructions.length > 0 ? instructions : [{ step: "" }],
+        originalPrompt: originalPrompt || null,
       }))
 
       setLowConfidenceIngredients(lowConfidenceIndices || [])
@@ -592,6 +596,7 @@ export function CreateRecipeWizard() {
             <BasicDetailsStep
               formData={formData}
               onChange={updateFormData}
+              onRefine={updateFormData}
             />
             <RecipeContentStep
               formData={formData}

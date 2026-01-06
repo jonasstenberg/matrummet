@@ -45,7 +45,7 @@ type ImportData = Partial<CreateRecipeInput> | {
 type SelectedOption = null | "url" | "ai"
 
 interface SourceSelectionStepProps {
-  onImport: (data: ImportData, lowConfidenceIndices?: number[]) => void
+  onImport: (data: ImportData, lowConfidenceIndices?: number[], originalPrompt?: string) => void
   onStartBlank: () => void
   isAdmin: boolean
   selectedOption: SelectedOption
@@ -132,7 +132,12 @@ export function SourceSelectionStep({
       }
 
       const data = await response.json()
-      onImport(data.recipe)
+      // Build original prompt description for display
+      const promptParts: string[] = []
+      if (imageFile) promptParts.push(`[Bild: ${imageFile.name}]`)
+      if (aiText.trim()) promptParts.push(aiText.trim())
+      const originalPrompt = promptParts.join("\n")
+      onImport(data.recipe, undefined, originalPrompt)
     } catch (err) {
       setAiError(err instanceof Error ? err.message : "Tolkning misslyckades")
     } finally {

@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "vitest run",
+    "postinstall": "playwright install chromium"
   },
   "dependencies": {
     "@google/genai": "^1.34.0",
@@ -27,6 +29,7 @@
     "jose": "^6.0.10",
     "lucide-react": "^0.513.0",
     "next": "16.1.1",
+    "playwright": "^1.57.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "sharp": "^0.34.5",
@@ -44,11 +47,5 @@
     "tailwindcss": "^4.1.8",
     "typescript": "^5.8.3"
   },
-  "packageManager": "pnpm@10.26.0+sha512.3b3f6c725ebe712506c0ab1ad4133cf86b1f4b687effce62a9b38b4d72e3954242e643190fc51fa1642949c735f403debd44f5cb0edd657abe63a8b6a7e1e402",
-  "pnpm": {
-    "overrides": {
-      "@types/react": "19.2.7",
-      "@types/react-dom": "19.2.3"
-    }
-  }
+  "packageManager": "pnpm@10.26.0+sha512.3b3f6c725ebe712506c0ab1ad4133cf86b1f4b687effce62a9b38b4d72e3954242e643190fc51fa1642949c735f403debd44f5cb0edd657abe63a8b6a7e1e402"
 }

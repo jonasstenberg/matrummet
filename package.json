@@ -13,5 +13,11 @@
     "docker:logs": "docker compose logs -f",
     "inbucket": "docker compose up -d inbucket",
     "inbucket:stop": "docker compose stop inbucket"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "19.2.7",
+      "@types/react-dom": "19.2.3"
+    }
   }
 }
