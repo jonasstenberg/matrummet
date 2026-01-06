@@ -84,6 +84,14 @@ GRUPPER FÖR INGREDIENSER OCH INSTRUKTIONER:
   - "Gör så här (deg):", "Gör fyllningen:", etc.
 - Behåll grupperingen från originalreceptet om den finns
 
+INGREDIENSNAMN - KRITISKT:
+Extrahera ENDAST det rena livsmedelsnamnet. Flytta ALL tillagningsinfo till instruktionerna.
+- "lime, skal och saft" → Ingrediens: "Lime", Instruktion: "Riv skalet och pressa saften."
+- "potatis, kokt och mosad" → Ingrediens: "Potatis", Instruktion: "Koka och mosa potatisen."
+- "lök, finhackad och brynt" → Ingrediens: "Lök", Instruktion: "Hacka löken fint och bryn."
+
+VIKTIGT: Varje detalj i ingrediensbeskrivningen MÅSTE finnas i instruktionen - missa inget!
+
 VIKTIGT:
 - Returnera ALLTID minst 3 ingredienser totalt
 - Returnera ALLTID minst 2 instruktionssteg totalt
@@ -111,13 +119,19 @@ export function validateParsedRecipe(data: unknown): ParsedRecipe {
     throw new Error("Obligatoriskt fält saknas: description");
   }
 
-  if (!Array.isArray(recipe.ingredient_groups) || recipe.ingredient_groups.length === 0) {
+  if (
+    !Array.isArray(recipe.ingredient_groups) ||
+    recipe.ingredient_groups.length === 0
+  ) {
     throw new Error(
       "Obligatoriskt fält saknas: ingredient_groups (måste vara en icke-tom lista)"
     );
   }
 
-  if (!Array.isArray(recipe.instruction_groups) || recipe.instruction_groups.length === 0) {
+  if (
+    !Array.isArray(recipe.instruction_groups) ||
+    recipe.instruction_groups.length === 0
+  ) {
     throw new Error(
       "Obligatoriskt fält saknas: instruction_groups (måste vara en icke-tom lista)"
     );
@@ -136,26 +150,40 @@ export function validateParsedRecipe(data: unknown): ParsedRecipe {
     }
     const g = group as Record<string, unknown>;
     if (typeof g.group_name !== "string") {
-      throw new Error("Ogiltig ingrediensgrupp: group_name saknas eller är inte en sträng");
+      throw new Error(
+        "Ogiltig ingrediensgrupp: group_name saknas eller är inte en sträng"
+      );
     }
     if (!Array.isArray(g.ingredients)) {
-      throw new Error(`Ogiltig ingrediensgrupp "${g.group_name}": ingredients måste vara en lista`);
+      throw new Error(
+        `Ogiltig ingrediensgrupp "${g.group_name}": ingredients måste vara en lista`
+      );
     }
 
-    const validatedIngredients: Array<{ name: string; measurement: string; quantity: string }> = [];
+    const validatedIngredients: Array<{
+      name: string;
+      measurement: string;
+      quantity: string;
+    }> = [];
     for (const ingredient of g.ingredients) {
       if (!ingredient || typeof ingredient !== "object") {
         throw new Error("Ogiltig ingrediens: måste vara ett objekt");
       }
       const ing = ingredient as Record<string, unknown>;
       if (!ing.name || typeof ing.name !== "string") {
-        throw new Error("Ogiltig ingrediens: name saknas eller är inte en sträng");
+        throw new Error(
+          "Ogiltig ingrediens: name saknas eller är inte en sträng"
+        );
       }
       if (typeof ing.measurement !== "string") {
-        throw new Error(`Ogiltig ingrediens "${ing.name}": measurement saknas eller är inte en sträng`);
+        throw new Error(
+          `Ogiltig ingrediens "${ing.name}": measurement saknas eller är inte en sträng`
+        );
       }
       if (typeof ing.quantity !== "string") {
-        throw new Error(`Ogiltig ingrediens "${ing.name}": quantity saknas eller är inte en sträng`);
+        throw new Error(
+          `Ogiltig ingrediens "${ing.name}": quantity saknas eller är inte en sträng`
+        );
       }
       validatedIngredients.push({
         name: ing.name,
@@ -188,10 +216,14 @@ export function validateParsedRecipe(data: unknown): ParsedRecipe {
     }
     const g = group as Record<string, unknown>;
     if (typeof g.group_name !== "string") {
-      throw new Error("Ogiltig instruktionsgrupp: group_name saknas eller är inte en sträng");
+      throw new Error(
+        "Ogiltig instruktionsgrupp: group_name saknas eller är inte en sträng"
+      );
     }
     if (!Array.isArray(g.instructions)) {
-      throw new Error(`Ogiltig instruktionsgrupp "${g.group_name}": instructions måste vara en lista`);
+      throw new Error(
+        `Ogiltig instruktionsgrupp "${g.group_name}": instructions måste vara en lista`
+      );
     }
 
     const validatedInstructions: Array<{ step: string }> = [];
@@ -201,7 +233,9 @@ export function validateParsedRecipe(data: unknown): ParsedRecipe {
       }
       const inst = instruction as Record<string, unknown>;
       if (!inst.step || typeof inst.step !== "string") {
-        throw new Error("Ogiltig instruktion: step saknas eller är inte en sträng");
+        throw new Error(
+          "Ogiltig instruktion: step saknas eller är inte en sträng"
+        );
       }
       validatedInstructions.push({ step: inst.step });
       totalInstructions++;
