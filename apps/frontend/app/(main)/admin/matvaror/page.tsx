@@ -16,7 +16,8 @@ import {
 } from '@/components/ui/dialog'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Pencil, Trash2, Plus, AlertCircle, Check, X } from 'lucide-react'
+import { Pencil, Trash2, Plus, AlertCircle, Check, X, ChefHat, ExternalLink, Loader2 } from 'lucide-react'
+import Link from 'next/link'
 import {
   Pagination,
   PaginationContent,
@@ -50,6 +51,11 @@ interface PaginatedResponse {
 }
 
 interface SimilarFood {
+  id: string
+  name: string
+}
+
+interface LinkedRecipe {
   id: string
   name: string
 }
@@ -89,6 +95,12 @@ export default function AdminFoodsPage() {
   // New food
   const [newFoodName, setNewFoodName] = useState('')
   const [isAdding, setIsAdding] = useState(false)
+
+  // Linked recipes dialog
+  const [recipesDialogOpen, setRecipesDialogOpen] = useState(false)
+  const [linkedRecipes, setLinkedRecipes] = useState<LinkedRecipe[]>([])
+  const [loadingRecipes, setLoadingRecipes] = useState(false)
+  const [selectedFoodForRecipes, setSelectedFoodForRecipes] = useState<Food | null>(null)
 
   const loadFoods = useCallback(async () => {
     try {
@@ -334,6 +346,25 @@ export default function AdminFoodsPage() {
     setDeleteDialogOpen(true)
   }
 
+  async function showLinkedRecipes(food: Food) {
+    setSelectedFoodForRecipes(food)
+    setRecipesDialogOpen(true)
+    setLoadingRecipes(true)
+    setLinkedRecipes([])
+
+    try {
+      const response = await fetch(`/api/admin/foods/recipes?foodId=${food.id}`)
+      if (response.ok) {
+        const recipes = await response.json()
+        setLinkedRecipes(recipes)
+      }
+    } catch (err) {
+      console.error('Failed to load linked recipes:', err)
+    } finally {
+      setLoadingRecipes(false)
+    }
+  }
+
   function updateURL(newPage: number, newSearch: string, newStatus?: FoodStatus | 'all') {
     const params = new URLSearchParams()
 
@@ -575,8 +606,20 @@ export default function AdminFoodsPage() {
                           {getStatusBadge(food.status)}
                         </div>
                         <div className="mt-1 text-sm text-muted-foreground">
-                          {food.ingredient_count}{' '}
-                          {food.ingredient_count === 1 ? 'ingrediens' : 'ingredienser'}
+                          {food.ingredient_count > 0 ? (
+                            <button
+                              onClick={() => showLinkedRecipes(food)}
+                              className="inline-flex items-center gap-1 text-primary hover:underline"
+                            >
+                              <ChefHat className="h-3 w-3" />
+                              {food.ingredient_count}{' '}
+                              {food.ingredient_count === 1 ? 'recept' : 'recept'}
+                            </button>
+                          ) : (
+                            <span className="text-muted-foreground/60">
+                              Används inte i något recept
+                            </span>
+                          )}
                           {food.status === 'pending' && food.created_by && (
                             <span className="ml-2">
                               • Inlämnad av: {food.created_by}
@@ -753,6 +796,56 @@ export default function AdminFoodsPage() {
             </Button>
             <Button onClick={confirmApprove}>
               Godkänn ändå
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Linked recipes dialog */}
+      <Dialog open={recipesDialogOpen} onOpenChange={setRecipesDialogOpen}>
+        <DialogContent className="max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ChefHat className="h-5 w-5" />
+              Recept med &quot;{selectedFoodForRecipes?.name}&quot;
+            </DialogTitle>
+            <DialogDescription>
+              {loadingRecipes
+                ? 'Laddar recept...'
+                : linkedRecipes.length === 1
+                  ? '1 recept använder denna matvara'
+                  : `${linkedRecipes.length} recept använder denna matvara`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto py-4">
+            {loadingRecipes ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : linkedRecipes.length === 0 ? (
+              <p className="text-center text-muted-foreground py-4">
+                Inga recept hittades
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {linkedRecipes.map((recipe) => (
+                  <li key={recipe.id}>
+                    <Link
+                      href={`/recept/${recipe.id}`}
+                      target="_blank"
+                      className="flex items-center justify-between rounded-lg border border-border p-3 hover:bg-accent/50 transition-colors"
+                    >
+                      <span className="font-medium">{recipe.name}</span>
+                      <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRecipesDialogOpen(false)}>
+              Stäng
             </Button>
           </DialogFooter>
         </DialogContent>

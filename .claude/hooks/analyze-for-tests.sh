@@ -1,23 +1,15 @@
 #!/bin/bash
-# Hook script that analyzes code changes and determines if tests should be written
-# Returns JSON output for Claude to process
+# Hook script that analyzes code changes and outputs context for test evaluation
+# Outputs plain text context for the following prompt hook to analyze
 
 set -e
 
-# Read hook input from stdin
-INPUT=$(cat)
-
-# Check if stop hook is already active (prevent infinite loops)
-STOP_HOOK_ACTIVE=$(echo "$INPUT" | jq -r '.stop_hook_active // false')
-if [ "$STOP_HOOK_ACTIVE" = "true" ]; then
-  # Already in a stop hook continuation, don't trigger again
-  exit 0
-fi
+# Read hook input from stdin (required by hook protocol)
+cat > /dev/null
 
 cd "$CLAUDE_PROJECT_DIR"
 
 # Get git diff for uncommitted changes (both staged and unstaged)
-# Filter for source files only (exclude tests, configs, etc.)
 DIFF=$(git diff HEAD --name-only 2>/dev/null || echo "")
 STAGED=$(git diff --cached --name-only 2>/dev/null || echo "")
 
@@ -36,7 +28,7 @@ CODE_FILES=$(echo "$ALL_CHANGED" | grep -E '\.(ts|tsx|js|jsx)$' | \
   grep -v 'next\.config' | \
   grep -v 'eslint' || echo "")
 
-# If no relevant code files changed, exit silently
+# If no relevant code files changed, output nothing (prompt hook will approve)
 if [ -z "$CODE_FILES" ]; then
   exit 0
 fi
@@ -45,7 +37,6 @@ fi
 DIFF_CONTENT=$(git diff HEAD -- $CODE_FILES 2>/dev/null | head -500 || echo "")
 
 # Check if diff contains actual logic (not just imports/exports/types)
-# Simple heuristic: look for function definitions, class methods, etc.
 HAS_LOGIC=$(echo "$DIFF_CONTENT" | grep -E '^\+.*(function |const .* = |async |export (async )?function|\.map\(|\.filter\(|\.reduce\(|if \(|switch \(|try \{|catch \(|await )' | head -20 || echo "")
 
 if [ -z "$HAS_LOGIC" ]; then
@@ -53,7 +44,7 @@ if [ -z "$HAS_LOGIC" ]; then
   exit 0
 fi
 
-# Output context for Claude's analysis
+# Output plain text context for the prompt hook to analyze
 cat << EOF
 CHANGED_FILES:
 $CODE_FILES

@@ -9,7 +9,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { isAdmin } from "@/lib/is-admin";
-import { LogOut, Menu, Plus, Settings, ShoppingCart, UserCog } from "lucide-react";
+import { LogOut, Menu, Plus, Settings, ShoppingCart, UtensilsCrossed, UserCog } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -47,6 +47,14 @@ export function MobileMenu() {
                 >
                   <Plus className="h-4 w-4" />
                   Lägg till recept
+                </Link>
+                <Link
+                  href="/mitt-skafferi"
+                  className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                  onClick={() => setOpen(false)}
+                >
+                  <UtensilsCrossed className="h-4 w-4" />
+                  Mitt skafferi
                 </Link>
                 <Link
                   href="/inkopslista"

@@ -3,9 +3,17 @@ import { cn, getImageUrl, getImageSrcSet } from "@/lib/utils";
 import { Clock, Heart, Users, UtensilsCrossed } from "lucide-react";
 import Link from "next/link";
 
+export interface RecipeMatchData {
+  percentage: number;
+  matchingIngredients: number;
+  totalIngredients: number;
+  missingFoodNames?: string[];
+}
+
 interface RecipeCardProps {
   recipe: Recipe;
   className?: string;
+  matchData?: RecipeMatchData;
 }
 
 function formatDuration(totalMinutes: number): string {
@@ -57,7 +65,19 @@ function PlaceholderImage() {
   );
 }
 
-export function RecipeCard({ recipe, className }: RecipeCardProps) {
+function getMatchColor(percentage: number): string {
+  if (percentage >= 80) return "text-green-600";
+  if (percentage >= 60) return "text-yellow-600";
+  return "text-orange-600";
+}
+
+function getMatchBgColor(percentage: number): string {
+  if (percentage >= 80) return "bg-green-600";
+  if (percentage >= 60) return "bg-yellow-600";
+  return "bg-orange-600";
+}
+
+export function RecipeCard({ recipe, className, matchData }: RecipeCardProps) {
   const totalTime = calculateTotalTime(recipe.prep_time, recipe.cook_time);
   const imageUrl = getImageUrl(recipe.image, 'medium');
   const imageSrcSet = getImageSrcSet(recipe.image);
@@ -91,6 +111,15 @@ export function RecipeCard({ recipe, className }: RecipeCardProps) {
             </>
           ) : (
             <PlaceholderImage />
+          )}
+
+          {/* Match percentage badge */}
+          {matchData && (
+            <div className="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 shadow-sm backdrop-blur-sm">
+              <span className={cn("text-sm font-semibold", getMatchColor(matchData.percentage))}>
+                {matchData.percentage}%
+              </span>
+            </div>
           )}
 
           {/* Like indicator */}
@@ -138,10 +167,27 @@ export function RecipeCard({ recipe, className }: RecipeCardProps) {
             {recipe.name}
           </h2>
 
-          {recipe.description && recipe.description !== "-" && (
+          {recipe.description && recipe.description !== "-" && !matchData && (
             <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
               {recipe.description}
             </p>
+          )}
+
+          {/* Match progress bar */}
+          {matchData && (
+            <div className="mt-3 space-y-1.5">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>
+                  {matchData.matchingIngredients}/{matchData.totalIngredients} ingredienser
+                </span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-muted">
+                <div
+                  className={cn("h-full rounded-full transition-all duration-300", getMatchBgColor(matchData.percentage))}
+                  style={{ width: `${matchData.percentage}%` }}
+                />
+              </div>
+            </div>
           )}
 
           {(totalTime || recipe.recipe_yield) && (

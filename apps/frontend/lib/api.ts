@@ -2,7 +2,7 @@ import { env } from "./env";
 import type { Recipe } from "./types";
 
 export async function getRecipes(options?: {
-  category?: string;
+  categories?: string[];
   search?: string;
   owner?: string;
   limit?: number;
@@ -17,6 +17,7 @@ export async function getRecipes(options?: {
   }
 
   // Use RPC function for search (supports substring matching like "sås" → "vaniljsås")
+  // Note: RPC only supports single category, so we pass the first one and filter client-side if multiple
   if (options?.search) {
     const res = await fetch(`${env.POSTGREST_URL}/rpc/search_recipes`, {
       method: 'POST',
@@ -24,7 +25,7 @@ export async function getRecipes(options?: {
       body: JSON.stringify({
         p_query: options.search,
         p_owner: options.owner ?? null,
-        p_category: options.category ?? null,
+        p_category: options.categories?.[0] ?? null,
         p_limit: options.limit ?? 50,
         p_offset: options.offset ?? 0,
       }),
@@ -36,15 +37,32 @@ export async function getRecipes(options?: {
       console.error("Failed to search recipes:", res.status, errorText);
       throw new Error(`Failed to search recipes: ${res.status} ${errorText}`);
     }
-    return res.json();
+    let recipes: Recipe[] = await res.json();
+    // Client-side filter for multiple categories (OR logic)
+    if (options.categories && options.categories.length > 1) {
+      const categorySet = new Set(options.categories.map(c => c.toLowerCase()));
+      recipes = recipes.filter(r =>
+        r.categories?.some(c => categorySet.has(c.toLowerCase()))
+      );
+    }
+    return recipes;
   }
 
   // Regular fetch without search
   const params = new URLSearchParams();
   params.set("order", "date_published.desc");
 
-  if (options?.category) {
-    params.set("categories", `cs.{"${options.category}"}`);
+  // Multi-category filter with OR logic
+  if (options?.categories && options.categories.length > 0) {
+    if (options.categories.length === 1) {
+      params.set("categories", `cs.{"${options.categories[0]}"}`);
+    } else {
+      // PostgREST OR filter: or=(categories.cs.{"A"},categories.cs.{"B"})
+      const orConditions = options.categories
+        .map(cat => `categories.cs.{"${cat}"}`)
+        .join(',');
+      params.set("or", `(${orConditions})`);
+    }
   }
   if (options?.owner) {
     params.set("owner", `eq.${options.owner}`);
@@ -149,7 +167,7 @@ export async function validatePasswordResetToken(token: string): Promise<TokenVa
 export async function getLikedRecipes(
   token: string,
   options?: {
-    category?: string;
+    categories?: string[];
     search?: string;
   }
 ): Promise<Recipe[]> {
@@ -159,27 +177,44 @@ export async function getLikedRecipes(
   };
 
   // Use RPC function for search (supports substring matching)
+  // Note: RPC only supports single category, so we pass the first one and filter client-side if multiple
   if (options?.search) {
     const res = await fetch(`${env.POSTGREST_URL}/rpc/search_liked_recipes`, {
       method: 'POST',
       headers,
       body: JSON.stringify({
         p_query: options.search,
-        p_category: options.category ?? null,
+        p_category: options.categories?.[0] ?? null,
       }),
       cache: 'no-store',
     });
 
     if (!res.ok) throw new Error("Failed to search liked recipes");
-    return res.json();
+    let recipes: Recipe[] = await res.json();
+    // Client-side filter for multiple categories (OR logic)
+    if (options.categories && options.categories.length > 1) {
+      const categorySet = new Set(options.categories.map(c => c.toLowerCase()));
+      recipes = recipes.filter(r =>
+        r.categories?.some(c => categorySet.has(c.toLowerCase()))
+      );
+    }
+    return recipes;
   }
 
   // Regular fetch without search
   const params = new URLSearchParams();
   params.set("order", "liked_at.desc");
 
-  if (options?.category) {
-    params.set("categories", `cs.{"${options.category}"}`);
+  // Multi-category filter with OR logic
+  if (options?.categories && options.categories.length > 0) {
+    if (options.categories.length === 1) {
+      params.set("categories", `cs.{"${options.categories[0]}"}`);
+    } else {
+      const orConditions = options.categories
+        .map(cat => `categories.cs.{"${cat}"}`)
+        .join(',');
+      params.set("or", `(${orConditions})`);
+    }
   }
 
   const res = await fetch(`${env.POSTGREST_URL}/liked_recipes?${params}`, {

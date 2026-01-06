@@ -2,36 +2,34 @@
 
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/auth-provider";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 interface RecipeViewToggleProps {
-  categoryName?: string;
   activeView?: "mine" | "all" | "liked";
   className?: string;
 }
 
 export function RecipeViewToggle({
-  categoryName,
   activeView = "mine",
   className,
 }: RecipeViewToggleProps) {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
 
   // Don't render if not logged in
   if (!user) {
     return null;
   }
 
+  // Preserve all filter params (categories, pantry, minMatch) when switching views
+  const queryString = searchParams.toString();
+  const suffix = queryString ? `?${queryString}` : "";
+
   // Build URLs for each view
-  const mineUrl = categoryName
-    ? `/kategori/${encodeURIComponent(categoryName)}`
-    : "/";
-  const likedUrl = categoryName
-    ? `/gillade-recept/kategori/${encodeURIComponent(categoryName)}`
-    : "/gillade-recept";
-  const allUrl = categoryName
-    ? `/alla-recept/kategori/${encodeURIComponent(categoryName)}`
-    : "/alla-recept";
+  const mineUrl = `/${suffix}`;
+  const likedUrl = `/gillade-recept${suffix}`;
+  const allUrl = `/alla-recept${suffix}`;
 
   const linkBaseClass = "relative pb-3 text-sm font-medium transition-colors";
   const activeClass = "text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-warm";

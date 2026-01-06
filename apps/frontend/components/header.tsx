@@ -4,7 +4,7 @@ import { useAuth } from "@/components/auth-provider";
 import { SearchBar } from "@/components/search-bar";
 import { Button } from "@/components/ui/button";
 import { isAdmin } from "@/lib/is-admin";
-import { ChefHat, LogOut, Menu, Settings, ShoppingCart, User, UserCog } from "lucide-react";
+import { ChefHat, LogOut, Menu, Settings, ShoppingCart, UtensilsCrossed, User, UserCog } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
@@ -84,6 +84,14 @@ export function Header() {
 
                 {userMenuOpen && (
                   <div className="absolute right-0 top-12 z-50 w-48 rounded-md border border-border bg-popover p-1 shadow-md">
+                    <Link
+                      href="/mitt-skafferi"
+                      className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      <UtensilsCrossed className="h-4 w-4" />
+                      Mitt skafferi
+                    </Link>
                     <Link
                       href="/inkopslista"
                       className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
