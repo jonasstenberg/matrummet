@@ -21,10 +21,23 @@ Personal recipe collection with Swedish full-text search, JWT auth, and row-leve
 pnpm dev                    # Start all apps (frontend uses Turbopack)
 pnpm build                  # Build all apps
 pnpm lint                   # Lint all packages
+pnpm test                   # Run all tests
 ./start-postgrest.sh        # Start PostgREST API on port 4444
 ./flyway/run-flyway.sh info # Check migration status
 ./flyway/run-flyway.sh migrate  # Apply migrations (auto-backup)
 ```
+
+### Context-Efficient Commands
+
+For build/lint/test, use the run-silent wrapper to minimize output on success:
+
+```bash
+.claude/hooks/run-silent.sh "Build" "pnpm build"
+.claude/hooks/run-silent.sh "Lint" "pnpm lint"
+.claude/hooks/run-silent.sh "Tests" "pnpm test --run"
+```
+
+Output: `✓ Build` on success, full error output on failure. Saves context tokens.
 
 ### Database
 

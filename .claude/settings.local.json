@@ -2,5 +2,45 @@
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "postgres"
-  ]
+  ],
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/wrap-pnpm.sh\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/run-silent.sh\" \"Lint\" \"pnpm lint\""
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/run-silent.sh\" \"Tests\" \"pnpm test --run\""
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/analyze-for-tests.sh\""
+          },
+          {
+            "type": "prompt",
+            "prompt": "You are evaluating whether tests should be written for code changes. The output above shows files changed and key logic additions.\n\nAnalyze if tests would bring VALUE. Tests are valuable when:\n- New utility functions with logic (parsing, transformations, calculations)\n- Complex business logic or algorithms\n- Edge cases that are easy to get wrong\n- Code that will be reused across the codebase\n\nTests are NOT valuable for:\n- Simple React components (UI rendering, styling)\n- Thin wrappers or pass-through functions\n- Configuration or constants\n- Code that's mostly type definitions\n- Already trivial code\n- When existing tests already cover the logic\n\nProject test patterns:\n- Frontend: lib/**/__tests__/*.test.ts (vitest)\n- Email service: src/__tests__/*.test.ts (vitest)\n\nIf no output above or only config/style changes: respond {\"decision\": \"approve\"}\n\nIf valuable tests should be written, respond:\n{\"decision\": \"block\", \"reason\": \"Use the Task tool with subagent_type='react-frontend-dev' to write tests. Prompt: 'Write vitest tests for [specific functions/files]. Focus on [specific edge cases and behaviors]. Place tests in [correct __tests__ directory]. Run pnpm test after to verify.'\"}\n\nBe selective - only block if tests genuinely add value. Most UI changes don't need tests.",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
 }
