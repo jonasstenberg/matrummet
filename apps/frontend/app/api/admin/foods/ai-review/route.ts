@@ -635,6 +635,7 @@ export async function POST(request: NextRequest) {
     // PHASE 2: Link orphaned ingredients (only if no more pending foods)
     // =========================================================================
     let hasMoreOrphans = false
+    let orphansLinkedThisBatch = 0
 
     if (!hasMoreFoods) {
       const orphanedResponse = await fetch(
@@ -653,7 +654,7 @@ export async function POST(request: NextRequest) {
         const allOrphanedNames: { ingredient_name: string; ingredient_count: number }[] =
           await orphanedResponse.json()
 
-        hasMoreOrphans = allOrphanedNames.length > requestLimit
+        const potentiallyMoreOrphans = allOrphanedNames.length > requestLimit
         const orphanedNames = allOrphanedNames.slice(0, requestLimit)
 
         for (const orphan of orphanedNames) {
@@ -685,6 +686,7 @@ export async function POST(request: NextRequest) {
             if (linkResponse.ok) {
               const linkedCount = await linkResponse.json()
               if (linkedCount > 0) {
+                orphansLinkedThisBatch++
                 summary.normalized++
                 summary.ingredientsUpdated += linkedCount
                 summary.details.push({
@@ -697,6 +699,9 @@ export async function POST(request: NextRequest) {
             }
           }
         }
+
+        // Only continue if we actually linked something (to avoid infinite loop)
+        hasMoreOrphans = potentiallyMoreOrphans && orphansLinkedThisBatch > 0
       }
     }
 
