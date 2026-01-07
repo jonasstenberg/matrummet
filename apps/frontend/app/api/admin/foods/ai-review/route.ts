@@ -236,6 +236,10 @@ async function approvePendingFood(
       p_reviewer_email: reviewerEmail,
     }),
   })
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error(`[AI Review] approvePendingFood FAILED for ${foodId}: ${response.status} - ${errorText}`)
+  }
   return response.ok
 }
 
@@ -312,6 +316,10 @@ async function rejectPendingFood(
     }),
   })
 
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error(`[AI Review] rejectPendingFood FAILED for ${foodId}: ${response.status} - ${errorText}`)
+  }
   return response.ok
 }
 
