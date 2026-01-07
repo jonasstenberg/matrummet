@@ -427,6 +427,7 @@ export async function POST(request: NextRequest) {
     }
 
     const allPendingFoods: PendingFood[] = await pendingResponse.json()
+    console.log(`[AI Review] Fetched ${allPendingFoods.length} pending foods for user ${auth.email}`)
     const hasMoreFoods = allPendingFoods.length > requestLimit
     const pendingFoods = allPendingFoods.slice(0, requestLimit)
 
@@ -451,11 +452,17 @@ export async function POST(request: NextRequest) {
       try {
         // Call AI to normalize the batch
         const normalizations = await normalizeFoodsWithAI(ai, batch)
+        console.log(`[AI Review] AI returned ${normalizations.length} normalizations for batch of ${batch.length}`)
 
         // Process each food in the batch
         for (let i = 0; i < batch.length; i++) {
           const food = batch[i]
           const norm = normalizations[i]
+
+          // Log first few items for debugging
+          if (summary.totalProcessed < 3) {
+            console.log(`[AI Review] Item ${summary.totalProcessed}: "${food.name}" -> normalized="${norm.normalizedName}", gibberish=${norm.isGibberish}`)
+          }
 
           summary.totalProcessed++
 
@@ -494,6 +501,9 @@ export async function POST(request: NextRequest) {
           // If food is not used in any recipes, just delete it
           if (ingredientsUpdated === 0) {
             const wasDeleted = await deletePendingFood(token, food.id)
+            if (summary.totalProcessed <= 3) {
+              console.log(`[AI Review] Item "${food.name}": no ingredients, delete result=${wasDeleted}`)
+            }
             if (wasDeleted) {
               summary.deleted++
               summary.details.push({
@@ -606,10 +616,11 @@ export async function POST(request: NextRequest) {
           }
         }
       } catch (error) {
-        console.error(`AI batch normalization failed for batch starting at ${batchStart}:`, error)
+        console.error(`[AI Review] AI batch normalization FAILED for batch starting at ${batchStart}:`, error)
         // Skip this batch but continue with next
         summary.totalProcessed += batch.length
       }
+      console.log(`[AI Review] Batch ${batchStart} done. Stats so far: processed=${summary.totalProcessed}, created=${summary.created}, normalized=${summary.normalized}, rejected=${summary.rejected}, deleted=${summary.deleted}`)
     }
 
     // =========================================================================
