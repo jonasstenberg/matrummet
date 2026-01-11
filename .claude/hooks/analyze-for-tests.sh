@@ -28,8 +28,9 @@ CODE_FILES=$(echo "$ALL_CHANGED" | grep -E '\.(ts|tsx|js|jsx)$' | \
   grep -v 'next\.config' | \
   grep -v 'eslint' || echo "")
 
-# If no relevant code files changed, output nothing (prompt hook will approve)
+# If no relevant code files changed, output marker so prompt hook knows to approve
 if [ -z "$CODE_FILES" ]; then
+  echo "NO_CODE_CHANGES"
   exit 0
 fi
 

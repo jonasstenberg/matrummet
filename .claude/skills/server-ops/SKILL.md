@@ -2,6 +2,7 @@
 name: server-ops
 description: SSH into the Recept production VPS (37.27.181.252) to manage services, check logs, restart Next.js and PostgREST, and troubleshoot issues. Use when asked about server health, viewing logs, restarting services, or debugging production problems.
 allowed-tools: Bash
+context: fork
 ---
 
 # Recept Server Operations

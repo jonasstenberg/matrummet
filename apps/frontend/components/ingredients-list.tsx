@@ -1,4 +1,9 @@
+"use client";
+
+import { usePantry } from "@/lib/hooks/use-pantry";
 import { scaleQuantity } from "@/lib/quantity-utils";
+import { cn } from "@/lib/utils";
+import { Check } from "lucide-react";
 
 interface Ingredient {
   id?: string;
@@ -6,6 +11,7 @@ interface Ingredient {
   quantity: string;
   measurement: string;
   group_id?: string | null;
+  food_id?: string;
 }
 
 interface IngredientGroup {
@@ -25,6 +31,14 @@ export function IngredientsList({
   ingredientGroups,
   scaleFactor = 1,
 }: IngredientsListProps) {
+  const { pantryFoodIds } = usePantry();
+
+  const hasPantryInfo = pantryFoodIds.size > 0;
+  const pantryCount = ingredients.filter(
+    (i) => i.food_id && pantryFoodIds.has(i.food_id)
+  ).length;
+  const missingCount = ingredients.length - pantryCount;
+
   // Group ingredients by their group_id
   const groupedIngredients = new Map<string | null, Ingredient[]>();
   const groupDetails = new Map<string, { name: string; sort_order: number }>();
@@ -62,7 +76,20 @@ export function IngredientsList({
   return (
     <div className="overflow-hidden rounded-2xl bg-card shadow-[0_2px_12px_-2px_rgba(139,90,60,0.1)]">
       <div className="border-b border-border/50 bg-muted/30 px-5 py-4">
-        <h2 className="text-lg font-semibold text-foreground">Ingredienser</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-foreground">Ingredienser</h2>
+          {hasPantryInfo && (
+            <span className="text-xs text-muted-foreground">
+              {pantryCount > 0 && (
+                <span className="text-primary font-medium">
+                  {pantryCount} i skafferiet
+                </span>
+              )}
+              {pantryCount > 0 && missingCount > 0 && " · "}
+              {missingCount > 0 && <span>{missingCount} saknas</span>}
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="divide-y divide-border/30">
@@ -79,18 +106,43 @@ export function IngredientsList({
                 </div>
               )}
               <ul>
-                {groupIngredients.map((ingredient, index) => (
-                  <li
-                    key={ingredient.id || `${groupId}-${index}`}
-                    className="px-5 py-2.5 text-sm transition-colors hover:bg-muted/30"
-                  >
-                    <span className="font-semibold tabular-nums">
-                      {scaleQuantity(ingredient.quantity, scaleFactor)}
-                      {ingredient.measurement ? ` ${ingredient.measurement}` : ""}
-                    </span>{" "}
-                    <span className="text-muted-foreground">{ingredient.name}</span>
-                  </li>
-                ))}
+                {groupIngredients.map((ingredient, index) => {
+                  const isInPantry =
+                    ingredient.food_id && pantryFoodIds.has(ingredient.food_id);
+
+                  return (
+                    <li
+                      key={ingredient.id || `${groupId}-${index}`}
+                      className="px-5 py-2.5 text-sm transition-colors hover:bg-muted/30"
+                    >
+                      <div className="flex items-center gap-2">
+                        {hasPantryInfo && (
+                          <span
+                            className={cn(
+                              "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border",
+                              isInPantry
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-border bg-muted"
+                            )}
+                          >
+                            {isInPantry && <Check className="h-3 w-3" />}
+                          </span>
+                        )}
+                        <span className="flex-1">
+                          <span className="font-semibold tabular-nums">
+                            {scaleQuantity(ingredient.quantity, scaleFactor)}
+                            {ingredient.measurement
+                              ? ` ${ingredient.measurement}`
+                              : ""}
+                          </span>{" "}
+                          <span className="text-muted-foreground">
+                            {ingredient.name}
+                          </span>
+                        </span>
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           );

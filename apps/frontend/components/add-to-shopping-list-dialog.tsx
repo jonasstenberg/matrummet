@@ -34,11 +34,12 @@ import {
   getUserShoppingLists,
 } from "@/lib/actions";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
+import { usePantry } from "@/lib/hooks/use-pantry";
 import { scaleQuantity } from "@/lib/quantity-utils";
 import type { Ingredient, Recipe, ShoppingList } from "@/lib/types";
-import { Loader2, Plus, RotateCcw } from "lucide-react";
+import { Check, Loader2, Plus, RotateCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 interface AddToShoppingListDialogProps {
   recipe: Recipe;
@@ -67,6 +68,10 @@ export function AddToShoppingListDialog({
   const [isCreatingList, setIsCreatingList] = useState(false);
   const [newListName, setNewListName] = useState("");
 
+  // Pantry data from hook
+  const { pantryFoodIds, isLoading: isLoadingPantry } = usePantry();
+  const hasInitializedSelection = useRef(false);
+
   // Fetch shopping lists when dialog opens
   useEffect(() => {
     if (open) {
@@ -75,7 +80,6 @@ export function AddToShoppingListDialog({
         .then((result) => {
           if (!("error" in result)) {
             setLists(result);
-            // Select the default list, or the first one if no default
             const defaultList = result.find((l) => l.is_default) || result[0];
             if (defaultList) {
               setSelectedListId(defaultList.id);
@@ -83,12 +87,39 @@ export function AddToShoppingListDialog({
           }
         })
         .finally(() => setIsLoadingLists(false));
+
+      // Reset initialization flag when dialog opens
+      hasInitializedSelection.current = false;
     }
   }, [open]);
+
+  // Pre-select only missing ingredients when pantry data is available
+  useEffect(() => {
+    if (
+      open &&
+      !isLoadingPantry &&
+      pantryFoodIds.size > 0 &&
+      !hasInitializedSelection.current
+    ) {
+      const missingIngredients = recipe.ingredients.filter(
+        (i) => !i.food_id || !pantryFoodIds.has(i.food_id)
+      );
+      setSelectedIngredients(
+        new Set(missingIngredients.map((i) => i.id ?? i.name))
+      );
+      hasInitializedSelection.current = true;
+    }
+  }, [open, isLoadingPantry, pantryFoodIds, recipe.ingredients]);
 
   const scaleFactor = originalServings > 0 ? servings / originalServings : 1;
   const maxServings = Math.max(originalServings * 3, 12);
   const isModified = servings !== originalServings;
+
+  // Pantry counts
+  const hasPantryInfo = pantryFoodIds.size > 0;
+  const ingredientsInPantry = recipe.ingredients.filter(
+    (i) => i.food_id && pantryFoodIds.has(i.food_id)
+  );
 
   const allSelected = selectedIngredients.size === recipe.ingredients.length;
   const someSelected = selectedIngredients.size > 0 && !allSelected;
@@ -318,6 +349,19 @@ export function AddToShoppingListDialog({
         />
       </div>
 
+      {/* Pantry summary */}
+      {hasPantryInfo && ingredientsInPantry.length > 0 && (
+        <div className="shrink-0 flex items-center gap-2 py-3 px-3 rounded-lg bg-primary/10 border border-primary/20">
+          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <Check className="h-3 w-3" />
+          </span>
+          <span className="text-sm text-foreground">
+            <span className="font-medium">{ingredientsInPantry.length}</span> av{" "}
+            {recipe.ingredients.length} ingredienser finns i ditt skafferi
+          </span>
+        </div>
+      )}
+
       {/* Select all toggle */}
       <div className="shrink-0 flex items-center gap-3 py-3 border-y">
         <Checkbox
@@ -352,11 +396,13 @@ export function AddToShoppingListDialog({
                 {ingredients.map((ingredient, index) => {
                   const id = ingredient.id ?? `${groupId}-${index}`;
                   const isSelected = selectedIngredients.has(id);
+                  const isInPantry =
+                    ingredient.food_id && pantryFoodIds.has(ingredient.food_id);
 
                   return (
                     <label
                       key={id}
-                      className="flex items-center gap-3 py-3 sm:py-2 px-2 rounded-lg hover:bg-muted/50 active:bg-muted cursor-pointer transition-colors"
+                      className="flex items-center gap-3 py-3 sm:py-2 px-2 rounded-lg cursor-pointer transition-colors hover:bg-muted/50 active:bg-muted"
                     >
                       <Checkbox
                         checked={isSelected}
@@ -375,6 +421,11 @@ export function AddToShoppingListDialog({
                           {ingredient.name}
                         </span>
                       </span>
+                      {isInPantry && (
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-primary bg-primary text-primary-foreground">
+                          <Check className="h-3 w-3" />
+                        </span>
+                      )}
                     </label>
                   );
                 })}
