@@ -27,6 +27,7 @@ export interface Ingredient {
   name: string
   measurement: string
   quantity: string
+  form?: string
   group_id?: string | null
   sort_order?: number
   food_id?: string
@@ -90,6 +91,7 @@ export interface CreateRecipeInput {
         name: string
         measurement: string
         quantity: string
+        form?: string
       }
   >
   instructions: Array<
@@ -119,6 +121,7 @@ export interface UpdateRecipeInput {
         name: string
         measurement: string
         quantity: string
+        form?: string
       }
   >
   instructions?: Array<

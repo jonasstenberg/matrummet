@@ -10,6 +10,7 @@ interface Ingredient {
   name: string;
   quantity: string;
   measurement: string;
+  form?: string;
   group_id?: string | null;
   food_id?: string;
 }
@@ -77,7 +78,9 @@ export function IngredientsList({
     <div className="overflow-hidden rounded-2xl bg-card shadow-[0_2px_12px_-2px_rgba(139,90,60,0.1)]">
       <div className="border-b border-border/50 bg-muted/30 px-5 py-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-foreground">Ingredienser</h2>
+          <h2 className="text-lg font-semibold text-foreground">
+            Ingredienser
+          </h2>
           {hasPantryInfo && (
             <span className="text-xs text-muted-foreground">
               {pantryCount > 0 && (
@@ -138,6 +141,11 @@ export function IngredientsList({
                           <span className="text-muted-foreground">
                             {ingredient.name}
                           </span>
+                          {ingredient.form && (
+                            <span className="text-muted-foreground">
+                              {` (${ingredient.form})`}
+                            </span>
+                          )}
                         </span>
                       </div>
                     </li>

@@ -12,6 +12,7 @@ interface Ingredient {
   name: string;
   measurement: string;
   quantity: string;
+  form?: string;
   group_id?: string | null;
 }
 
@@ -102,7 +103,7 @@ export function IngredientEditor({
   }
 
   function addIngredient(groupId?: string | null) {
-    const newIngredient = { name: "", measurement: "", quantity: "", group_id: groupId || null };
+    const newIngredient = { name: "", measurement: "", quantity: "", form: "", group_id: groupId || null };
 
     if (!groupId) {
       // No group specified - add at end
@@ -144,7 +145,7 @@ export function IngredientEditor({
     updateWithGroups(
       [
         ...ingredients,
-        { name: "", measurement: "", quantity: "", group_id: newGroupId },
+        { name: "", measurement: "", quantity: "", form: "", group_id: newGroupId },
       ],
       newGroups
     );
@@ -411,6 +412,17 @@ export function IngredientEditor({
                         updateIngredient(index, "measurement", value)
                       }
                       className={cn(isInGroup && "bg-white")}
+                    />
+                  </div>
+                  <div className="w-full sm:w-28">
+                    <Input
+                      placeholder="Form"
+                      value={ingredient.form || ""}
+                      onChange={(e) =>
+                        updateIngredient(index, "form", e.target.value)
+                      }
+                      className={cn(isInGroup && "bg-white")}
+                      title="T.ex. klyftor, zest, strimlad"
                     />
                   </div>
                 </div>

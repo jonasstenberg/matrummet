@@ -9,6 +9,7 @@ const ingredientItemSchema = z.union([
     name: z.string().min(1, 'Ingrediensnamn är obligatoriskt'),
     measurement: z.string(),
     quantity: z.string(),
+    form: z.string().optional(),
   }),
 ])
 

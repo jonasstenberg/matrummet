@@ -10,7 +10,7 @@
   },
   "servers": [
     {
-      "url": "https://mat.stenberg.io",
+      "url": "https://matrummet.se",
       "description": "Production"
     }
   ],
@@ -56,7 +56,10 @@
             "items": {
               "type": "string"
             },
-            "example": ["Kanelbullar", "Pannkakor"]
+            "example": [
+              "Kanelbullar",
+              "Pannkakor"
+            ]
           }
         }
       },
@@ -79,7 +82,10 @@
       },
       "CheckItemRequest": {
         "type": "object",
-        "required": ["item_id", "checked"],
+        "required": [
+          "item_id",
+          "checked"
+        ],
         "properties": {
           "item_id": {
             "type": "string",

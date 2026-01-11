@@ -416,6 +416,7 @@ export function AddToShoppingListDialog({
                           {ingredient.measurement
                             ? ` ${ingredient.measurement}`
                             : ""}
+                          {ingredient.form ? ` ${ingredient.form}` : ""}
                         </span>{" "}
                         <span className="text-muted-foreground">
                           {ingredient.name}

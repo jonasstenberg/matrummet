@@ -183,6 +183,7 @@ export interface RecipeFormData {
     name: string
     measurement: string
     quantity: string
+    form?: string
     group_id?: string | null
   }>
   ingredientGroups: Array<{ id: string; name: string }>
@@ -205,7 +206,7 @@ const initialFormData: RecipeFormData = {
   image: null,
   pendingImageFile: null,
   categories: [],
-  ingredients: [{ name: "", measurement: "", quantity: "" }],
+  ingredients: [{ name: "", measurement: "", quantity: "", form: "" }],
   ingredientGroups: [],
   instructions: [{ step: "" }],
   instructionGroups: [],
@@ -420,7 +421,7 @@ export function CreateRecipeWizard() {
     ) => {
       const result: Array<
         | { group: string }
-        | { name: string; measurement: string; quantity: string }
+        | { name: string; measurement: string; quantity: string; form?: string }
       > = []
       const groupMap = new Map(groups.map((g) => [g.id, g.name]))
       let lastGroupId: string | null = null
@@ -441,6 +442,7 @@ export function CreateRecipeWizard() {
             name: ingredient.name,
             measurement: ingredient.measurement,
             quantity: ingredient.quantity,
+            form: ingredient.form || undefined,
           })
         }
       })

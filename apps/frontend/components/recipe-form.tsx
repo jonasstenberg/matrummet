@@ -37,14 +37,15 @@ function transformIngredientsToInlineFormat(
     name: string;
     measurement: string;
     quantity: string;
+    form?: string;
     group_id?: string | null;
   }>,
   groups: Array<{ id: string; name: string }>
 ): Array<
-  { group: string } | { name: string; measurement: string; quantity: string }
+  { group: string } | { name: string; measurement: string; quantity: string; form?: string }
 > {
   const result: Array<
-    { group: string } | { name: string; measurement: string; quantity: string }
+    { group: string } | { name: string; measurement: string; quantity: string; form?: string }
   > = [];
   const groupMap = new Map(groups.map((g) => [g.id, g.name]));
   let lastGroupId: string | null = null;
@@ -68,6 +69,7 @@ function transformIngredientsToInlineFormat(
         name: ingredient.name,
         measurement: ingredient.measurement,
         quantity: ingredient.quantity,
+        form: ingredient.form || undefined,
       });
     }
   });
