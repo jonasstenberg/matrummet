@@ -3,7 +3,11 @@
     "allow": [
       "Bash(ls:*)",
       "Bash(cat:*)",
-      "mcp__postgres__query"
+      "mcp__postgres__query",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(.claude/hooks/run-silent.sh:*)",
+      "Bash(/Users/jonasstenberg/Development/Private/recept/.claude/hooks/run-silent.sh:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

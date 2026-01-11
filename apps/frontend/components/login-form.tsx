@@ -95,7 +95,8 @@ export function LoginForm() {
       }
 
       await login(result.data.email, result.data.password);
-      router.push("/");
+      const returnUrl = searchParams.get("returnUrl") || "/";
+      router.push(returnUrl);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Ett fel uppstod");
     } finally {

@@ -6,6 +6,8 @@ export interface User {
   provider: string | null
   owner: string
   role?: 'user' | 'admin'
+  home_id?: string
+  home_name?: string
 }
 
 export interface Category {
@@ -185,4 +187,44 @@ export interface ShoppingList {
   checked_count: number
   date_published: string
   date_modified: string
+}
+
+export interface Home {
+  id: string
+  name: string
+  join_code: string | null
+  join_code_expires_at: string | null
+  date_published: string
+  date_modified: string
+}
+
+export interface HomeMember {
+  email: string
+  name: string
+  joined_at?: string
+}
+
+export interface HomeInvitation {
+  id: string
+  home_id: string
+  invited_email: string
+  invited_by_email: string
+  invited_by_name?: string
+  status: 'pending' | 'accepted' | 'declined' | 'expired' | 'cancelled'
+  expires_at: string
+  date_published: string
+}
+
+export interface HomeInfo {
+  id: string
+  name: string
+  join_code: string | null
+  join_code_expires_at: string | null
+  member_count: number
+  members: HomeMember[]
+}
+
+export interface HomeJoinCode {
+  code: string
+  expires_at: string
 }

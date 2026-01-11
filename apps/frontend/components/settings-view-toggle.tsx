@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
-type SettingsView = "profil" | "sakerhet" | "api-nycklar";
+type SettingsView = "profil" | "sakerhet" | "api-nycklar" | "hemmet";
 
 interface SettingsViewToggleProps {
   activeView: SettingsView;
@@ -37,6 +37,12 @@ export function SettingsViewToggle({
         className={cn(linkBaseClass, activeView === "api-nycklar" ? activeClass : inactiveClass)}
       >
         API-nycklar
+      </Link>
+      <Link
+        href="/installningar/hemmet"
+        className={cn(linkBaseClass, activeView === "hemmet" ? activeClass : inactiveClass)}
+      >
+        Hemmet
       </Link>
     </nav>
   );
