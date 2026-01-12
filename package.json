@@ -7,12 +7,17 @@
     "dev": "pnpm -r --parallel dev",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
+    "test:api": "vitest run --config tests/api/vitest.config.ts",
     "lint": "pnpm -r lint",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f",
     "inbucket": "docker compose up -d inbucket",
     "inbucket:stop": "docker compose stop inbucket"
+  },
+  "devDependencies": {
+    "vitest": "^4.0.15",
+    "jose": "^6.0.10"
   },
   "pnpm": {
     "overrides": {

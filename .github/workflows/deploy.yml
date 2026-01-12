@@ -243,7 +243,6 @@ jobs:
           TEST_DB_NAME: recept
           TEST_DB_USER: recept
           TEST_DB_PASSWORD: recept
-        working-directory: apps/frontend
         run: pnpm test:api
 
       - name: Show PostgREST logs on failure
