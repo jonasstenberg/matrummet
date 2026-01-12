@@ -7,7 +7,7 @@
     "dev": "pnpm -r --parallel dev",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
-    "test:api": "psql -d recept -f tests/api/seed-admin.sql && vitest run --config tests/api/vitest.config.ts",
+    "test:api": "PGPASSWORD=${TEST_DB_PASSWORD:-recept} psql -h ${TEST_DB_HOST:-localhost} -p ${TEST_DB_PORT:-5432} -U ${TEST_DB_USER:-recept} -d ${TEST_DB_NAME:-recept} -f tests/api/seed-admin.sql && vitest run --config tests/api/vitest.config.ts",
     "lint": "pnpm -r lint",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
