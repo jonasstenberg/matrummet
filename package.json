@@ -7,7 +7,7 @@
     "dev": "pnpm -r --parallel dev",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
-    "test:api": "vitest run --config tests/api/vitest.config.ts",
+    "test:api": "psql -d recept -f tests/api/seed-admin.sql && vitest run --config tests/api/vitest.config.ts",
     "lint": "pnpm -r lint",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
