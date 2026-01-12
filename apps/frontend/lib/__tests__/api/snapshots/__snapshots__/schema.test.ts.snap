@@ -1,0 +1,313 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Schema Snapshot Tests > categories table > should have expected columns 1`] = `
+[
+  "date_modified",
+  "date_published",
+  "id",
+  "name",
+  "owner",
+]
+`;
+
+exports[`Schema Snapshot Tests > foods table > should have expected columns 1`] = `
+[
+  "ai_confidence",
+  "ai_decision",
+  "ai_reasoning",
+  "ai_reviewed_at",
+  "ai_suggested_merge_id",
+  "common_pantry_category",
+  "created_by",
+  "date_modified",
+  "date_published",
+  "id",
+  "name",
+  "reviewed_at",
+  "reviewed_by",
+  "status",
+  "tsv",
+]
+`;
+
+exports[`Schema Snapshot Tests > home_invitations table > should have expected columns 1`] = `
+[
+  "date_published",
+  "expires_at",
+  "home_id",
+  "id",
+  "invited_by_email",
+  "invited_email",
+  "responded_at",
+  "status",
+  "token",
+]
+`;
+
+exports[`Schema Snapshot Tests > homes table > should have expected columns 1`] = `
+[
+  "created_by_email",
+  "date_modified",
+  "date_published",
+  "id",
+  "join_code",
+  "join_code_expires_at",
+  "name",
+]
+`;
+
+exports[`Schema Snapshot Tests > ingredients table > should have expected columns 1`] = `
+[
+  "date_modified",
+  "date_published",
+  "food_id",
+  "form",
+  "group_id",
+  "id",
+  "measurement",
+  "name",
+  "owner",
+  "quantity",
+  "recipe_id",
+  "sort_order",
+  "unit_id",
+]
+`;
+
+exports[`Schema Snapshot Tests > instructions table > should have expected columns 1`] = `
+[
+  "date_modified",
+  "date_published",
+  "group_id",
+  "id",
+  "owner",
+  "recipe_id",
+  "sort_order",
+  "step",
+]
+`;
+
+exports[`Schema Snapshot Tests > liked_recipes view > should have expected columns (recipes_and_categories + liked_at) 1`] = `
+[
+  "author",
+  "categories",
+  "cook_time",
+  "cuisine",
+  "date_modified",
+  "date_published",
+  "description",
+  "full_tsv",
+  "id",
+  "image",
+  "ingredient_groups",
+  "ingredients",
+  "instruction_groups",
+  "instructions",
+  "is_liked",
+  "liked_at",
+  "name",
+  "owner",
+  "prep_time",
+  "recipe_yield",
+  "recipe_yield_name",
+  "search_text",
+  "thumbnail",
+  "tsv",
+  "url",
+]
+`;
+
+exports[`Schema Snapshot Tests > recipes table > should have expected columns 1`] = `
+[
+  "author",
+  "cook_time",
+  "cuisine",
+  "date_modified",
+  "date_published",
+  "description",
+  "id",
+  "image",
+  "name",
+  "owner",
+  "prep_time",
+  "recipe_yield",
+  "recipe_yield_name",
+  "search_text",
+  "thumbnail",
+  "tsv",
+  "url",
+]
+`;
+
+exports[`Schema Snapshot Tests > recipes_and_categories view > should have correct ingredient structure in JSONB 1`] = `
+[
+  "food_id",
+  "form",
+  "group_id",
+  "id",
+  "measurement",
+  "name",
+  "quantity",
+  "sort_order",
+  "unit_id",
+]
+`;
+
+exports[`Schema Snapshot Tests > recipes_and_categories view > should have correct ingredient_groups structure in JSONB 1`] = `
+[
+  "id",
+  "name",
+  "sort_order",
+]
+`;
+
+exports[`Schema Snapshot Tests > recipes_and_categories view > should have correct instruction structure in JSONB 1`] = `
+[
+  "group_id",
+  "id",
+  "sort_order",
+  "step",
+]
+`;
+
+exports[`Schema Snapshot Tests > recipes_and_categories view > should have correct instruction_groups structure in JSONB 1`] = `
+[
+  "id",
+  "name",
+  "sort_order",
+]
+`;
+
+exports[`Schema Snapshot Tests > recipes_and_categories view > should have expected columns 1`] = `
+[
+  "author",
+  "categories",
+  "cook_time",
+  "cuisine",
+  "date_modified",
+  "date_published",
+  "description",
+  "full_tsv",
+  "id",
+  "image",
+  "ingredient_groups",
+  "ingredients",
+  "instruction_groups",
+  "instructions",
+  "is_liked",
+  "name",
+  "owner",
+  "prep_time",
+  "recipe_yield",
+  "recipe_yield_name",
+  "search_text",
+  "thumbnail",
+  "tsv",
+  "url",
+]
+`;
+
+exports[`Schema Snapshot Tests > shopping_list_items table > should have expected columns 1`] = `
+[
+  "checked_at",
+  "date_published",
+  "display_name",
+  "display_unit",
+  "food_id",
+  "home_id",
+  "id",
+  "is_checked",
+  "quantity",
+  "shopping_list_id",
+  "sort_order",
+  "unit_id",
+  "user_email",
+]
+`;
+
+exports[`Schema Snapshot Tests > shopping_list_view view > should have expected columns 1`] = `
+[
+  "checked_at",
+  "date_published",
+  "display_name",
+  "display_unit",
+  "food_id",
+  "home_id",
+  "id",
+  "is_checked",
+  "item_name",
+  "list_name",
+  "quantity",
+  "shopping_list_id",
+  "sort_order",
+  "source_recipes",
+  "unit_id",
+  "unit_name",
+  "user_email",
+]
+`;
+
+exports[`Schema Snapshot Tests > shopping_lists table > should have expected columns 1`] = `
+[
+  "date_modified",
+  "date_published",
+  "home_id",
+  "id",
+  "is_default",
+  "name",
+  "user_email",
+]
+`;
+
+exports[`Schema Snapshot Tests > units table > should have expected columns 1`] = `
+[
+  "abbreviation",
+  "date_modified",
+  "date_published",
+  "id",
+  "name",
+  "plural",
+  "tsv",
+]
+`;
+
+exports[`Schema Snapshot Tests > user_api_keys table > should have expected columns 1`] = `
+[
+  "api_key_hash",
+  "api_key_prefix",
+  "date_published",
+  "expires_at",
+  "id",
+  "is_active",
+  "last_used_at",
+  "name",
+  "user_email",
+]
+`;
+
+exports[`Schema Snapshot Tests > user_pantry table > should have expected columns 1`] = `
+[
+  "added_at",
+  "expires_at",
+  "food_id",
+  "home_id",
+  "id",
+  "quantity",
+  "unit",
+  "user_email",
+]
+`;
+
+exports[`Schema Snapshot Tests > users table > should have expected columns 1`] = `
+[
+  "email",
+  "home_id",
+  "home_joined_at",
+  "id",
+  "measures_system",
+  "name",
+  "owner",
+  "provider",
+  "role",
+]
+`;

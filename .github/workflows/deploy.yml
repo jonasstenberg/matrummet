@@ -157,9 +157,102 @@ jobs:
       - name: Run tests
         run: pnpm vitest run
 
+  api-tests:
+    needs: setup
+    if: needs.setup.outputs.deploy_frontend == 'true' || needs.setup.outputs.run_migrations == 'true'
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: recept
+          POSTGRES_USER: recept
+          POSTGRES_PASSWORD: recept
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U recept -d recept"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Flyway migrations
+        run: |
+          docker run --rm \
+            --network host \
+            -v ${{ github.workspace }}/flyway/sql:/flyway/sql:ro \
+            flyway/flyway:11 \
+            -url=jdbc:postgresql://localhost:5433/recept \
+            -user=recept \
+            -password=recept \
+            -locations=filesystem:/flyway/sql \
+            -baselineOnMigrate=true \
+            migrate
+
+      - name: Start PostgREST
+        run: |
+          docker run -d \
+            --name postgrest \
+            --network host \
+            -e PGRST_DB_URI=postgres://recept:recept@localhost:5433/recept \
+            -e PGRST_DB_SCHEMAS=public,auth \
+            -e PGRST_DB_ANON_ROLE=anon \
+            -e PGRST_JWT_SECRET=recept-jwt-secret-change-in-production-min-32-chars \
+            -e PGRST_JWT_SECRET_IS_BASE64=false \
+            -e PGRST_JWT_ROLE_CLAIM_KEY=.role \
+            -e PGRST_SERVER_PORT=4445 \
+            postgrest/postgrest:v14.3
+
+      - name: Wait for PostgREST to be ready
+        run: |
+          echo "Waiting for PostgREST to start..."
+          for i in {1..30}; do
+            if curl -s http://localhost:4445/ > /dev/null 2>&1; then
+              echo "PostgREST is ready!"
+              exit 0
+            fi
+            echo "Attempt $i: PostgREST not ready yet..."
+            sleep 2
+          done
+          echo "PostgREST failed to start"
+          docker logs postgrest
+          exit 1
+
+      - name: Run API integration tests
+        env:
+          TEST_POSTGREST_URL: http://localhost:4445
+          TEST_JWT_SECRET: recept-jwt-secret-change-in-production-min-32-chars
+          TEST_DB_HOST: localhost
+          TEST_DB_PORT: "5433"
+          TEST_DB_NAME: recept
+          TEST_DB_USER: recept
+          TEST_DB_PASSWORD: recept
+        working-directory: apps/frontend
+        run: pnpm test:api
+
+      - name: Show PostgREST logs on failure
+        if: failure()
+        run: docker logs postgrest
+
   deploy-migrations:
-    needs: [setup, test]
-    if: always() && needs.setup.outputs.run_migrations == 'true' && (needs.test.result == 'success' || needs.test.result == 'skipped')
+    needs: [setup, test, api-tests]
+    if: always() && needs.setup.outputs.run_migrations == 'true' && (needs.test.result == 'success' || needs.test.result == 'skipped') && (needs.api-tests.result == 'success' || needs.api-tests.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -188,8 +281,8 @@ jobs:
           ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'sudo systemctl restart postgrest-recept'
 
   deploy-services:
-    needs: [setup, test, deploy-migrations]
-    if: always() && (needs.setup.outputs.deploy_frontend == 'true' || needs.setup.outputs.deploy_email_service == 'true') && (needs.test.result == 'success' || needs.test.result == 'skipped') && (needs.deploy-migrations.result == 'success' || needs.deploy-migrations.result == 'skipped')
+    needs: [setup, test, api-tests, deploy-migrations]
+    if: always() && (needs.setup.outputs.deploy_frontend == 'true' || needs.setup.outputs.deploy_email_service == 'true') && (needs.test.result == 'success' || needs.test.result == 'skipped') && (needs.api-tests.result == 'success' || needs.api-tests.result == 'skipped') && (needs.deploy-migrations.result == 'success' || needs.deploy-migrations.result == 'skipped')
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -303,7 +396,7 @@ jobs:
           ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'sudo systemctl restart recept-email'
 
   notify:
-    needs: [setup, test, deploy-migrations, deploy-services]
+    needs: [setup, test, api-tests, deploy-migrations, deploy-services]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -311,7 +404,8 @@ jobs:
         run: |
           echo "Deployment completed at $(date)"
           echo "Summary:"
-          echo "- Tests: ${{ needs.test.result == 'success' && 'Passed' || needs.test.result == 'skipped' && 'Skipped' || 'Failed' }}"
+          echo "- Unit Tests: ${{ needs.test.result == 'success' && 'Passed' || needs.test.result == 'skipped' && 'Skipped' || 'Failed' }}"
+          echo "- API Tests: ${{ needs.api-tests.result == 'success' && 'Passed' || needs.api-tests.result == 'skipped' && 'Skipped' || 'Failed' }}"
           echo "- Migrations: ${{ needs.setup.outputs.run_migrations == 'true' && (needs.deploy-migrations.result == 'success' && 'Deployed' || 'Failed') || 'Skipped' }}"
           echo "- Frontend: ${{ needs.setup.outputs.deploy_frontend == 'true' && 'Deployed' || 'Skipped' }}"
           echo "- Email-service: ${{ needs.setup.outputs.deploy_email_service == 'true' && 'Deployed' || 'Skipped' }}"

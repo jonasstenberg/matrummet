@@ -154,6 +154,7 @@ export function RecipeDetail({ recipe, actionButton }: RecipeDetailProps) {
         <div className="order-1 md:order-2">
           <div className="relative aspect-4/3 w-full overflow-hidden rounded-2xl shadow-[0_4px_20px_-4px_rgba(139,90,60,0.15)]">
             {hasImage && imageUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element -- Custom srcSet needed for responsive images */
               <img
                 src={imageUrl}
                 srcSet={imageSrcSet ?? undefined}

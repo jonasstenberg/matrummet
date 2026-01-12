@@ -1,0 +1,55 @@
+# Test environment for API/database tests
+# Usage: docker-compose -f docker-compose.test.yml up -d
+
+services:
+  postgres-test:
+    image: postgres:18-alpine
+    container_name: recept-postgres-test
+    environment:
+      POSTGRES_DB: recept
+      POSTGRES_USER: recept
+      POSTGRES_PASSWORD: recept
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-test-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U recept -d recept"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  flyway-test:
+    image: flyway/flyway:11
+    container_name: recept-flyway-test
+    command: -url=jdbc:postgresql://postgres-test:5432/recept -user=recept -password=recept -locations=filesystem:/flyway/sql -baselineOnMigrate=true migrate
+    volumes:
+      - ./flyway/sql:/flyway/sql:ro
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+
+  postgrest-test:
+    image: postgrest/postgrest:v14.3
+    container_name: recept-postgrest-test
+    environment:
+      PGRST_DB_URI: postgres://recept:recept@postgres-test:5432/recept
+      PGRST_DB_SCHEMAS: public,auth
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: recept-jwt-secret-change-in-production-min-32-chars
+      PGRST_JWT_SECRET_IS_BASE64: "false"
+      PGRST_JWT_ROLE_CLAIM_KEY: .role
+    ports:
+      - "4445:3000"
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      flyway-test:
+        condition: service_completed_successfully
+
+volumes:
+  postgres-test-data:
+
+networks:
+  default:
+    name: recept-test-network

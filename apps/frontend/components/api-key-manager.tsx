@@ -45,7 +45,6 @@ function formatRelativeTime(dateString: string | null): string {
 
 export function ApiKeyManager({ initialKeys }: ApiKeyManagerProps) {
   const [keys, setKeys] = useState<ApiKey[]>(initialKeys)
-  const [error, setError] = useState<string | null>(null)
 
   // Create dialog state
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
@@ -240,12 +239,6 @@ export function ApiKeyManager({ initialKeys }: ApiKeyManagerProps) {
           </DialogContent>
         </Dialog>
       </div>
-
-      {error && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
 
       {keys.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">

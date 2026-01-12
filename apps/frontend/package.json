@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",
+    "test:api": "vitest run --config vitest.api.config.ts",
     "postinstall": "playwright install chromium"
   },
   "dependencies": {

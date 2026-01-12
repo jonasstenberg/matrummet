@@ -144,6 +144,7 @@ export function PantryTable({
     [selectedIds, onSelectionChange, onRemoveItem, showSelection]
   )
 
+  // eslint-disable-next-line -- @tanstack/react-table patterns trigger react-compiler warnings
   const table = useReactTable({
     data: items,
     columns,

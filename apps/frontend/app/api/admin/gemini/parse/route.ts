@@ -13,7 +13,7 @@ import {
 } from "@/lib/recipe-parser/json-ld";
 import { GoogleGenAI, Part } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
-import { chromium, Browser, BrowserContext } from "playwright";
+import { chromium, Browser } from "playwright";
 
 const GEMINI_MODEL = "gemini-2.5-flash";
 const POSTGREST_URL = process.env.POSTGREST_URL || "http://localhost:4444";

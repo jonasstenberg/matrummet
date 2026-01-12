@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/input-group"
 import { RecipeFormData } from "@/components/create-recipe-wizard"
 import { Sparkles, ChevronDown, ChevronUp, Loader2 } from "lucide-react"
-import { cn } from "@/lib/utils"
 
 interface BasicDetailsStepProps {
   formData: RecipeFormData

@@ -140,6 +140,7 @@ function RecipeMatchCard({ recipe, availableIngredients }: RecipeMatchCardProps)
           <div className="relative aspect-4/3 w-full overflow-hidden">
             {hasImage && imageUrl ? (
               <>
+                {/* eslint-disable-next-line @next/next/no-img-element -- Custom srcSet needed for responsive images */}
                 <img
                   src={imageUrl}
                   srcSet={imageSrcSet ?? undefined}
