@@ -11,8 +11,8 @@ export async function GET(request: NextRequest) {
     )
   }
 
-  // Get the origin for the redirect URI
-  const origin = env.APP_URL || request.nextUrl.origin
+  // Get the origin for the redirect URI (use request origin to support multiple domains)
+  const origin = request.nextUrl.origin
   const redirectUri = `${origin}/api/auth/callback/google`
 
   // Build Google OAuth URL

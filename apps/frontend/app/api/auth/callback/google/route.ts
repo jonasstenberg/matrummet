@@ -24,8 +24,8 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code')
   const error = searchParams.get('error')
 
-  // Get the origin for redirects
-  const origin = env.APP_URL || request.nextUrl.origin
+  // Get the origin for redirects (use request origin to support multiple domains)
+  const origin = request.nextUrl.origin
 
   if (error) {
     console.error('Google OAuth error:', error)
