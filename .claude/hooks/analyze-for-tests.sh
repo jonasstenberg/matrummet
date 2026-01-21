@@ -42,6 +42,7 @@ HAS_LOGIC=$(echo "$DIFF_CONTENT" | grep -E '^\+.*(function |const .* = |async |e
 
 if [ -z "$HAS_LOGIC" ]; then
   # Changes appear to be minor (types, imports, exports only)
+  echo "NO_LOGIC_CHANGES"
   exit 0
 fi
 

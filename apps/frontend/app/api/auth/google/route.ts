@@ -11,8 +11,10 @@ export async function GET(request: NextRequest) {
     )
   }
 
-  // Get the origin for the redirect URI (use request origin to support multiple domains)
-  const origin = request.nextUrl.origin
+  // Get origin from Host header (set by nginx) with forwarded protocol
+  const host = request.headers.get('host')
+  const proto = request.headers.get('x-forwarded-proto') || 'https'
+  const origin = host ? `${proto}://${host}` : request.nextUrl.origin
   const redirectUri = `${origin}/api/auth/callback/google`
 
   // Build Google OAuth URL
