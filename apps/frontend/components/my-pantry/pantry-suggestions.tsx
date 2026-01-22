@@ -3,12 +3,7 @@
 import { Plus, Check } from 'lucide-react'
 import type { CommonPantryItem } from '@/lib/ingredient-search-types'
 import { Badge } from '@/components/ui/badge'
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
 
 interface PantrySuggestionsProps {
@@ -23,7 +18,7 @@ type PantryCategory = CommonPantryItem['category']
 const categoryLabels: Record<PantryCategory, string> = {
   basic: 'Basvaror',
   seasoning: 'Smaksättare',
-  herb: 'Orter',
+  herb: 'Örter',
   spice: 'Kryddor',
 }
 
@@ -58,61 +53,59 @@ export function PantrySuggestions({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <h3 className="text-sm font-medium text-muted-foreground">
         Vanliga ingredienser
       </h3>
-      <Accordion
-        type="multiple"
-        defaultValue={['basic']}
-        className="w-full"
-      >
-        {categories.map((category) => (
-          <AccordionItem key={category} value={category}>
-            <AccordionTrigger className="py-2 text-sm hover:no-underline">
+      <Tabs defaultValue="basic" className="w-full">
+        <TabsList className="w-full justify-start">
+          {categories.map((category) => (
+            <TabsTrigger key={category} value={category}>
               {categoryLabels[category]}
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="flex flex-wrap gap-2">
-                {itemsByCategory[category].map((item) => {
-                  const isInPantry = existingFoodIds.has(item.id)
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => {
-                        if (isInPantry && onRemoveItem) {
-                          onRemoveItem(item.id)
-                        } else if (!isInPantry) {
-                          onAddItem({ id: item.id, name: item.name })
-                        }
-                      }}
-                      className="cursor-pointer"
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        {categories.map((category) => (
+          <TabsContent key={category} value={category}>
+            <div className="flex flex-wrap gap-2 rounded-md border p-3">
+              {itemsByCategory[category].map((item) => {
+                const isInPantry = existingFoodIds.has(item.id)
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      if (isInPantry && onRemoveItem) {
+                        onRemoveItem(item.id)
+                      } else if (!isInPantry) {
+                        onAddItem({ id: item.id, name: item.name })
+                      }
+                    }}
+                    className="cursor-pointer"
+                  >
+                    <Badge
+                      variant={isInPantry ? 'default' : 'outline'}
+                      className={cn(
+                        'gap-1 transition-colors',
+                        isInPantry
+                          ? 'bg-primary text-primary-foreground hover:bg-primary/80'
+                          : 'hover:bg-primary hover:text-primary-foreground'
+                      )}
                     >
-                      <Badge
-                        variant={isInPantry ? 'default' : 'outline'}
-                        className={cn(
-                          'gap-1 transition-colors',
-                          isInPantry
-                            ? 'bg-primary text-primary-foreground hover:bg-primary/80'
-                            : 'hover:bg-primary hover:text-primary-foreground'
-                        )}
-                      >
-                        {isInPantry ? (
-                          <Check className="h-3 w-3" />
-                        ) : (
-                          <Plus className="h-3 w-3" />
-                        )}
-                        {item.name}
-                      </Badge>
-                    </button>
-                  )
-                })}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
+                      {isInPantry ? (
+                        <Check className="h-3 w-3" />
+                      ) : (
+                        <Plus className="h-3 w-3" />
+                      )}
+                      {item.name}
+                    </Badge>
+                  </button>
+                )
+              })}
+            </div>
+          </TabsContent>
         ))}
-      </Accordion>
+      </Tabs>
     </div>
   )
 }

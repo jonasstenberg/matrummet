@@ -5,7 +5,6 @@ import type { RecipeMatch, PantryItem, CommonPantryItem } from '@/lib/ingredient
 import { findRecipesByIngredients, addToPantry, removeFromPantry } from '@/lib/ingredient-search-actions'
 import { IngredientSearch } from './ingredient-search'
 import { PantryTable } from './pantry-table'
-import { PantrySuggestions } from './pantry-suggestions'
 import { SearchResults } from './search-results'
 
 interface WhatCanIMakeProps {
@@ -32,11 +31,6 @@ export function WhatCanIMake({ initialPantry = [], commonPantryItems = [] }: Wha
       .filter((item) => selectedFoodIds.has(item.food_id))
       .map((item) => ({ id: item.food_id, name: item.food_name }))
   }, [pantryItems, selectedFoodIds])
-
-  // Set of food IDs already in pantry (for suggestions)
-  const existingFoodIds = useMemo(() => {
-    return new Set(pantryItems.map((item) => item.food_id))
-  }, [pantryItems])
 
   const performSearch = useCallback(
     async (foodIds: string[], options?: { minMatch?: number; onlyOwn?: boolean }) => {
@@ -183,18 +177,11 @@ export function WhatCanIMake({ initialPantry = [], commonPantryItems = [] }: Wha
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">Lägg till ingrediens</h2>
         <IngredientSearch
-          selectedIngredients={[]}
-          onIngredientsChange={() => {}}
+          pantryItems={pantryItems}
+          commonPantryItems={commonPantryItems}
           onIngredientAdd={handleIngredientAdd}
           isLoading={isLoading}
         />
-        {commonPantryItems.length > 0 && (
-          <PantrySuggestions
-            items={commonPantryItems}
-            existingFoodIds={existingFoodIds}
-            onAddItem={handleIngredientAdd}
-          />
-        )}
       </section>
 
       {/* Pantry table */}

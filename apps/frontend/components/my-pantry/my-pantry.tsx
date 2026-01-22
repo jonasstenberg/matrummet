@@ -4,8 +4,7 @@ import { useState, useCallback, useMemo } from 'react'
 import type { PantryItem, CommonPantryItem } from '@/lib/ingredient-search-types'
 import { addToPantry, removeFromPantry } from '@/lib/ingredient-search-actions'
 import { IngredientSearch } from './ingredient-search'
-import { PantryTable } from './pantry-table'
-import { PantrySuggestions } from './pantry-suggestions'
+import { PantryList } from './pantry-list'
 
 interface MyPantryProps {
   initialPantry?: PantryItem[]
@@ -62,37 +61,23 @@ export function MyPantry({ initialPantry = [], commonPantryItems = [] }: MyPantr
   }, [])
 
   return (
-    <div className="space-y-8">
-      {/* Add new ingredients */}
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold">Lägg till ingrediens</h2>
-        <IngredientSearch
-          selectedIngredients={[]}
-          onIngredientsChange={() => {}}
-          onIngredientAdd={handleIngredientAdd}
-          isLoading={isLoading}
-        />
-        {commonPantryItems.length > 0 && (
-          <PantrySuggestions
-            items={commonPantryItems}
-            existingFoodIds={existingFoodIds}
-            onAddItem={handleIngredientAdd}
-            onRemoveItem={handleRemoveItem}
-          />
-        )}
-      </section>
+    <div className="space-y-6">
+      {/* Unified search with common ingredients in dropdown */}
+      <IngredientSearch
+        pantryItems={pantryItems}
+        commonPantryItems={commonPantryItems}
+        onIngredientAdd={handleIngredientAdd}
+        isLoading={isLoading}
+      />
 
-      {/* Pantry table */}
+      {/* Pantry list */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold">
-          Mitt skafferi ({pantryItems.length} ingredienser)
+        <h2 className="mb-3 text-sm font-medium text-muted-foreground">
+          I skafferiet ({pantryItems.length})
         </h2>
-        <PantryTable
+        <PantryList
           items={pantryItems}
-          selectedIds={new Set()}
-          onSelectionChange={() => {}}
           onRemoveItem={handleRemoveItem}
-          showSelection={false}
         />
       </section>
     </div>
