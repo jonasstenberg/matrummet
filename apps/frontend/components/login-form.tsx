@@ -153,7 +153,12 @@ export function LoginForm() {
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="space-y-4" autoComplete="on">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4"
+        autoComplete="on"
+        inert={forgotPasswordOpen ? true : undefined}
+      >
         {error && (
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>
