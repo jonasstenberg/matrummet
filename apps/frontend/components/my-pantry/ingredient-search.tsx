@@ -213,7 +213,7 @@ export function IngredientSearch({
           }}
           onFocus={() => setShowDropdown(true)}
           onKeyDown={handleKeyDown}
-          placeholder="Sök eller lägg till ingrediens..."
+          placeholder="Lägg till ingrediens..."
           className="bg-white pl-10 pr-10"
           autoComplete="off"
           disabled={isLoading}
