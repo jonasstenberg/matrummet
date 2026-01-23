@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useTransition } from 'react'
+import { useRef, useState, useEffect, useTransition } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { Search, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -20,7 +20,15 @@ export function SearchBar({ className }: SearchBarProps) {
   const isAllRecipesPage = pathname.startsWith('/alla-recept')
 
   // URL is the single source of truth
-  const query = searchParams.get('q') || ''
+  const urlQuery = searchParams.get('q') || ''
+
+  // Local state for the input, synced with URL
+  const [inputValue, setInputValue] = useState(urlQuery)
+
+  // Sync input value when URL changes (e.g., browser back/forward, direct navigation)
+  useEffect(() => {
+    setInputValue(urlQuery)
+  }, [urlQuery])
 
   function getSearchUrl(term: string) {
     // When on /alla-recept, search should stay within that scope
@@ -36,6 +44,9 @@ export function SearchBar({ className }: SearchBarProps) {
   }
 
   function handleSearch(term: string) {
+    // Update local state immediately for responsive UI
+    setInputValue(term)
+
     // Clear existing debounce timer
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current)
@@ -75,6 +86,9 @@ export function SearchBar({ className }: SearchBarProps) {
   }
 
   function handleClear() {
+    // Clear local state immediately
+    setInputValue('')
+
     // Clear debounce timer for immediate navigation
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current)
@@ -92,7 +106,7 @@ export function SearchBar({ className }: SearchBarProps) {
         type="search"
         name="search"
         placeholder="Sök recept..."
-        defaultValue={query}
+        value={inputValue}
         onChange={(e) => handleSearch(e.target.value)}
         autoComplete="off"
         className={cn(
@@ -105,7 +119,7 @@ export function SearchBar({ className }: SearchBarProps) {
           isPending && 'opacity-70'
         )}
       />
-      {query && (
+      {inputValue && (
         <button
           type="button"
           onClick={handleClear}
