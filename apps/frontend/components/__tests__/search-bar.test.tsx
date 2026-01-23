@@ -61,6 +61,113 @@ describe('SearchBar', () => {
 
       expect(input).toHaveValue('updated-search')
     })
+
+    it('does NOT sync URL to input when input is focused (user is typing)', async () => {
+      const { rerender } = render(<SearchBar />)
+
+      const input = screen.getByRole('searchbox')
+      expect(input).toHaveValue('')
+
+      // Focus the input (user starts typing)
+      fireEvent.focus(input)
+
+      // Simulate user typing something
+      await act(async () => {
+        fireEvent.change(input, { target: { value: 'user-typing' } })
+      })
+
+      expect(input).toHaveValue('user-typing')
+
+      // Simulate URL change while focused (e.g., from a previous debounced search)
+      mockSearchParams.set('q', 'different-value')
+      rerender(<SearchBar />)
+
+      // Input should KEEP the user's typed value, NOT sync from URL
+      expect(input).toHaveValue('user-typing')
+    })
+
+    it('syncs URL to input when input is blurred (not focused)', async () => {
+      const { rerender } = render(<SearchBar />)
+
+      const input = screen.getByRole('searchbox')
+      expect(input).toHaveValue('')
+
+      // Focus, type, then blur
+      fireEvent.focus(input)
+      await act(async () => {
+        fireEvent.change(input, { target: { value: 'typed-value' } })
+      })
+      fireEvent.blur(input)
+
+      expect(input).toHaveValue('typed-value')
+
+      // Simulate URL change after blur (e.g., browser back button)
+      mockSearchParams.set('q', 'url-value')
+      rerender(<SearchBar />)
+
+      // Input should sync from URL since it's not focused
+      expect(input).toHaveValue('url-value')
+    })
+
+    it('handles browser back/forward navigation when input is unfocused', async () => {
+      // Start with a URL query
+      mockSearchParams.set('q', 'initial-search')
+      const { rerender } = render(<SearchBar />)
+
+      const input = screen.getByRole('searchbox')
+      expect(input).toHaveValue('initial-search')
+
+      // Simulate browser back to empty search
+      mockSearchParams.delete('q')
+      rerender(<SearchBar />)
+
+      expect(input).toHaveValue('')
+
+      // Simulate browser forward to the search
+      mockSearchParams.set('q', 'initial-search')
+      rerender(<SearchBar />)
+
+      expect(input).toHaveValue('initial-search')
+
+      // Simulate navigating to a different search in history
+      mockSearchParams.set('q', 'other-search')
+      rerender(<SearchBar />)
+
+      expect(input).toHaveValue('other-search')
+    })
+
+    it('preserves user input during rapid URL changes when focused', async () => {
+      const { rerender } = render(<SearchBar />)
+
+      const input = screen.getByRole('searchbox')
+
+      // User focuses and starts typing
+      fireEvent.focus(input)
+      await act(async () => {
+        fireEvent.change(input, { target: { value: 'my-search' } })
+      })
+
+      // Simulate multiple rapid URL changes (e.g., debounced updates)
+      mockSearchParams.set('q', 'my')
+      rerender(<SearchBar />)
+      expect(input).toHaveValue('my-search') // Preserves user input
+
+      mockSearchParams.set('q', 'my-s')
+      rerender(<SearchBar />)
+      expect(input).toHaveValue('my-search') // Still preserves user input
+
+      mockSearchParams.set('q', 'my-search')
+      rerender(<SearchBar />)
+      expect(input).toHaveValue('my-search') // Still preserves user input
+
+      // User blurs the input
+      fireEvent.blur(input)
+
+      // Now a URL change should sync
+      mockSearchParams.set('q', 'external-change')
+      rerender(<SearchBar />)
+      expect(input).toHaveValue('external-change')
+    })
   })
 
   describe('clearing search', () => {

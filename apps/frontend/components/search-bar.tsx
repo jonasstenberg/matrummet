@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, useEffect, useTransition } from 'react'
+import { useRef, useState, useTransition } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { Search, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -19,16 +19,22 @@ export function SearchBar({ className }: SearchBarProps) {
   // Check if we're on /alla-recept to scope the search
   const isAllRecipesPage = pathname.startsWith('/alla-recept')
 
-  // URL is the single source of truth
+  // URL is the source of truth
   const urlQuery = searchParams.get('q') || ''
 
-  // Local state for the input, synced with URL
+  // Local state for responsive typing
   const [inputValue, setInputValue] = useState(urlQuery)
+  const [prevUrlQuery, setPrevUrlQuery] = useState(urlQuery)
+  const [isFocused, setIsFocused] = useState(false)
 
-  // Sync input value when URL changes (e.g., browser back/forward, direct navigation)
-  useEffect(() => {
-    setInputValue(urlQuery)
-  }, [urlQuery])
+  // Sync from URL when it changes externally (browser back/forward)
+  // Only sync if input is not focused (user isn't typing)
+  if (urlQuery !== prevUrlQuery) {
+    setPrevUrlQuery(urlQuery)
+    if (!isFocused) {
+      setInputValue(urlQuery)
+    }
+  }
 
   function getSearchUrl(term: string) {
     // When on /alla-recept, search should stay within that scope
@@ -108,6 +114,8 @@ export function SearchBar({ className }: SearchBarProps) {
         placeholder="Sök recept..."
         value={inputValue}
         onChange={(e) => handleSearch(e.target.value)}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
         autoComplete="off"
         className={cn(
           'flex h-10 w-full rounded-full bg-white pl-10 pr-10 text-sm transition-all duration-200',
