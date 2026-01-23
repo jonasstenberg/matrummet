@@ -151,8 +151,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build shared package
-        run: pnpm --filter @recept/shared build
+      - name: Build shared packages
+        run: pnpm --filter @recept/shared --filter @recept/testing build
 
       - name: Run tests
         run: pnpm vitest run

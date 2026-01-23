@@ -11,7 +11,7 @@ export default defineConfig({
     name: "frontend",
     root: __dirname,
     globals: true,
-    environment: "jsdom",
+    environment: "node",
     include: ["lib/**/*.test.ts", "components/**/*.test.tsx"],
     exclude: ["node_modules/**"],
     setupFiles: ["@recept/testing/setup/jsdom"],
