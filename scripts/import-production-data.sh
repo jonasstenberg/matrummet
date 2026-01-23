@@ -34,6 +34,7 @@ echo ""
 # Tables to export (in order due to foreign key constraints)
 TABLES=(
     "users"
+    "user_passwords"
     "categories"
     "recipes"
     "ingredients"
@@ -95,13 +96,14 @@ echo "Importing to local database..."
 # Clear existing data in reverse order (to respect foreign keys)
 echo "  Clearing existing data..."
 psql -d "$LOCAL_DB" -c "
-    TRUNCATE user_pantry, foods, recipe_categories, instructions, ingredients, recipes, categories CASCADE;
+    TRUNCATE user_pantry, foods, recipe_categories, instructions, ingredients, recipes, categories, user_passwords, users CASCADE;
 " 2>/dev/null || true
 
 # Disable triggers during import (to avoid RLS and password encryption issues)
 echo "  Disabling triggers..."
 psql -d "$LOCAL_DB" -c "
     ALTER TABLE users DISABLE TRIGGER ALL;
+    ALTER TABLE user_passwords DISABLE TRIGGER ALL;
     ALTER TABLE recipes DISABLE TRIGGER ALL;
     ALTER TABLE ingredients DISABLE TRIGGER ALL;
     ALTER TABLE instructions DISABLE TRIGGER ALL;
@@ -119,6 +121,7 @@ psql -d "$LOCAL_DB" -f "$DUMP_FILE"
 echo "  Re-enabling triggers..."
 psql -d "$LOCAL_DB" -c "
     ALTER TABLE users ENABLE TRIGGER ALL;
+    ALTER TABLE user_passwords ENABLE TRIGGER ALL;
     ALTER TABLE recipes ENABLE TRIGGER ALL;
     ALTER TABLE ingredients ENABLE TRIGGER ALL;
     ALTER TABLE instructions ENABLE TRIGGER ALL;
@@ -138,6 +141,8 @@ echo ""
 # Show counts
 echo "Local database now contains:"
 psql -d "$LOCAL_DB" -t -c "
+    SELECT 'users: ' || COUNT(*) FROM users
+    UNION ALL
     SELECT 'recipes: ' || COUNT(*) FROM recipes
     UNION ALL
     SELECT 'ingredients: ' || COUNT(*) FROM ingredients
