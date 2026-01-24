@@ -196,6 +196,69 @@ export function InstructionEditor({
     updateWithGroups(instructions, newGroups);
   }
 
+  function getGroupOrder(): string[] {
+    // Return list of group IDs in their current display order
+    const seen = new Set<string>();
+    const order: string[] = [];
+    instructions.forEach((inst) => {
+      if (inst.group_id && !seen.has(inst.group_id)) {
+        order.push(inst.group_id);
+        seen.add(inst.group_id);
+      }
+    });
+    return order;
+  }
+
+  function isFirstGroup(groupId: string): boolean {
+    const order = getGroupOrder();
+    return order.length > 0 && order[0] === groupId;
+  }
+
+  function isLastGroup(groupId: string): boolean {
+    const order = getGroupOrder();
+    return order.length > 0 && order[order.length - 1] === groupId;
+  }
+
+  function moveGroup(groupId: string, direction: "up" | "down") {
+    const groupOrder = getGroupOrder();
+    const currentIndex = groupOrder.indexOf(groupId);
+
+    if (currentIndex === -1) return;
+    if (direction === "up" && currentIndex === 0) return;
+    if (direction === "down" && currentIndex === groupOrder.length - 1) return;
+
+    const targetIndex =
+      direction === "up" ? currentIndex - 1 : currentIndex + 1;
+
+    // Reorder instructions to reflect new group order
+    // Get all instructions grouped by their group_id
+    const ungrouped = instructions.filter((inst) => !inst.group_id);
+    const grouped = new Map<string, typeof instructions>();
+
+    groupOrder.forEach((gid) => {
+      grouped.set(
+        gid,
+        instructions.filter((inst) => inst.group_id === gid)
+      );
+    });
+
+    // Swap the two groups in the order
+    const newOrder = [...groupOrder];
+    [newOrder[currentIndex], newOrder[targetIndex]] = [
+      newOrder[targetIndex],
+      newOrder[currentIndex],
+    ];
+
+    // Rebuild instructions array with new order
+    const reordered = [...ungrouped];
+    newOrder.forEach((gid) => {
+      const groupInstructions = grouped.get(gid) || [];
+      reordered.push(...groupInstructions);
+    });
+
+    updateWithGroups(reordered);
+  }
+
   const editorItems = buildEditorItems();
 
   return (
@@ -244,6 +307,30 @@ export function InstructionEditor({
                     onChange={(e) => updateGroupName(item.id, e.target.value)}
                     className="border-orange-300 bg-white font-semibold"
                   />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => moveGroup(item.id, "up")}
+                    disabled={isFirstGroup(item.id)}
+                    className="h-8 w-8"
+                    aria-label="Flytta grupp upp"
+                  >
+                    ↑
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => moveGroup(item.id, "down")}
+                    disabled={isLastGroup(item.id)}
+                    className="h-8 w-8"
+                    aria-label="Flytta grupp ner"
+                  >
+                    ↓
+                  </Button>
                 </div>
                 <Button
                   type="button"
