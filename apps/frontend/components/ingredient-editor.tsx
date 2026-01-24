@@ -40,22 +40,27 @@ export function IngredientEditor({
   lowConfidenceIndices = [],
   onChange,
 }: IngredientEditorProps) {
-  // Extract initial groups from ingredients if not provided
+  // Extract and order groups based on their first appearance in ingredients
   const extractGroups = (): GroupInfo[] => {
-    if (initialGroups && initialGroups.length > 0) {
-      return initialGroups;
+    // Build a map of group IDs to their names from initialGroups
+    const groupNameMap = new Map<string, string>();
+    if (initialGroups) {
+      initialGroups.forEach((g) => groupNameMap.set(g.id, g.name));
     }
 
-    const groupMap = new Map<string, string>();
+    // Order groups by their first appearance in ingredients
+    const orderedGroups: GroupInfo[] = [];
     const seen = new Set<string>();
 
     ingredients.forEach((ing) => {
       if (ing.group_id && !seen.has(ing.group_id)) {
-        groupMap.set(ing.group_id, `Grupp ${groupMap.size + 1}`);
+        const name = groupNameMap.get(ing.group_id) || `Grupp ${orderedGroups.length + 1}`;
+        orderedGroups.push({ id: ing.group_id, name });
         seen.add(ing.group_id);
       }
     });
-    return Array.from(groupMap.entries()).map(([id, name]) => ({ id, name }));
+
+    return orderedGroups;
   };
 
   const [internalGroups, setInternalGroups] = useState<GroupInfo[]>(

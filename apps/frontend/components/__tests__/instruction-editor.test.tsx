@@ -542,6 +542,43 @@ describe('InstructionEditor', () => {
         expect(upButtons).toHaveLength(1)
         expect(downButtons).toHaveLength(1)
       })
+
+      it('orders groups based on their first appearance in instructions array', () => {
+        // This tests that even if groups are provided in a different order,
+        // the editor orders them based on the instructions array
+        const instructions: Instruction[] = [
+          { step: 'Step B1', group_id: 'group-b' },
+          { step: 'Step A1', group_id: 'group-a' },
+          { step: 'Step C1', group_id: 'group-c' },
+        ]
+        // Groups intentionally provided in wrong order (A, B, C instead of B, A, C)
+        const groups: GroupInfo[] = [
+          { id: 'group-a', name: 'Group A' },
+          { id: 'group-b', name: 'Group B' },
+          { id: 'group-c', name: 'Group C' },
+        ]
+        const onChange = vi.fn()
+
+        render(
+          <InstructionEditor
+            instructions={instructions}
+            groups={groups}
+            onChange={onChange}
+          />
+        )
+
+        // First group should be group-b (first in instructions), so up should be disabled
+        const upButtons = screen.getAllByRole('button', { name: 'Flytta grupp upp' })
+        const downButtons = screen.getAllByRole('button', { name: 'Flytta grupp ner' })
+
+        // Group B should be first (up disabled), Group C should be last (down disabled)
+        expect(upButtons[0]).toBeDisabled() // group-b is first
+        expect(downButtons[0]).not.toBeDisabled()
+        expect(upButtons[1]).not.toBeDisabled() // group-a is middle
+        expect(downButtons[1]).not.toBeDisabled()
+        expect(upButtons[2]).not.toBeDisabled() // group-c is last
+        expect(downButtons[2]).toBeDisabled()
+      })
     })
   })
 })
