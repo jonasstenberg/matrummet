@@ -212,6 +212,153 @@ describe("Recipe RPC Contract Tests", () => {
       expect(recipe.instruction_groups![1].name).toBe("Tillagning");
     });
 
+    it("orders ingredients and instructions by group sort_order", async () => {
+      // This test verifies that ingredients/instructions are ordered by their
+      // group's sort_order (not by group_id UUID). This is critical for correct
+      // display order when editing recipes.
+      const recipeName = `Test Group Ordering ${uniqueId()}`;
+
+      // Create recipe with multiple groups - the order they appear is their sort_order
+      const result = await clientA.rpc<string>("insert_recipe", {
+        p_name: recipeName,
+        p_description: "Recipe to test group ordering",
+        p_author: null,
+        p_url: null,
+        p_recipe_yield: 4,
+        p_recipe_yield_name: null,
+        p_prep_time: 10,
+        p_cook_time: 20,
+        p_cuisine: null,
+        p_image: null,
+        p_thumbnail: null,
+        p_categories: [],
+        p_ingredients: [
+          { group: "Första gruppen" },
+          { name: "Ingrediens A", measurement: "st", quantity: "1" },
+          { group: "Andra gruppen" },
+          { name: "Ingrediens B", measurement: "st", quantity: "2" },
+          { group: "Tredje gruppen" },
+          { name: "Ingrediens C", measurement: "st", quantity: "3" },
+        ],
+        p_instructions: [
+          { group: "Steg ett" },
+          { step: "Gör detta först." },
+          { group: "Steg två" },
+          { step: "Gör detta sedan." },
+          { group: "Steg tre" },
+          { step: "Gör detta sist." },
+        ],
+      });
+
+      expectSuccess(result, "insert_recipe should succeed");
+
+      // Fetch the recipe to verify ordering
+      const fetchResult = await clientA
+        .from("recipes_and_categories")
+        .select("*")
+        .eq("id", result.data!)
+        .single();
+
+      expectSuccess(fetchResult, "Should fetch created recipe");
+      const recipe = fetchResult.data as RecipeFromView;
+
+      // Verify ingredient groups are in correct order (by sort_order, not UUID)
+      expect(recipe.ingredient_groups).toHaveLength(3);
+      expect(recipe.ingredient_groups![0].name).toBe("Första gruppen");
+      expect(recipe.ingredient_groups![0].sort_order).toBe(0);
+      expect(recipe.ingredient_groups![1].name).toBe("Andra gruppen");
+      expect(recipe.ingredient_groups![1].sort_order).toBe(1);
+      expect(recipe.ingredient_groups![2].name).toBe("Tredje gruppen");
+      expect(recipe.ingredient_groups![2].sort_order).toBe(2);
+
+      // Verify ingredients are ordered by their group's sort_order
+      expect(recipe.ingredients).toHaveLength(3);
+      expect(recipe.ingredients![0].name).toBe("Ingrediens A");
+      expect(recipe.ingredients![1].name).toBe("Ingrediens B");
+      expect(recipe.ingredients![2].name).toBe("Ingrediens C");
+
+      // Verify each ingredient's group_id matches the correct group
+      const groupAId = recipe.ingredient_groups![0].id;
+      const groupBId = recipe.ingredient_groups![1].id;
+      const groupCId = recipe.ingredient_groups![2].id;
+      expect(recipe.ingredients![0].group_id).toBe(groupAId);
+      expect(recipe.ingredients![1].group_id).toBe(groupBId);
+      expect(recipe.ingredients![2].group_id).toBe(groupCId);
+
+      // Verify instruction groups are in correct order
+      expect(recipe.instruction_groups).toHaveLength(3);
+      expect(recipe.instruction_groups![0].name).toBe("Steg ett");
+      expect(recipe.instruction_groups![0].sort_order).toBe(0);
+      expect(recipe.instruction_groups![1].name).toBe("Steg två");
+      expect(recipe.instruction_groups![1].sort_order).toBe(1);
+      expect(recipe.instruction_groups![2].name).toBe("Steg tre");
+      expect(recipe.instruction_groups![2].sort_order).toBe(2);
+
+      // Verify instructions are ordered by their group's sort_order
+      expect(recipe.instructions).toHaveLength(3);
+      expect(recipe.instructions![0].step).toBe("Gör detta först.");
+      expect(recipe.instructions![1].step).toBe("Gör detta sedan.");
+      expect(recipe.instructions![2].step).toBe("Gör detta sist.");
+    });
+
+    it("orders ungrouped items before grouped items", async () => {
+      // Ungrouped items should appear first (NULLS FIRST in ORDER BY)
+      const recipeName = `Test Ungrouped Order ${uniqueId()}`;
+
+      const result = await clientA.rpc<string>("insert_recipe", {
+        p_name: recipeName,
+        p_description: "Recipe with mixed grouped and ungrouped items",
+        p_author: null,
+        p_url: null,
+        p_recipe_yield: 4,
+        p_recipe_yield_name: null,
+        p_prep_time: 10,
+        p_cook_time: 20,
+        p_cuisine: null,
+        p_image: null,
+        p_thumbnail: null,
+        p_categories: [],
+        p_ingredients: [
+          { name: "Ungrouped First", measurement: "st", quantity: "1" },
+          { name: "Ungrouped Second", measurement: "st", quantity: "2" },
+          { group: "En grupp" },
+          { name: "Grouped Item", measurement: "st", quantity: "3" },
+        ],
+        p_instructions: [
+          { step: "Ungrouped instruction first." },
+          { group: "Instruktionsgrupp" },
+          { step: "Grouped instruction." },
+        ],
+      });
+
+      expectSuccess(result, "insert_recipe should succeed");
+
+      const fetchResult = await clientA
+        .from("recipes_and_categories")
+        .select("*")
+        .eq("id", result.data!)
+        .single();
+
+      expectSuccess(fetchResult, "Should fetch created recipe");
+      const recipe = fetchResult.data as RecipeFromView;
+
+      // Verify ungrouped ingredients come first
+      expect(recipe.ingredients).toHaveLength(3);
+      expect(recipe.ingredients![0].name).toBe("Ungrouped First");
+      expect(recipe.ingredients![0].group_id).toBeNull();
+      expect(recipe.ingredients![1].name).toBe("Ungrouped Second");
+      expect(recipe.ingredients![1].group_id).toBeNull();
+      expect(recipe.ingredients![2].name).toBe("Grouped Item");
+      expect(recipe.ingredients![2].group_id).not.toBeNull();
+
+      // Verify ungrouped instructions come first
+      expect(recipe.instructions).toHaveLength(2);
+      expect(recipe.instructions![0].step).toBe("Ungrouped instruction first.");
+      expect(recipe.instructions![0].group_id).toBeNull();
+      expect(recipe.instructions![1].step).toBe("Grouped instruction.");
+      expect(recipe.instructions![1].group_id).not.toBeNull();
+    });
+
     it("handles ingredient form field correctly", async () => {
       const recipeName = `Test Form Field ${uniqueId()}`;
 
