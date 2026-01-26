@@ -1,8 +1,9 @@
 /**
- * Contract tests for V50 anon surface area restriction
+ * Contract tests for V50/V51 anon surface area restriction
  *
  * Verifies the security properties introduced by
- * V50__restrict_anon_tables_and_public_functions.sql:
+ * V50__restrict_anon_tables_and_public_functions.sql and
+ * V51__move_extensions_to_separate_schema.sql:
  *
  * 1. Anon table access revoked except whitelisted public tables
  * 2. Anon CAN read recipe content tables (ingredients, instructions, etc.)
@@ -10,6 +11,7 @@
  * 4. debug_admin_check dropped/inaccessible
  * 5. Authenticated retains full table and function access
  * 6. Anon can still browse recipes and use public search
+ * 7. Application functions using extensions still work after schema move
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
@@ -203,20 +205,22 @@ describe("V50: Anon Surface Area Restriction", () => {
 
   // ==========================================================================
   // 3. Extension functions not callable by anon
+  //    After V51, functions are moved to extensions schema (not in db-schemas),
+  //    so PostgREST returns 404 instead of permission denied.
   // ==========================================================================
   describe("Extension functions hidden from anon", () => {
     it("anon cannot call gen_random_uuid (pgcrypto)", async () => {
       const result = await anonClient.rpc("gen_random_uuid");
 
       expect(result.error).not.toBeNull();
-      expect(result.error?.message).toContain("permission denied");
+      expect(result.status).not.toBe(200);
     });
 
     it("anon cannot call uuid_generate_v4 (uuid-ossp)", async () => {
       const result = await anonClient.rpc("uuid_generate_v4");
 
       expect(result.error).not.toBeNull();
-      expect(result.error?.message).toContain("permission denied");
+      expect(result.status).not.toBe(200);
     });
 
     it("anon cannot call show_trgm (pg_trgm)", async () => {
@@ -225,7 +229,7 @@ describe("V50: Anon Surface Area Restriction", () => {
       });
 
       expect(result.error).not.toBeNull();
-      expect(result.error?.message).toContain("permission denied");
+      expect(result.status).not.toBe(200);
     });
 
     it("anon cannot call gen_salt (pgcrypto)", async () => {
@@ -234,7 +238,7 @@ describe("V50: Anon Surface Area Restriction", () => {
       });
 
       expect(result.error).not.toBeNull();
-      expect(result.error?.message).toContain("permission denied");
+      expect(result.status).not.toBe(200);
     });
   });
 
@@ -342,6 +346,59 @@ describe("V50: Anon Surface Area Restriction", () => {
       if (result.error) {
         expect(result.error.message).not.toContain("permission denied");
       }
+    });
+  });
+
+  // ==========================================================================
+  // 7. V51: Application functions using extensions still work after schema move
+  //    These functions use pgcrypto (crypt/gen_salt) or pg_trgm (word_similarity)
+  //    and must continue working with search_path = public, extensions.
+  // ==========================================================================
+  describe("Extension-dependent functions work after V51 schema move", () => {
+    it("login still works (uses pgcrypto crypt)", async () => {
+      const result = await anonClient.rpc("login", {
+        login_email: "nonexistent@example.com",
+        login_password: "WrongPassword123!",
+      });
+
+      // Callable — error is about invalid credentials, NOT a function/extension error
+      expect(result.error).not.toBeNull();
+      expect(result.error?.message).toContain("invalid user or password");
+    });
+
+    it("search_recipes still works (uses pg_trgm word_similarity)", async () => {
+      const result = await anonClient.rpc("search_recipes", {
+        p_query: "test",
+      });
+
+      expect(result.error).toBeNull();
+      expect(result.status).toBe(200);
+    });
+
+    it("authenticated search_foods still works", async () => {
+      const result = await authClient.rpc("search_foods", {
+        p_query: "salt",
+      });
+
+      expect(result.error).toBeNull();
+      expect(result.status).toBe(200);
+    });
+
+    it("authenticated validate_api_key still works (uses pgcrypto crypt)", async () => {
+      const result = await authClient.rpc("validate_api_key", {
+        p_api_key: "nonexistent-key",
+      });
+
+      expect(result.error).toBeNull();
+    });
+
+    it("authenticated create_user_api_key works (uses pgcrypto gen_random_bytes/crypt)", async () => {
+      const result = await authClient.rpc("create_user_api_key", {
+        p_name: `V51 Test Key ${Date.now()}`,
+      });
+
+      expect(result.error).toBeNull();
+      expect(result.status).toBe(200);
     });
   });
 });
