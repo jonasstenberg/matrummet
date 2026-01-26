@@ -259,7 +259,9 @@ export function ApiKeyManager({ initialKeys }: ApiKeyManagerProps) {
                   <code className="font-mono bg-muted px-2 py-0.5 rounded">
                     {key.prefix}...
                   </code>
-                  <span>Senast använd: {formatRelativeTime(key.last_used_at)}</span>
+                  {key.last_used_at && (
+                    <span>Senast använd: {formatRelativeTime(key.last_used_at)}</span>
+                  )}
                 </div>
               </div>
               <Button
