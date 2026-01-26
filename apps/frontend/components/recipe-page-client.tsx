@@ -189,7 +189,7 @@ export function RecipePageClient({
       {/* Recipe Grid */}
       <RecipeGrid
         recipes={displayRecipes}
-        showPantryMatch={isFilterActive && hasPantry}
+        showPantryMatch={hasPantry}
         emptyMessage={
           isFilterActive
             ? 'Inga matchande recept hittades'
