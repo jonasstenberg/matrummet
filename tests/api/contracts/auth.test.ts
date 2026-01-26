@@ -612,13 +612,14 @@ describe("Auth RPCs Contract Tests", () => {
       expect(result.data).toBeNull();
     });
 
-    it("should be permission denied for anonymous users", async () => {
+    it("should return null for anonymous users with invalid key", async () => {
+      // anon can call validate_api_key (needed for pre_request API key auth)
       const result = await anonClient.rpc<string | null>("validate_api_key", {
         p_api_key: "some-key",
       });
 
-      expect(result.error).not.toBeNull();
-      expect(result.error?.message).toContain("permission denied");
+      expect(result.error).toBeNull();
+      expect(result.data).toBeNull();
     });
   });
 

@@ -116,13 +116,14 @@ describe("V49 Security: Anon Function Access Revocation", () => {
   // 4. Sensitive internal functions are inaccessible to anon
   // ==========================================================================
   describe("Sensitive functions blocked for anon", () => {
-    it("anon cannot call validate_api_key", async () => {
+    it("anon can call validate_api_key (needed for pre_request API key auth)", async () => {
       const result = await anonClient.rpc("validate_api_key", {
         p_api_key: "some-key",
       });
 
-      expect(result.error).not.toBeNull();
-      expect(result.error?.message).toContain("permission denied");
+      // Callable by anon but returns null for invalid keys
+      expect(result.error).toBeNull();
+      expect(result.data).toBeNull();
     });
 
     it("anon cannot call is_admin", async () => {
