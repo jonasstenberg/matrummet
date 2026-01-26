@@ -41,7 +41,7 @@ services:
       PGRST_JWT_ROLE_CLAIM_KEY: .role
       PGRST_DB_PRE_REQUEST: pre_request
       PGRST_DB_EXTRA_SEARCH_PATH: extensions
-      PGRST_OPENAPI_MODE: follow-privileges
+      PGRST_OPENAPI_MODE: ignore-privileges
     ports:
       - "4445:3000"
     depends_on:
