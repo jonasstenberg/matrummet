@@ -634,8 +634,8 @@ describe("RLS: user_api_keys table", () => {
       expectSuccess(keyResult);
       const fullApiKey = keyResult.data!.api_key;
 
-      // Validate the key (this is used by the application for API auth)
-      const validateResult = await anonClient.rpc<string>("validate_api_key", {
+      // validate_api_key is now internal-only (V49), use authenticated client
+      const validateResult = await clientA.rpc<string>("validate_api_key", {
         p_api_key: fullApiKey,
       });
 
@@ -644,7 +644,8 @@ describe("RLS: user_api_keys table", () => {
     });
 
     it("API key validation fails for invalid keys", async () => {
-      const validateResult = await anonClient.rpc<string>("validate_api_key", {
+      // validate_api_key is now internal-only (V49), use authenticated client
+      const validateResult = await clientA.rpc<string>("validate_api_key", {
         p_api_key: "invalid_api_key_12345678",
       });
 
@@ -669,8 +670,8 @@ describe("RLS: user_api_keys table", () => {
       // Revoke the key
       await clientA.rpc("revoke_api_key", { p_key_id: keyId });
 
-      // Try to validate - should fail
-      const validateResult = await anonClient.rpc<string>("validate_api_key", {
+      // Try to validate - should fail (use authenticated client since V49)
+      const validateResult = await clientA.rpc<string>("validate_api_key", {
         p_api_key: fullApiKey,
       });
 

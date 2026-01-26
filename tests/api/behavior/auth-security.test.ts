@@ -568,8 +568,8 @@ describe("Auth Security Behavior", () => {
 
       expectSuccess(createResult, "Failed to create key");
 
-      // Validate it
-      const validateResult = await anonClient.rpc<string>("validate_api_key", {
+      // validate_api_key is now internal-only (V49), use authenticated client
+      const validateResult = await clientA.rpc<string>("validate_api_key", {
         p_api_key: createResult.data.api_key,
       });
 
@@ -581,7 +581,8 @@ describe("Auth Security Behavior", () => {
     });
 
     it("should reject invalid API keys", async () => {
-      const result = await anonClient.rpc<string | null>("validate_api_key", {
+      // validate_api_key is now internal-only (V49), use authenticated client
+      const result = await clientA.rpc<string | null>("validate_api_key", {
         p_api_key: "sk_invalid_key_here",
       });
 
@@ -604,8 +605,8 @@ describe("Auth Security Behavior", () => {
 
       await clientA.rpc("revoke_api_key", { p_key_id: createResult.data.id });
 
-      // Try to validate the revoked key
-      const validateResult = await anonClient.rpc<string | null>("validate_api_key", {
+      // validate_api_key is now internal-only (V49), use authenticated client
+      const validateResult = await clientA.rpc<string | null>("validate_api_key", {
         p_api_key: createResult.data.api_key,
       });
 
@@ -634,8 +635,8 @@ describe("Auth Security Behavior", () => {
       const keyBefore = keysBefore.data?.find((k) => k.id === createResult.data.id);
       expect(keyBefore?.last_used_at).toBeNull();
 
-      // Validate the key
-      await anonClient.rpc("validate_api_key", {
+      // validate_api_key is now internal-only (V49), use authenticated client
+      await clientA.rpc("validate_api_key", {
         p_api_key: createResult.data.api_key,
       });
 

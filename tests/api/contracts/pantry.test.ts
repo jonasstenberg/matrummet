@@ -603,7 +603,7 @@ describe("Pantry RPCs Contract Tests", () => {
       expect(result.data!.length).toBeLessThanOrEqual(5);
     });
 
-    it("should be accessible to anonymous users", async () => {
+    it("should be permission denied for anonymous users", async () => {
       const result = await anonClient.rpc<RecipeMatch[]>("find_recipes_by_ingredients", {
         p_food_ids: [],
         p_user_email: null,
@@ -611,7 +611,8 @@ describe("Pantry RPCs Contract Tests", () => {
         p_limit: 20,
       });
 
-      expectSuccess(result);
+      expectError(result);
+      expect(result.error?.message).toContain("permission denied");
     });
   });
 
@@ -837,11 +838,11 @@ describe("Pantry RPCs Contract Tests", () => {
       }
     });
 
-    it("should be accessible to anonymous users", async () => {
+    it("should be permission denied for anonymous users", async () => {
       const result = await anonClient.rpc<CommonPantryItem[]>("get_common_pantry_items", {});
 
-      expectSuccess(result);
-      expect(Array.isArray(result.data)).toBe(true);
+      expectError(result);
+      expect(result.error?.message).toContain("permission denied");
     });
 
     it("should be accessible to authenticated users", async () => {

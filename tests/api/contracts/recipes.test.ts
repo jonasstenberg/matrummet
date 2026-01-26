@@ -428,7 +428,7 @@ describe("Recipe RPC Contract Tests", () => {
       });
 
       expectError(result);
-      expect(result.error?.message).toContain("Authentication required");
+      expect(result.error?.message).toContain("permission denied");
     });
 
     it("enforces maximum limits on arrays", async () => {
@@ -577,7 +577,7 @@ describe("Recipe RPC Contract Tests", () => {
       });
 
       expectError(result);
-      expect(result.error?.message).toContain("Authentication required");
+      expect(result.error?.message).toContain("permission denied");
     });
   });
 
@@ -1094,7 +1094,7 @@ describe("Recipe RPC Contract Tests", () => {
       });
 
       expectError(result);
-      expect(result.error?.message).toContain("not-authenticated");
+      expect(result.error?.message).toContain("permission denied");
     });
 
     it("updates is_liked in recipes_and_categories view", async () => {

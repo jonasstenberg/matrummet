@@ -248,7 +248,7 @@ describe("Food RPCs", () => {
     });
 
     describe("authentication", () => {
-      it("allows anonymous users to search foods", async () => {
+      it("anonymous users cannot search foods (permission denied)", async () => {
         const response = await anonymousClient.rpc<SearchFoodResult[]>(
           "search_foods",
           {
@@ -257,16 +257,16 @@ describe("Food RPCs", () => {
           }
         );
 
-        expectSuccess(response);
-        expect(Array.isArray(response.data)).toBe(true);
+        expect(response.error).not.toBeNull();
+        expect(response.error?.message).toContain("permission denied");
       });
 
-      it("anonymous users only see approved foods", async () => {
+      it("anonymous users cannot see any foods (permission denied)", async () => {
         // Create a pending food as authenticated user
         const uniqueName = `AnonTest${randomString(8)}`;
         await clientA.rpc("get_or_create_food", { p_name: uniqueName });
 
-        // Anonymous user should not see pending food
+        // Anonymous user should get permission denied
         const response = await anonymousClient.rpc<SearchFoodResult[]>(
           "search_foods",
           {
@@ -275,9 +275,8 @@ describe("Food RPCs", () => {
           }
         );
 
-        expectSuccess(response);
-        const pendingFood = response.data!.find((f) => f.name === uniqueName);
-        expect(pendingFood).toBeUndefined();
+        expect(response.error).not.toBeNull();
+        expect(response.error?.message).toContain("permission denied");
       });
     });
   });
@@ -420,14 +419,14 @@ describe("Food RPCs", () => {
     });
 
     describe("authentication", () => {
-      it("requires authentication to create foods", async () => {
+      it("requires authentication to create foods (permission denied for anon)", async () => {
         const response = await anonymousClient.rpc<string>("get_or_create_food", {
           p_name: `AnonFood${randomString(8)}`,
         });
 
-        // Anonymous users can call the function but won't have
-        // their email set, so the food won't be associated with them
-        expectSuccess(response);
+        // Anonymous users are now denied access to this function (V49)
+        expect(response.error).not.toBeNull();
+        expect(response.error?.message).toContain("permission denied");
       });
     });
 

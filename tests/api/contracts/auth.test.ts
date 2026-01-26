@@ -548,13 +548,16 @@ describe("Auth RPCs Contract Tests", () => {
       }
     });
 
+    // validate_api_key is now internal-only (called by pre_request SECURITY DEFINER).
+    // It is no longer callable by anon; authenticated users can still call it.
+
     it("should return user_email for valid API key", async () => {
       if (!testApiKey) {
         console.warn("Skipping test: Could not create test API key");
         return;
       }
 
-      const result = await anonClient.rpc<string>("validate_api_key", {
+      const result = await authenticatedClient.rpc<string>("validate_api_key", {
         p_api_key: testApiKey.api_key,
       });
 
@@ -565,7 +568,7 @@ describe("Auth RPCs Contract Tests", () => {
     });
 
     it("should return null for invalid API key", async () => {
-      const result = await anonClient.rpc<string | null>("validate_api_key", {
+      const result = await authenticatedClient.rpc<string | null>("validate_api_key", {
         p_api_key: "invalid-api-key-that-does-not-exist",
       });
 
@@ -575,7 +578,7 @@ describe("Auth RPCs Contract Tests", () => {
     });
 
     it("should return null for empty API key", async () => {
-      const result = await anonClient.rpc<string | null>("validate_api_key", {
+      const result = await authenticatedClient.rpc<string | null>("validate_api_key", {
         p_api_key: "",
       });
 
@@ -584,7 +587,7 @@ describe("Auth RPCs Contract Tests", () => {
     });
 
     it("should return null for API key shorter than 8 characters", async () => {
-      const result = await anonClient.rpc<string | null>("validate_api_key", {
+      const result = await authenticatedClient.rpc<string | null>("validate_api_key", {
         p_api_key: "short",
       });
 
@@ -601,12 +604,21 @@ describe("Auth RPCs Contract Tests", () => {
       // Use the correct prefix but with wrong suffix
       const wrongKey = testApiKey.prefix + "wrongsuffix";
 
-      const result = await anonClient.rpc<string | null>("validate_api_key", {
+      const result = await authenticatedClient.rpc<string | null>("validate_api_key", {
         p_api_key: wrongKey,
       });
 
       expect(result.error).toBeNull();
       expect(result.data).toBeNull();
+    });
+
+    it("should be permission denied for anonymous users", async () => {
+      const result = await anonClient.rpc<string | null>("validate_api_key", {
+        p_api_key: "some-key",
+      });
+
+      expect(result.error).not.toBeNull();
+      expect(result.error?.message).toContain("permission denied");
     });
   });
 
@@ -785,7 +797,10 @@ describe("Auth RPCs Contract Tests", () => {
     });
 
     it("validate_api_key() returns TEXT (email) or null", async () => {
-      const result = await anonClient.rpc<string | null>("validate_api_key", {
+      // validate_api_key is no longer callable by anon (revoked in V49).
+      // Use authenticated client to verify the return type contract.
+      const authClient = await createAuthenticatedClient(AUTH_TEST_USER.email);
+      const result = await authClient.rpc<string | null>("validate_api_key", {
         p_api_key: "some-invalid-key",
       });
 
