@@ -1113,14 +1113,14 @@ describe("RLS Security Tests", () => {
           user_email: TEST_USERS.userB.email,
         });
 
-        // Anonymous user tries to view likes
+        // Anonymous user tries to view likes — table access revoked (V50)
         const result = await anonClient
           .from("recipe_likes")
           .select("*")
           .eq("recipe_id", recipeId);
 
-        // Should return empty (no access)
-        expect(result.data).toHaveLength(0);
+        expect(result.error).not.toBeNull();
+        expect(result.error?.message).toContain("permission denied");
       });
 
       it("anonymous users CANNOT insert likes", async () => {
