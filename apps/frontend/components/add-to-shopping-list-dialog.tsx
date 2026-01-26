@@ -34,7 +34,6 @@ import {
   getUserShoppingLists,
 } from "@/lib/actions";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
-import { usePantry } from "@/lib/hooks/use-pantry";
 import { scaleQuantity } from "@/lib/quantity-utils";
 import type { Ingredient, Recipe, ShoppingList } from "@/lib/types";
 import { Check, Loader2, Plus, RotateCcw } from "lucide-react";
@@ -68,8 +67,6 @@ export function AddToShoppingListDialog({
   const [isCreatingList, setIsCreatingList] = useState(false);
   const [newListName, setNewListName] = useState("");
 
-  // Pantry data from hook
-  const { pantryFoodIds, isLoading: isLoadingPantry } = usePantry();
   const hasInitializedSelection = useRef(false);
 
   // Fetch shopping lists when dialog opens
@@ -93,33 +90,29 @@ export function AddToShoppingListDialog({
     }
   }, [open]);
 
-  // Pre-select only missing ingredients when pantry data is available
+  // Pre-select only missing ingredients (those not in pantry)
   useEffect(() => {
-    if (
-      open &&
-      !isLoadingPantry &&
-      pantryFoodIds.size > 0 &&
-      !hasInitializedSelection.current
-    ) {
-      const missingIngredients = recipe.ingredients.filter(
-        (i) => !i.food_id || !pantryFoodIds.has(i.food_id)
-      );
-      setSelectedIngredients(
-        new Set(missingIngredients.map((i) => i.id ?? i.name))
-      );
+    if (open && !hasInitializedSelection.current) {
+      const hasPantryData = recipe.ingredients.some((i) => i.in_pantry);
+      if (hasPantryData) {
+        const missingIngredients = recipe.ingredients.filter(
+          (i) => !i.in_pantry
+        );
+        setSelectedIngredients(
+          new Set(missingIngredients.map((i) => i.id ?? i.name))
+        );
+      }
       hasInitializedSelection.current = true;
     }
-  }, [open, isLoadingPantry, pantryFoodIds, recipe.ingredients]);
+  }, [open, recipe.ingredients]);
 
   const scaleFactor = originalServings > 0 ? servings / originalServings : 1;
   const maxServings = Math.max(originalServings * 3, 12);
   const isModified = servings !== originalServings;
 
   // Pantry counts
-  const hasPantryInfo = pantryFoodIds.size > 0;
-  const ingredientsInPantry = recipe.ingredients.filter(
-    (i) => i.food_id && pantryFoodIds.has(i.food_id)
-  );
+  const ingredientsInPantry = recipe.ingredients.filter((i) => i.in_pantry);
+  const hasPantryInfo = ingredientsInPantry.length > 0;
 
   const allSelected = selectedIngredients.size === recipe.ingredients.length;
   const someSelected = selectedIngredients.size > 0 && !allSelected;
@@ -396,8 +389,7 @@ export function AddToShoppingListDialog({
                 {ingredients.map((ingredient, index) => {
                   const id = ingredient.id ?? `${groupId}-${index}`;
                   const isSelected = selectedIngredients.has(id);
-                  const isInPantry =
-                    ingredient.food_id && pantryFoodIds.has(ingredient.food_id);
+                  const isInPantry = ingredient.in_pantry;
 
                   return (
                     <label

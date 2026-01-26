@@ -1,6 +1,5 @@
 "use client";
 
-import { usePantry } from "@/lib/hooks/use-pantry";
 import { scaleQuantity } from "@/lib/quantity-utils";
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
@@ -13,6 +12,7 @@ interface Ingredient {
   form?: string;
   group_id?: string | null;
   food_id?: string;
+  in_pantry?: boolean;
 }
 
 interface IngredientGroup {
@@ -32,12 +32,8 @@ export function IngredientsList({
   ingredientGroups,
   scaleFactor = 1,
 }: IngredientsListProps) {
-  const { pantryFoodIds } = usePantry();
-
-  const hasPantryInfo = pantryFoodIds.size > 0;
-  const pantryCount = ingredients.filter(
-    (i) => i.food_id && pantryFoodIds.has(i.food_id)
-  ).length;
+  const hasPantryInfo = ingredients.some((i) => i.in_pantry);
+  const pantryCount = ingredients.filter((i) => i.in_pantry).length;
   const missingCount = ingredients.length - pantryCount;
 
   // Group ingredients by their group_id
@@ -110,8 +106,7 @@ export function IngredientsList({
               )}
               <ul>
                 {groupIngredients.map((ingredient, index) => {
-                  const isInPantry =
-                    ingredient.food_id && pantryFoodIds.has(ingredient.food_id);
+                  const isInPantry = ingredient.in_pantry;
 
                   return (
                     <li
