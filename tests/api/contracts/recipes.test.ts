@@ -53,6 +53,10 @@ interface RecipeFromView {
   instruction_groups: InstructionGroup[] | null;
   instructions: Instruction[] | null;
   is_liked: boolean;
+  // Pantry match fields (V52)
+  pantry_matching_count: number;
+  pantry_total_count: number;
+  pantry_match_percentage: number;
   // Internal fields from view - may not be needed in frontend
   tsv?: unknown;
   full_tsv?: unknown;
@@ -75,6 +79,7 @@ interface Ingredient {
   sort_order: number;
   food_id: string | null;
   unit_id: string | null;
+  in_pantry: boolean;
 }
 
 interface InstructionGroup {

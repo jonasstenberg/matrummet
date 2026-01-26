@@ -73,7 +73,7 @@ describe("Schema Snapshot Tests", () => {
 
   describe("recipes_and_categories view", () => {
     it("should have expected columns", async () => {
-      // Expected columns based on the latest migration (V43)
+      // Expected columns based on the latest migration (V52)
       const expectedColumns = [
         "author",
         "categories",
@@ -92,6 +92,9 @@ describe("Schema Snapshot Tests", () => {
         "is_liked",
         "name",
         "owner",
+        "pantry_match_percentage",
+        "pantry_matching_count",
+        "pantry_total_count",
         "prep_time",
         "recipe_yield",
         "recipe_yield_name",
@@ -121,6 +124,7 @@ describe("Schema Snapshot Tests", () => {
         "form",
         "group_id",
         "id",
+        "in_pantry",
         "measurement",
         "name",
         "quantity",
@@ -211,6 +215,9 @@ describe("Schema Snapshot Tests", () => {
         "liked_at",
         "name",
         "owner",
+        "pantry_match_percentage",
+        "pantry_matching_count",
+        "pantry_total_count",
         "prep_time",
         "recipe_yield",
         "recipe_yield_name",

@@ -32,6 +32,7 @@ export interface Ingredient {
   sort_order?: number
   food_id?: string
   unit_id?: string
+  in_pantry?: boolean
 }
 
 export interface InstructionGroup {
@@ -69,6 +70,9 @@ export interface Recipe {
   instruction_groups: InstructionGroup[]
   instructions: Instruction[]
   is_liked?: boolean
+  pantry_match_percentage?: number
+  pantry_matching_count?: number
+  pantry_total_count?: number
 }
 
 export interface CreateRecipeInput {

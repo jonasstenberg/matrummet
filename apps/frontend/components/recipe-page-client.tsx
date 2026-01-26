@@ -7,14 +7,12 @@ import { RecipeViewToggle } from '@/components/recipe-view-toggle'
 import { RecipeGrid } from '@/components/recipe-grid'
 import { CategoryFilter } from '@/components/category-filter'
 import { IngredientFilterToggle } from '@/components/ingredient-filter-toggle'
-import type { RecipeMatchData } from '@/components/recipe-card'
 import type { Recipe } from '@/lib/types'
 import type { PantryItem } from '@/lib/ingredient-search-types'
 
 interface RecipePageClientProps {
   initialRecipes: Recipe[]
   initialPantry: PantryItem[]
-  initialMatchData?: Record<string, RecipeMatchData>
   categories: string[]
   activeView?: 'mine' | 'all' | 'liked'
   isAuthenticated: boolean
@@ -23,7 +21,6 @@ interface RecipePageClientProps {
 export function RecipePageClient({
   initialRecipes,
   initialPantry,
-  initialMatchData,
   categories,
   activeView = 'mine',
   isAuthenticated,
@@ -116,29 +113,19 @@ export function RecipePageClient({
     }
   }, [])
 
-  // Build match data map from pre-computed data
-  const matchDataMap = useMemo(() => {
-    if (!initialMatchData || Object.keys(initialMatchData).length === 0) {
-      return undefined
-    }
-    return new Map(Object.entries(initialMatchData))
-  }, [initialMatchData])
-
   // Prepare recipes for display
   const displayRecipes = useMemo(() => {
     let recipes: Recipe[]
 
-    if (isFilterActive && hasPantry && initialMatchData) {
+    if (isFilterActive && hasPantry) {
       // When filter is active: filter recipes by min match percentage
       recipes = initialRecipes.filter((recipe) => {
-        const matchData = initialMatchData[recipe.id]
-        return matchData && matchData.percentage >= minMatchPercentage
+        const percentage = recipe.pantry_match_percentage ?? 0
+        return percentage >= minMatchPercentage
       })
       // Sort by match percentage descending
       recipes.sort((a, b) => {
-        const matchA = initialMatchData[a.id]?.percentage ?? 0
-        const matchB = initialMatchData[b.id]?.percentage ?? 0
-        return matchB - matchA
+        return (b.pantry_match_percentage ?? 0) - (a.pantry_match_percentage ?? 0)
       })
     } else {
       // When filter is inactive: show all initial recipes
@@ -154,7 +141,7 @@ export function RecipePageClient({
     }
 
     return recipes
-  }, [isFilterActive, hasPantry, initialMatchData, minMatchPercentage, initialRecipes, activeCategories])
+  }, [isFilterActive, hasPantry, minMatchPercentage, initialRecipes, activeCategories])
 
   // Results summary text
   const resultsSummary = useMemo(() => {
@@ -202,7 +189,7 @@ export function RecipePageClient({
       {/* Recipe Grid */}
       <RecipeGrid
         recipes={displayRecipes}
-        matchDataMap={matchDataMap}
+        showPantryMatch={isFilterActive && hasPantry}
         emptyMessage={
           isFilterActive
             ? 'Inga matchande recept hittades'

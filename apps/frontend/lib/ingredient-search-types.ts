@@ -56,11 +56,3 @@ export interface CommonPantryItem {
   category: 'basic' | 'herb' | 'spice' | 'seasoning'
 }
 
-export interface RecipeMatchStats {
-  recipe_id: string
-  total_ingredients: number
-  matching_ingredients: number
-  match_percentage: number
-  missing_food_ids: string[]
-  missing_food_names: string[]
-}

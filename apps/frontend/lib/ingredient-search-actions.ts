@@ -2,7 +2,7 @@
 
 import { cookies } from 'next/headers'
 import { verifyToken, signPostgrestToken } from '@/lib/auth'
-import type { RecipeMatch, PantryItem, SubstitutionResponse, CommonPantryItem, RecipeMatchStats } from './ingredient-search-types'
+import type { RecipeMatch, PantryItem, SubstitutionResponse, CommonPantryItem } from './ingredient-search-types'
 
 const POSTGREST_URL = process.env.POSTGREST_URL || 'http://localhost:4444'
 
@@ -293,44 +293,3 @@ export async function getCommonPantryItems(): Promise<CommonPantryItem[]> {
   }
 }
 
-export async function getRecipeMatchStats(
-  foodIds: string[],
-  recipeIds?: string[]
-): Promise<RecipeMatchStats[] | { error: string }> {
-  try {
-    if (foodIds.length === 0) {
-      return []
-    }
-
-    const token = await getPostgrestToken()
-
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    }
-
-    if (token) {
-      headers.Authorization = `Bearer ${token}`
-    }
-
-    const response = await fetch(`${POSTGREST_URL}/rpc/get_recipe_match_stats`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        p_food_ids: foodIds,
-        p_recipe_ids: recipeIds ?? null,
-      }),
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('Failed to get recipe match stats:', errorText)
-      return { error: 'Kunde inte hämta receptstatistik. Försök igen.' }
-    }
-
-    const results: RecipeMatchStats[] = await response.json()
-    return results
-  } catch (error) {
-    console.error('Error getting recipe match stats:', error)
-    return { error: 'Ett oväntat fel uppstod. Försök igen.' }
-  }
-}

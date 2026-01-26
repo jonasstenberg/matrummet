@@ -1,16 +1,16 @@
-import { RecipeCard, type RecipeMatchData } from '@/components/recipe-card'
+import { RecipeCard } from '@/components/recipe-card'
 import type { Recipe } from '@/lib/types'
 
 interface RecipeGridProps {
   recipes: Recipe[]
-  matchDataMap?: Map<string, RecipeMatchData>
+  showPantryMatch?: boolean
   emptyMessage?: string
   emptyDescription?: string
 }
 
 export function RecipeGrid({
   recipes,
-  matchDataMap,
+  showPantryMatch,
   emptyMessage = 'Inga recept hittades',
   emptyDescription = 'Prova att justera dina filter eller sök efter något annat.',
 }: RecipeGridProps) {
@@ -31,7 +31,7 @@ export function RecipeGrid({
         <RecipeCard
           key={recipe.id}
           recipe={recipe}
-          matchData={matchDataMap?.get(recipe.id)}
+          showPantryMatch={showPantryMatch}
         />
       ))}
     </div>

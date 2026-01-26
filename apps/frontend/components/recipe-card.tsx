@@ -3,17 +3,10 @@ import { cn, getImageUrl, getImageSrcSet } from "@/lib/utils";
 import { Clock, Heart, Users, UtensilsCrossed } from "lucide-react";
 import Link from "next/link";
 
-export interface RecipeMatchData {
-  percentage: number;
-  matchingIngredients: number;
-  totalIngredients: number;
-  missingFoodNames?: string[];
-}
-
 interface RecipeCardProps {
   recipe: Recipe;
   className?: string;
-  matchData?: RecipeMatchData;
+  showPantryMatch?: boolean;
 }
 
 function formatDuration(totalMinutes: number): string {
@@ -77,7 +70,7 @@ function getMatchBgColor(percentage: number): string {
   return "bg-orange-600";
 }
 
-export function RecipeCard({ recipe, className, matchData }: RecipeCardProps) {
+export function RecipeCard({ recipe, className, showPantryMatch }: RecipeCardProps) {
   const totalTime = calculateTotalTime(recipe.prep_time, recipe.cook_time);
   const imageUrl = getImageUrl(recipe.image, 'medium');
   const imageSrcSet = getImageSrcSet(recipe.image);
@@ -115,10 +108,10 @@ export function RecipeCard({ recipe, className, matchData }: RecipeCardProps) {
           )}
 
           {/* Match percentage badge */}
-          {matchData && (
+          {showPantryMatch && recipe.pantry_match_percentage != null && recipe.pantry_total_count != null && recipe.pantry_total_count > 0 && (
             <div className="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 shadow-sm backdrop-blur-sm">
-              <span className={cn("text-sm font-semibold", getMatchColor(matchData.percentage))}>
-                {matchData.percentage}%
+              <span className={cn("text-sm font-semibold", getMatchColor(recipe.pantry_match_percentage))}>
+                {recipe.pantry_match_percentage}%
               </span>
             </div>
           )}
@@ -168,24 +161,24 @@ export function RecipeCard({ recipe, className, matchData }: RecipeCardProps) {
             {recipe.name}
           </h2>
 
-          {recipe.description && recipe.description !== "-" && !matchData && (
+          {recipe.description && recipe.description !== "-" && !showPantryMatch && (
             <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
               {recipe.description}
             </p>
           )}
 
           {/* Match progress bar */}
-          {matchData && (
+          {showPantryMatch && recipe.pantry_match_percentage != null && recipe.pantry_total_count != null && recipe.pantry_total_count > 0 && (
             <div className="mt-3 space-y-1.5">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>
-                  {matchData.matchingIngredients}/{matchData.totalIngredients} ingredienser
+                  {recipe.pantry_matching_count}/{recipe.pantry_total_count} ingredienser
                 </span>
               </div>
               <div className="h-2 overflow-hidden rounded-full bg-muted">
                 <div
-                  className={cn("h-full rounded-full transition-all duration-300", getMatchBgColor(matchData.percentage))}
-                  style={{ width: `${matchData.percentage}%` }}
+                  className={cn("h-full rounded-full transition-all duration-300", getMatchBgColor(recipe.pantry_match_percentage))}
+                  style={{ width: `${recipe.pantry_match_percentage}%` }}
                 />
               </div>
             </div>
