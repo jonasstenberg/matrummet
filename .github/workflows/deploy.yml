@@ -269,7 +269,7 @@ jobs:
 
       - name: Deploy migrations
         run: |
-          rsync -avz --exclude='backups' flyway/ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/recept/flyway/
+          rsync -avz --delete --exclude='backups' flyway/ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/recept/flyway/
 
           ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'source /opt/recept/.flyway.env && cd /opt/recept/flyway && ./run-flyway.sh migrate' || {
             echo "::error::Database migration failed. Please check the logs for details."
