@@ -22,6 +22,7 @@ pnpm dev                    # Start all apps (frontend uses Turbopack)
 pnpm build                  # Build all apps
 pnpm lint                   # Lint all packages
 pnpm test                   # Run all tests
+pnpm test:api               # Run API integration tests (see below)
 ./start-postgrest.sh        # Start PostgREST API on port 4444
 ./flyway/run-flyway.sh info # Check migration status
 ./flyway/run-flyway.sh migrate  # Apply migrations (auto-backup)
@@ -35,9 +36,23 @@ For build/lint/test, use the run-silent wrapper to minimize output on success:
 .claude/hooks/run-silent.sh "Build" "pnpm build"
 .claude/hooks/run-silent.sh "Lint" "pnpm lint"
 .claude/hooks/run-silent.sh "Tests" "pnpm test --run"
+.claude/hooks/run-silent.sh "API Tests" "pnpm test:api"
 ```
 
 Output: `✓ Build` on success, full error output on failure. Saves context tokens.
+
+### API Integration Tests
+
+Requires Docker test environment (PG on 5433, PostgREST on 4445):
+
+```bash
+docker-compose -f docker-compose.test.yml up -d  # Start test PG + PostgREST
+pnpm test:api                                     # Run API contract tests
+docker-compose -f docker-compose.test.yml down     # Teardown
+```
+
+After schema changes, recreate to pick up new migrations:
+`docker-compose -f docker-compose.test.yml down -v && docker-compose -f docker-compose.test.yml up -d`
 
 ### Database
 
