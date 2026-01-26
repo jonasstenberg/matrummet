@@ -218,7 +218,7 @@ jobs:
             -e PGRST_JWT_ROLE_CLAIM_KEY=.role \
             -e PGRST_DB_PRE_REQUEST=pre_request \
             -e PGRST_DB_EXTRA_SEARCH_PATH=extensions \
-            -e PGRST_OPENAPI_MODE=ignore-privileges \
+            -e PGRST_OPENAPI_MODE=follow-privileges \
             -e PGRST_SERVER_PORT=4445 \
             postgrest/postgrest:v14.3
 
