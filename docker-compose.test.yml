@@ -39,6 +39,8 @@ services:
       PGRST_JWT_SECRET: recept-jwt-secret-change-in-production-min-32-chars
       PGRST_JWT_SECRET_IS_BASE64: "false"
       PGRST_JWT_ROLE_CLAIM_KEY: .role
+      PGRST_DB_PRE_REQUEST: pre_request
+      PGRST_OPENAPI_MODE: follow-privileges
     ports:
       - "4445:3000"
     depends_on:

@@ -1,143 +1,90 @@
 # Home Assistant-integration
 
-Integrera din Recept-inkopslista med Home Assistant for att visa och hantera din inkopslista via dashboards, rostassistenter och automationer.
+Integrera Recept med Home Assistant via det publika API:et (`api.matrummet.se`). API:et drivs av PostgREST och autentiseras med `X-API-Key`-headern.
 
-## Forutsattningar
+## Förutsättningar
 
-1. En Recept-instans tillganglig via HTTPS
-2. Ett anvandarkonto pa Recept
-3. Home Assistant 2023.1 eller senare
+1. Ett användarkonto på Recept
+2. Home Assistant 2023.1 eller senare
 
 ## Steg 1: Skapa API-nyckel
 
-1. Logga in pa Recept
-2. Ga till **Installningar** > **API-nycklar**
+1. Logga in på Recept
+2. Gå till **Inställningar** > **API-nycklar**
 3. Klicka **Skapa ny nyckel**
 4. Ge nyckeln ett namn (t.ex. "Home Assistant")
-5. **Viktigt:** Kopiera nyckeln direkt! Den visas bara en gang.
-6. Lagg till nyckeln i `secrets.yaml`:
+5. **Viktigt:** Kopiera nyckeln direkt! Den visas bara en gång.
+6. Lägg till nyckeln i `secrets.yaml`:
 
 ```yaml
-recept_api_key: "sk_ditt-api-nyckel-har"
+recept_api_key: "sk_ditt-api-nyckel-här"
 ```
 
 ## Steg 2: Konfigurera sensor
 
-Lagg till i `configuration.yaml`:
+Lägg till i `configuration.yaml`:
 
 ```yaml
 sensor:
   - platform: rest
-    name: "Inkopslista"
-    resource: "https://din-recept-url.com/api/shopping-list"
+    name: "Inköpslista"
+    resource: "https://api.matrummet.se/shopping_list_view?order=is_checked.asc,sort_order.asc"
     headers:
       X-API-Key: !secret recept_api_key
-    value_template: "{{ value_json.unchecked_count }}"
+    value_template: "{{ value_json | selectattr('is_checked', 'false') | list | length }}"
     unit_of_measurement: "varor"
-    json_attributes:
-      - items
-      - checked_count
-      - unchecked_count
+    json_attributes_path: "$"
     scan_interval: 300
 ```
 
 ## Steg 3: Konfigurera kommandon (valfritt)
 
-For att kunna bocka av varor via Home Assistant:
+För att bocka av varor och rensa listan via Home Assistant:
 
 ```yaml
 rest_command:
-  recept_check_item:
-    url: "https://din-recept-url.com/api/shopping-list/check"
+  recept_toggle_item:
+    url: "https://api.matrummet.se/rpc/toggle_shopping_list_item"
     method: POST
     headers:
       X-API-Key: !secret recept_api_key
       Content-Type: application/json
-    payload: '{"item_id": "{{ item_id }}", "checked": {{ checked }}}'
+    payload: '{"p_item_id": "{{ item_id }}"}'
 
   recept_clear_checked:
-    url: "https://din-recept-url.com/api/shopping-list/clear"
+    url: "https://api.matrummet.se/rpc/clear_checked_items"
     method: POST
     headers:
       X-API-Key: !secret recept_api_key
       Content-Type: application/json
+    payload: '{}'
 ```
 
 ## Steg 4: Dashboard-kort
 
-Skapa ett kort som visar inkopslistan:
+Skapa ett kort som visar inköpslistan:
 
 ```yaml
 type: markdown
-title: Inkopslista
+title: Inköpslista
 content: |
-  {% set items = state_attr('sensor.inkopslista', 'items') | selectattr('is_checked', 'false') | list %}
-  {% if items | length == 0 %}
-  Inkopslistan ar tom!
+  {% set items = state_attr('sensor.inkopslista', 'items') %}
+  {% if items is none or items | length == 0 %}
+  Inköpslistan är tom!
   {% else %}
-  {% for item in items %}
-  - [ ] {{ item.quantity }} {{ item.unit }} {{ item.name }}
+  {% for item in items if not item.is_checked %}
+  - [ ] {{ item.quantity }} {{ item.display_unit }} {{ item.display_name }}
   {% endfor %}
   {% endif %}
 ```
 
-### Alternativ: Entitetslista med script
+## Steg 5: Automationer
 
-For en mer interaktiv lista kan du skapa scripts for varje vara:
-
-```yaml
-script:
-  check_shopping_item:
-    alias: "Bocka av vara"
-    sequence:
-      - service: rest_command.recept_check_item
-        data:
-          item_id: "{{ item_id }}"
-          checked: true
-```
-
-## API-dokumentation
-
-Fullstandig OpenAPI-specifikation finns pa:
-`https://din-recept-url.com/api/openapi.json`
-
-### Endpoints
-
-| Endpoint | Metod | Beskrivning |
-|----------|-------|-------------|
-| `/api/shopping-list` | GET | Hamta inkopslista |
-| `/api/shopping-list/check` | POST | Bocka av/pa objekt |
-| `/api/shopping-list/clear` | POST | Rensa avbockade objekt |
-
-### Autentisering
-
-Alla anrop kraver `X-API-Key` header med en giltig API-nyckel.
-
-### Exempel med curl
-
-Hamta inkopslistan:
-
-```bash
-curl -H "X-API-Key: sk_din-nyckel" https://din-recept-url.com/api/shopping-list
-```
-
-Bocka av en vara:
-
-```bash
-curl -X POST \
-  -H "X-API-Key: sk_din-nyckel" \
-  -H "Content-Type: application/json" \
-  -d '{"item_id": "uuid-har", "checked": true}' \
-  https://din-recept-url.com/api/shopping-list/check
-```
-
-## Automationer
-
-### Paminnelse nar du lamnar hemmet
+### Påminnelse när du lämnar hemmet
 
 ```yaml
 automation:
-  - alias: "Paminn om inkopslista"
+  - alias: "Påminn om inköpslista"
     trigger:
       - platform: zone
         entity_id: person.du
@@ -150,8 +97,8 @@ automation:
     action:
       - service: notify.mobile_app
         data:
-          title: "Inkopslista"
-          message: "Du har {{ states('sensor.inkopslista') }} varor pa inkopslistan"
+          title: "Inköpslista"
+          message: "Du har {{ states('sensor.inkopslista') }} varor på inköpslistan"
 ```
 
 ### Rensa listan automatiskt
@@ -166,28 +113,94 @@ automation:
       - service: rest_command.recept_clear_checked
 ```
 
-## Felsokning
+## API-dokumentation
 
-### 401 Unauthorized
+PostgREST genererar en fullständig OpenAPI-specifikation automatiskt:
 
-- Kontrollera att API-nyckeln ar korrekt
-- Kontrollera att nyckeln inte har aterkallats
+```
+https://api.matrummet.se/
+```
+
+Öppna URL:en i en webbläsare (den returnerar JSON med `Accept: application/openapi+json`).
+
+### Tillgängliga endpoints
+
+| Funktion | Endpoint | Metod |
+|----------|----------|-------|
+| Sök recept | `/rpc/search_recipes` | POST |
+| Receptdetaljer | `/recipes_and_categories?id=eq.{id}` | GET |
+| Bläddra recept | `/recipes_and_categories?order=date_published.desc&limit=20` | GET |
+| Lista kategorier | `/categories?select=name&order=name` | GET |
+| Hämta skafferi | `/rpc/get_user_pantry` | POST |
+| Lägg till i skafferi | `/rpc/add_to_pantry` | POST |
+| Ta bort från skafferi | `/rpc/remove_from_pantry` | POST |
+| Vanliga skaffervaror | `/rpc/get_common_pantry_items` | POST |
+| Recept utifrån skafferi | `/rpc/find_recipes_from_pantry` | POST |
+| Alla inköpslistor | `/rpc/get_user_shopping_lists` | POST |
+| Inköpslistans varor | `/shopping_list_view?order=is_checked.asc,sort_order.asc` | GET |
+| Lägg till recept i lista | `/rpc/add_recipe_to_shopping_list` | POST |
+| Bocka av/på vara | `/rpc/toggle_shopping_list_item` | POST |
+| Rensa avbockade | `/rpc/clear_checked_items` | POST |
+
+### Autentisering
+
+Alla anrop kräver `X-API-Key` header med en giltig API-nyckel. Publika data (t.ex. recept) kan läsas utan nyckel.
+
+### Exempel med curl
+
+Hämta inköpslistan:
+
+```bash
+curl -H "X-API-Key: sk_din-nyckel" \
+  https://api.matrummet.se/shopping_list_view?order=is_checked.asc,sort_order.asc
+```
+
+Bocka av en vara:
+
+```bash
+curl -X POST \
+  -H "X-API-Key: sk_din-nyckel" \
+  -H "Content-Type: application/json" \
+  -d '{"p_item_id": "uuid-här"}' \
+  https://api.matrummet.se/rpc/toggle_shopping_list_item
+```
+
+Sök recept:
+
+```bash
+curl -X POST \
+  -H "X-API-Key: sk_din-nyckel" \
+  -H "Content-Type: application/json" \
+  -d '{"search_query": "kanelbullar"}' \
+  https://api.matrummet.se/rpc/search_recipes
+```
+
+Hämta skafferi:
+
+```bash
+curl -X POST \
+  -H "X-API-Key: sk_din-nyckel" \
+  -H "Content-Type: application/json" \
+  -d '{}' \
+  https://api.matrummet.se/rpc/get_user_pantry
+```
+
+## Felsökning
+
+### 403 Forbidden
+
+- Kontrollera att API-nyckeln är korrekt
+- Kontrollera att nyckeln inte har återkallats
 - Se till att headern heter exakt `X-API-Key`
 
 ### Sensorn uppdateras inte
 
 - Kontrollera `scan_interval` (standard 300 sekunder)
 - Testa URL:en manuellt med curl
-- Kontrollera Home Assistant-loggarna for fel
+- Kontrollera Home Assistant-loggarna för fel
 
-### Inga attribut visas
+## Säkerhetsöverväganden
 
-- Se till att `json_attributes` ar korrekt konfigurerat
-- Kontrollera att API:et returnerar forvantat format
-
-## Sakerhetsovervaganden
-
-- Skapa en separat API-nyckel for Home Assistant
-- Anvand alltid HTTPS
-- Aterkalla nyckeln omedelbart om den komprometteras
-- Overvaega att begranusa atkomst via brandvagg om mojligt
+- Skapa en separat API-nyckel för Home Assistant
+- Använd alltid HTTPS
+- Återkalla nyckeln omedelbart om den komprometteras

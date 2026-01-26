@@ -171,7 +171,7 @@ export function ApiKeyManager({ initialKeys }: ApiKeyManagerProps) {
           <p className="text-sm text-muted-foreground mt-1">
             Hantera API-nycklar för externa integrationer som Home Assistant.{' '}
             <a
-              href="/api/openapi.json"
+              href="https://api.matrummet.se/"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-primary hover:underline"
