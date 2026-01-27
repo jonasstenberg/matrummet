@@ -9,28 +9,29 @@ See: .planning/PROJECT.md (updated 2026-01-27)
 
 ## Current Position
 
-Phase: 1 of 3 (Extract Hemmet to Standalone Page) — COMPLETE
-Plan: 3 of 3 in current phase — all verified
-Status: Phase 1 verified. Ready for Phase 2.
-Last activity: 2026-01-27 -- Phase 1 verified (5/5 must-haves passed)
+Phase: 2 of 3 (Settings Sidebar Layout)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-01-27 -- Completed 02-01-PLAN.md
 
-Progress: [███░░░░░░░] 33%
+Progress: [████░░░░░░] 40%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
+- Total plans completed: 4
 - Average duration: 3min
-- Total execution time: 8min
+- Total execution time: 10min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-extract-hemmet-to-standalone-page | 3 | 8min | 3min |
+| 02-settings-sidebar-layout | 1 | 2min | 2min |
 
 **Recent Trend:**
-- Last 5 plans: 3min, 3min, 2min
+- Last 5 plans: 3min, 3min, 2min, 2min
 - Trend: Excellent velocity (under target)
 
 *Updated after each plan completion*
@@ -50,6 +51,10 @@ Recent decisions affecting current work:
 - [01-03]: Split single monolithic Card into 4 separate Cards for clear visual hierarchy (SC-03 requires "clearly separated sections").
 - [01-03]: Put join link first, email invite second in invite flow (simpler method first reduces cognitive load).
 - [01-03]: Removed "eller" divider between invite methods (REQ-07 - eliminates false mutual exclusion confusion).
+- [02-01]: Used CSS Grid with grid-cols-[240px_1fr] for precise sidebar width control (accommodates Swedish text labels).
+- [02-01]: Sidebar sticky positioned at top-20 to remain visible during scroll.
+- [02-01]: Active pill styling uses bg-warm for regular items, bg-destructive for danger items (visual hierarchy).
+- [02-01]: Separated danger zone with Separator component and uppercase label styling.
 
 ### Pending Todos
 
@@ -57,12 +62,11 @@ None yet.
 
 ### Blockers/Concerns
 
-- Research flagged: Household role-based UI specifics (admin vs member visibility) need validation against existing RLS policies during Phase 1 planning.
 - Research flagged: `cacheComponents` is experimental in Next.js 16. If it causes issues in Phase 2, fall back to explicit save patterns.
-- [01-03]: Card layout pattern established here should be considered for Phase 2 settings sidebar consistency.
+- [02-01]: Sidebar/pill navigation pattern now established - can be reused for other navigation scenarios if needed.
 
 ## Session Continuity
 
 Last session: 2026-01-27
-Stopped at: Phase 1 execution complete and verified. Ready for Phase 2 planning.
+Stopped at: Completed 02-01-PLAN.md
 Resume file: None
