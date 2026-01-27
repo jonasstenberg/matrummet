@@ -9,7 +9,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { isAdmin } from "@/lib/is-admin";
-import { LogOut, Menu, Plus, Settings, ShoppingCart, Sparkles, UtensilsCrossed, UserCog } from "lucide-react";
+import { Home, LogOut, Menu, Plus, Settings, ShoppingCart, Sparkles, UtensilsCrossed, UserCog } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -63,6 +63,14 @@ export function MobileMenu() {
                 >
                   <ShoppingCart className="h-4 w-4" />
                   Inköpslista
+                </Link>
+                <Link
+                  href="/hemmet"
+                  className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                  onClick={() => setOpen(false)}
+                >
+                  <Home className="h-4 w-4" />
+                  Mitt hem
                 </Link>
                 <Link
                   href="/krediter"

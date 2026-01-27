@@ -1,4 +1,5 @@
 export { HomeSettings } from './home-settings'
+export { HomeSettingsClient } from './home-settings-client'
 export { HomeMemberList } from './home-member-list'
 export { HomeInviteSection } from './home-invite-section'
 export { HomeJoinCode } from './home-join-code'

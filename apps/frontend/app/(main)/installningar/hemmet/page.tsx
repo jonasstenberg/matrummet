@@ -1,7 +1,7 @@
 import { getSession, signPostgrestToken } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { SettingsViewToggle } from '@/components/settings-view-toggle'
-import { HomeSettingsClient } from './home-settings-client'
+import { HomeSettingsClient } from '@/components/home/home-settings-client'
 import { env } from '@/lib/env'
 
 async function getHomeInfo(token: string) {
