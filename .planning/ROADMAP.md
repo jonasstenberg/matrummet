@@ -28,11 +28,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Home page displays household info, members, and invite flow in clearly separated sections (not crammed together)
   4. User can invite a household member via join code or email without confusion about which method to use
   5. Visiting the old URL `/installningar/hemmet` redirects to `/hemmet/` (no broken bookmarks)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md — Create standalone /hemmet/ route and move HomeSettingsClient to shared components
+- [ ] 01-02-PLAN.md — Add navigation links and 308 redirect from old URL
 
 ### Phase 2: Settings Sidebar Layout
 **Goal**: Users navigate settings through a clean sidebar on desktop and stacked links on mobile, with a separated danger zone for account deletion
@@ -71,6 +71,6 @@ Phases execute in numeric order: 1 -> 2 -> 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
-| 1. Extract Hemmet | 0/TBD | Not started | - |
+| 1. Extract Hemmet | 0/2 | Planned | - |
 | 2. Settings Sidebar | 0/TBD | Not started | - |
 | 3. Integration & Polish | 0/TBD | Not started | - |
