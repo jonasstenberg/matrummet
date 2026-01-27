@@ -12,7 +12,7 @@ This milestone restructures Matrummet's settings page from horizontal tabs to a 
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Extract Hemmet to Standalone Page** - Move Home management out of settings into its own route with improved layout
+- [x] **Phase 1: Extract Hemmet to Standalone Page** - Move Home management out of settings into its own route with improved layout
 - [ ] **Phase 2: Settings Sidebar Layout** - Replace horizontal tabs with vertical sidebar navigation and add danger zone section
 - [ ] **Phase 3: Integration & Visual Polish** - Cross-page verification, visual consistency, and clean modern design for both pages
 
@@ -31,9 +31,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Create standalone /hemmet/ route and move HomeSettingsClient to shared components
-- [ ] 01-02-PLAN.md — Add navigation links and 308 redirect from old URL
-- [ ] 01-03-PLAN.md — Redesign home page layout with separate Card sections and simplified invite flow
+- [x] 01-01-PLAN.md — Create standalone /hemmet/ route and move HomeSettingsClient to shared components
+- [x] 01-02-PLAN.md — Add navigation links and 308 redirect from old URL
+- [x] 01-03-PLAN.md — Redesign home page layout with separate Card sections and simplified invite flow
 
 ### Phase 2: Settings Sidebar Layout
 **Goal**: Users navigate settings through a clean sidebar on desktop and stacked links on mobile, with a separated danger zone for account deletion
@@ -72,6 +72,6 @@ Phases execute in numeric order: 1 -> 2 -> 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
-| 1. Extract Hemmet | 0/3 | Planned | - |
+| 1. Extract Hemmet | 3/3 | ✓ Complete | 2026-01-27 |
 | 2. Settings Sidebar | 0/TBD | Not started | - |
 | 3. Integration & Polish | 0/TBD | Not started | - |
