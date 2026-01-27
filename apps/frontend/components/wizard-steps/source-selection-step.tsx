@@ -47,9 +47,10 @@ type SelectedOption = null | "url" | "ai"
 interface SourceSelectionStepProps {
   onImport: (data: ImportData, lowConfidenceIndices?: number[], originalPrompt?: string) => void
   onStartBlank: () => void
-  isAdmin: boolean
+  credits: number | null
   selectedOption: SelectedOption
   onOptionChange: (option: SelectedOption) => void
+  onCreditsUpdate?: (credits: number) => void
 }
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"]
@@ -58,9 +59,10 @@ const MAX_IMAGE_SIZE = 10 * 1024 * 1024
 export function SourceSelectionStep({
   onImport,
   onStartBlank,
-  isAdmin,
+  credits,
   selectedOption,
   onOptionChange,
+  onCreditsUpdate,
 }: SourceSelectionStepProps) {
 
   // URL import state
@@ -114,12 +116,12 @@ export function SourceSelectionStep({
         const formData = new FormData()
         formData.append("image", imageFile)
         if (aiText.trim()) formData.append("text", aiText.trim())
-        response = await fetch("/api/admin/gemini/parse", {
+        response = await fetch("/api/ai/generate", {
           method: "POST",
           body: formData,
         })
       } else {
-        response = await fetch("/api/admin/gemini/parse", {
+        response = await fetch("/api/ai/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ text: aiText.trim() }),
@@ -128,10 +130,18 @@ export function SourceSelectionStep({
 
       if (!response.ok) {
         const errorData = await response.json()
+        if (response.status === 402 || errorData.code === "INSUFFICIENT_CREDITS") {
+          setAiError("Du har inga AI-genereringar kvar. Köp fler under AI-krediter i menyn.")
+          return
+        }
         throw new Error(errorData.error || "Tolkning misslyckades")
       }
 
       const data = await response.json()
+      // Update remaining credits
+      if (data.remainingCredits !== undefined && onCreditsUpdate) {
+        onCreditsUpdate(data.remainingCredits)
+      }
       // Build original prompt description for display
       const promptParts: string[] = []
       if (imageFile) promptParts.push(`[Bild: ${imageFile.name}]`)
@@ -179,6 +189,31 @@ export function SourceSelectionStep({
         </div>
 
         <div className="grid gap-4 max-w-lg mx-auto">
+          {/* AI Generation Option — Primary */}
+          <button
+            type="button"
+            onClick={() => onOptionChange("ai")}
+            className={cn(
+              "flex items-center gap-4 rounded-xl border-2 border-warm/50 bg-warm/5 p-5 text-left transition-all",
+              "hover:border-warm hover:bg-warm/10"
+            )}
+          >
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-warm/15">
+              <Sparkles className="h-6 w-6 text-warm" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold">Skapa med AI</h3>
+              <p className="text-sm text-muted-foreground">
+                Klistra in text eller ladda upp en bild
+              </p>
+            </div>
+            {credits !== null && (
+              <div className="shrink-0 rounded-full bg-warm/15 px-3 py-1 text-sm font-medium text-warm">
+                {credits} kvar
+              </div>
+            )}
+          </button>
+
           {/* URL Import Option */}
           <button
             type="button"
@@ -218,28 +253,6 @@ export function SourceSelectionStep({
               </p>
             </div>
           </button>
-
-          {/* AI Import Option - Admin only */}
-          {isAdmin && (
-            <button
-              type="button"
-              onClick={() => onOptionChange("ai")}
-              className={cn(
-                "flex items-center gap-4 rounded-xl border-2 p-5 text-left transition-all",
-                "hover:border-primary hover:bg-primary/5"
-              )}
-            >
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent/20">
-                <Sparkles className="h-6 w-6 text-warm" />
-              </div>
-              <div>
-                <h3 className="font-semibold">Importera med AI</h3>
-                <p className="text-sm text-muted-foreground">
-                  Klistra in text eller ladda upp en bild
-                </p>
-              </div>
-            </button>
-          )}
         </div>
       </div>
     )

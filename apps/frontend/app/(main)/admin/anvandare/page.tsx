@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/select'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Pencil, Trash2, AlertCircle, UserCog } from 'lucide-react'
+import { Pencil, Trash2, AlertCircle, UserCog, Sparkles } from 'lucide-react'
 import {
   Pagination,
   PaginationContent,
@@ -85,6 +85,11 @@ export default function AdminUsersPage() {
   // Delete confirmation
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [userToDelete, setUserToDelete] = useState<User | null>(null)
+
+  // Credit grant dialog
+  const [creditDialogOpen, setCreditDialogOpen] = useState(false)
+  const [userToGrant, setUserToGrant] = useState<User | null>(null)
+  const [creditAmount, setCreditAmount] = useState('10')
 
   const loadUsers = useCallback(async () => {
     try {
@@ -253,6 +258,46 @@ export default function AdminUsersPage() {
   function confirmDelete(user: User) {
     setUserToDelete(user)
     setDeleteDialogOpen(true)
+  }
+
+  function openCreditDialog(user: User) {
+    setUserToGrant(user)
+    setCreditAmount('10')
+    setCreditDialogOpen(true)
+  }
+
+  async function handleGrantCredits() {
+    if (!userToGrant) return
+    const amount = parseInt(creditAmount, 10)
+    if (!amount || amount < 1 || amount > 1000) {
+      setError('Antal måste vara mellan 1 och 1000')
+      return
+    }
+
+    try {
+      setError(null)
+      setSuccess(null)
+
+      const response = await fetch('/api/credits/grant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: userToGrant.email, amount }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Kunde inte bevilja krediter')
+      }
+
+      const data = await response.json()
+      setSuccess(`${amount} krediter beviljades till ${userToGrant.name || userToGrant.email}. Nytt saldo: ${data.balance}`)
+      setCreditDialogOpen(false)
+      setUserToGrant(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ett fel uppstod')
+      setCreditDialogOpen(false)
+      setUserToGrant(null)
+    }
   }
 
   function updateURL(newPage: number, newSearch: string, newRole?: UserRole | 'all') {
@@ -493,6 +538,14 @@ export default function AdminUsersPage() {
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => openCreditDialog(user)}
+                          aria-label="Bevilja krediter"
+                        >
+                          <Sparkles className="h-4 w-4" />
+                        </Button>
                         {/* Hide role change to user for current user */}
                         {!(isCurrentUser(user) && user.role === 'admin') && (
                           <Button
@@ -643,6 +696,36 @@ export default function AdminUsersPage() {
             </Button>
             <Button variant="destructive" onClick={handleDelete}>
               Ta bort
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Grant credits dialog */}
+      <Dialog open={creditDialogOpen} onOpenChange={setCreditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Bevilja AI-krediter</DialogTitle>
+            <DialogDescription>
+              Ge krediter till {userToGrant?.name || userToGrant?.email}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              type="number"
+              min={1}
+              max={1000}
+              value={creditAmount}
+              onChange={(e) => setCreditAmount(e.target.value)}
+              placeholder="Antal krediter"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setCreditDialogOpen(false)}>
+              Avbryt
+            </Button>
+            <Button onClick={handleGrantCredits}>
+              Bevilja
             </Button>
           </DialogFooter>
         </DialogContent>

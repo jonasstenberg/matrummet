@@ -12,7 +12,7 @@ export default defineConfig({
     root: __dirname,
     globals: true,
     environment: "node",
-    include: ["lib/**/*.test.ts", "components/**/*.test.tsx"],
+    include: ["lib/**/*.test.ts", "components/**/*.test.tsx", "app/**/*.test.ts"],
     exclude: ["node_modules/**"],
     setupFiles: ["@recept/testing/setup/jsdom"],
   },

@@ -2,7 +2,7 @@
 
 ## What
 
-Recept is a Swedish recipe management app. Monorepo with:
+Matrummet is a Swedish recipe management app. Monorepo with:
 
 - `apps/frontend` — Next.js 16, React 19, Tailwind v4, Radix UI
 - `apps/email-service` — Email notifications

@@ -13,7 +13,6 @@ import {
   Step,
 } from "@/components/ui/stepper"
 import { useAuth } from "@/components/auth-provider"
-import { isAdmin } from "@/lib/is-admin"
 import { createRecipe } from "@/lib/actions"
 import {
   CreateRecipeInput,
@@ -299,7 +298,7 @@ interface WizardHistoryState {
 
 export function CreateRecipeWizard() {
   const router = useRouter()
-  const { user } = useAuth()
+  useAuth() // Ensures user is authenticated
   const [currentStep, setCurrentStep] = useState(0)
   const [sourceOption, setSourceOption] = useState<SourceOption>(null)
   const [formData, setFormData] = useState<RecipeFormData>(initialFormData)
@@ -309,6 +308,23 @@ export function CreateRecipeWizard() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [isHistoryNavigation, setIsHistoryNavigation] = useState(false)
+  const [credits, setCredits] = useState<number | null>(null)
+
+  // Fetch credit balance on mount
+  useEffect(() => {
+    async function fetchCredits() {
+      try {
+        const res = await fetch("/api/credits/balance")
+        if (res.ok) {
+          const data = await res.json()
+          setCredits(data.balance)
+        }
+      } catch {
+        // Silently fail — credits will show as null
+      }
+    }
+    fetchCredits()
+  }, [])
 
   // Initialize history state on mount
   useEffect(() => {
@@ -588,9 +604,10 @@ export function CreateRecipeWizard() {
             <SourceSelectionStep
               onImport={handleImport}
               onStartBlank={handleStartBlank}
-              isAdmin={isAdmin(user)}
+              credits={credits}
               selectedOption={sourceOption}
               onOptionChange={handleSourceOptionChange}
+              onCreditsUpdate={setCredits}
             />
           </StepperContent>
 

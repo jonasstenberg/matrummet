@@ -158,6 +158,9 @@ importers:
       sharp:
         specifier: ^0.34.5
         version: 0.34.5
+      stripe:
+        specifier: ^20.2.0
+        version: 20.2.0(@types/node@22.19.3)
       tailwind-merge:
         specifier: ^3.3.0
         version: 3.4.0
@@ -3661,6 +3664,10 @@ packages:
     resolution: {integrity: sha512-YWWTjgABSKcvs/nWBi9PycY/JiPJqOD4JA6o9Sej2AtvSGarXxKC3OQSk4pAarbdQlKAh5D4FCQkJNkW+GAn3w==}
     engines: {node: '>=0.6'}
 
+  qs@6.14.1:
+    resolution: {integrity: sha512-4EK3+xJl8Ts67nLYNwqw/dsFVnCf+qR7RgXSK9jEEm9unao3njwMDdmsdvoKBKHzxd7tCYz5e5M+SnMjdtXGQQ==}
+    engines: {node: '>=0.6'}
+
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
@@ -3953,6 +3960,15 @@ packages:
   strip-json-comments@3.1.1:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
     engines: {node: '>=8'}
+
+  stripe@20.2.0:
+    resolution: {integrity: sha512-m8niTfdm3nPP/yQswRWMwQxqEUcTtB3RTJQ9oo6NINDzgi7aPOadsH/fPXIIfL1Sc5+lqQFKSk7WiO6CXmvaeA==}
+    engines: {node: '>=16'}
+    peerDependencies:
+      '@types/node': '>=16'
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
 
   strnum@2.1.2:
     resolution: {integrity: sha512-l63NF9y/cLROq/yqKXSLtcMeeyOfnSQlfMSlzFt/K73oIaD8DGaQWd7Z34X9GPiKqP5rbSh84Hl4bOlLcjiSrQ==}
@@ -6892,8 +6908,8 @@ snapshots:
       '@next/eslint-plugin-next': 16.1.1
       eslint: 9.39.2(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(eslint@9.39.2(jiti@2.6.1)))(eslint@9.39.2(jiti@2.6.1))
-      eslint-plugin-import: 2.32.0(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.2(jiti@2.6.1))
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@9.39.2(jiti@2.6.1))
+      eslint-plugin-import: 2.32.0(eslint@9.39.2(jiti@2.6.1))
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.39.2(jiti@2.6.1))
       eslint-plugin-react: 7.37.5(eslint@9.39.2(jiti@2.6.1))
       eslint-plugin-react-hooks: 7.0.1(eslint@9.39.2(jiti@2.6.1))
@@ -6915,7 +6931,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(eslint@9.39.2(jiti@2.6.1)))(eslint@9.39.2(jiti@2.6.1)):
+  eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@9.39.2(jiti@2.6.1)):
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
       debug: 4.4.3
@@ -6926,7 +6942,7 @@ snapshots:
       tinyglobby: 0.2.15
       unrs-resolver: 1.11.1
     optionalDependencies:
-      eslint-plugin-import: 2.32.0(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.2(jiti@2.6.1))
+      eslint-plugin-import: 2.32.0(eslint@9.39.2(jiti@2.6.1))
     transitivePeerDependencies:
       - supports-color
 
@@ -6940,13 +6956,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.1(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(eslint@9.39.2(jiti@2.6.1)))(eslint@9.39.2(jiti@2.6.1)))(eslint@9.39.2(jiti@2.6.1)):
+  eslint-module-utils@2.12.1(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.2(jiti@2.6.1)):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
       eslint: 9.39.2(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(eslint@9.39.2(jiti@2.6.1)))(eslint@9.39.2(jiti@2.6.1))
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@9.39.2(jiti@2.6.1))
     transitivePeerDependencies:
       - supports-color
 
@@ -6979,7 +6995,7 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-plugin-import@2.32.0(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.2(jiti@2.6.1)):
+  eslint-plugin-import@2.32.0(eslint@9.39.2(jiti@2.6.1)):
     dependencies:
       '@rtsao/scc': 1.1.0
       array-includes: 3.1.9
@@ -6990,7 +7006,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 9.39.2(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.1(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(eslint@9.39.2(jiti@2.6.1)))(eslint@9.39.2(jiti@2.6.1)))(eslint@9.39.2(jiti@2.6.1))
+      eslint-module-utils: 2.12.1(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.2(jiti@2.6.1))
       hasown: 2.0.2
       is-core-module: 2.16.1
       is-glob: 4.0.3
@@ -8134,6 +8150,10 @@ snapshots:
     dependencies:
       side-channel: 1.1.0
 
+  qs@6.14.1:
+    dependencies:
+      side-channel: 1.1.0
+
   queue-microtask@1.2.3: {}
 
   quick-format-unescaped@4.0.4: {}
@@ -8531,6 +8551,12 @@ snapshots:
       min-indent: 1.0.1
 
   strip-json-comments@3.1.1: {}
+
+  stripe@20.2.0(@types/node@22.19.3):
+    dependencies:
+      qs: 6.14.1
+    optionalDependencies:
+      '@types/node': 22.19.3
 
   strnum@2.1.2: {}
 

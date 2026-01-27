@@ -4,7 +4,7 @@ import { useAuth } from "@/components/auth-provider";
 import { SearchBar } from "@/components/search-bar";
 import { Button } from "@/components/ui/button";
 import { isAdmin } from "@/lib/is-admin";
-import { ChefHat, LogOut, Menu, Settings, ShoppingCart, UtensilsCrossed, User, UserCog } from "lucide-react";
+import { ChefHat, LogOut, Menu, Settings, ShoppingCart, Sparkles, UtensilsCrossed, User, UserCog } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
@@ -99,6 +99,14 @@ export function Header() {
                     >
                       <ShoppingCart className="h-4 w-4" />
                       Inköpslista
+                    </Link>
+                    <Link
+                      href="/krediter"
+                      className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      AI-krediter
                     </Link>
                     <Link
                       href="/installningar"

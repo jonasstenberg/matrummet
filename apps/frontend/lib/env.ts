@@ -15,6 +15,9 @@ const envSchema = z.object({
   GOOGLE_SECRET: z.string().optional(),
   APP_URL: z.string().url().optional(),
   CRON_SECRET: z.string().optional(),
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  STRIPE_PUBLISHABLE_KEY: z.string().optional(),
 });
 
 type Env = z.infer<typeof envSchema>;
@@ -35,6 +38,9 @@ function getEnv(): Env {
     GOOGLE_SECRET: process.env.GOOGLE_SECRET,
     APP_URL: process.env.APP_URL,
     CRON_SECRET: process.env.CRON_SECRET,
+    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
+    STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+    STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY,
   });
 
   if (!result.success) {
@@ -81,5 +87,14 @@ export const env = {
   },
   get CRON_SECRET() {
     return getEnv().CRON_SECRET;
+  },
+  get STRIPE_SECRET_KEY() {
+    return getEnv().STRIPE_SECRET_KEY;
+  },
+  get STRIPE_WEBHOOK_SECRET() {
+    return getEnv().STRIPE_WEBHOOK_SECRET;
+  },
+  get STRIPE_PUBLISHABLE_KEY() {
+    return getEnv().STRIPE_PUBLISHABLE_KEY;
   },
 };
