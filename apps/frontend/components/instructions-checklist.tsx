@@ -1,7 +1,10 @@
 "use client";
 
 import { Checkbox } from "@/components/ui/checkbox";
+import { useIsMobile } from "@/lib/hooks/use-media-query";
+import { useWakeLock } from "@/lib/hooks/use-wake-lock";
 import { cn } from "@/lib/utils";
+import { Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface Instruction {
@@ -29,6 +32,10 @@ export function InstructionsChecklist({
   instructionGroups,
 }: InstructionsChecklistProps) {
   const [checkedSteps, setCheckedSteps] = useState<Set<number>>(new Set());
+  const [wakeLockEnabled, setWakeLockEnabled] = useState(false);
+  const isMobile = useIsMobile();
+
+  useWakeLock(wakeLockEnabled);
 
   // Load checked state from localStorage on mount
   useEffect(() => {
@@ -136,14 +143,38 @@ export function InstructionsChecklist({
     <div className="overflow-hidden rounded-2xl bg-card shadow-[0_2px_12px_-2px_rgba(139,90,60,0.1)]">
       <div className="flex items-center justify-between border-b border-border/50 bg-muted/30 px-5 py-4">
         <h2 className="text-lg font-semibold text-foreground">Gör så här</h2>
-        {hasCheckedSteps && (
-          <button
-            onClick={clearAll}
-            className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Börja om
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {hasCheckedSteps && (
+            <button
+              onClick={clearAll}
+              className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Börja om
+            </button>
+          )}
+          {isMobile && (
+            <button
+              onClick={() => setWakeLockEnabled((prev) => !prev)}
+              className={cn(
+                "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
+                wakeLockEnabled
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+              aria-label={
+                wakeLockEnabled
+                  ? "Stäng av håll skärmen vaken"
+                  : "Håll skärmen vaken"
+              }
+              title={
+                wakeLockEnabled ? "Skärmen hålls vaken" : "Håll skärmen vaken"
+              }
+            >
+              <Smartphone className="h-3.5 w-3.5" />
+              {wakeLockEnabled ? "Skärm vaken" : "Håll vaken"}
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="relative p-5">
