@@ -1,0 +1,28 @@
+name: Cleanup Orphaned Images
+
+on:
+  schedule:
+    - cron: "0 3 * * 0" # Weekly, Sunday 3am UTC
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Sync scripts to VPS
+        run: |
+          rsync -avz scripts/ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/recept/scripts/
+
+      - name: Run cleanup
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'bash /opt/recept/scripts/cleanup-orphaned-images.sh --delete'
