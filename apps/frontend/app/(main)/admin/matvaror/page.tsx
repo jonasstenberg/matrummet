@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/dialog'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Pencil, Trash2, Plus, AlertCircle, Check, X, ChefHat, ExternalLink, Loader2 } from 'lucide-react'
+import { Pencil, Trash2, Plus, AlertCircle, Check, X, ChefHat, ExternalLink, Loader2, Link2 } from 'lucide-react'
 import Link from 'next/link'
 import {
   Pagination,
@@ -40,6 +40,8 @@ interface Food {
   date_published: string
   date_modified: string
   ingredient_count: number
+  canonical_food_id: string | null
+  canonical_food_name: string | null
 }
 
 interface PaginatedResponse {
@@ -101,6 +103,14 @@ export default function AdminFoodsPage() {
   const [linkedRecipes, setLinkedRecipes] = useState<LinkedRecipe[]>([])
   const [loadingRecipes, setLoadingRecipes] = useState(false)
   const [selectedFoodForRecipes, setSelectedFoodForRecipes] = useState<Food | null>(null)
+
+  // Alias dialog
+  const [aliasDialogOpen, setAliasDialogOpen] = useState(false)
+  const [aliasDialogFood, setAliasDialogFood] = useState<Food | null>(null)
+  const [aliasSearchQuery, setAliasSearchQuery] = useState('')
+  const [aliasSearchResults, setAliasSearchResults] = useState<Array<{ id: string; name: string }>>([])
+  const [aliasSearchLoading, setAliasSearchLoading] = useState(false)
+  const aliasSearchTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
 
   const loadFoods = useCallback(async () => {
     try {
@@ -328,6 +338,34 @@ export default function AdminFoodsPage() {
     }
   }
 
+  async function handleApproveAsAlias(food: Food, canonicalFoodId: string) {
+    try {
+      setError(null)
+      setSuccess(null)
+
+      const response = await fetch('/api/admin/foods/approve-as-alias', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: food.id, canonicalFoodId }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Kunde inte godkänna matvara som alias')
+      }
+
+      setSuccess('Matvara godkänd som alias')
+      setSimilarDialogOpen(false)
+      setSimilarFoods([])
+      setFoodToApprove(null)
+      await loadFoods()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ett fel uppstod')
+    }
+  }
+
   function startEdit(food: Food) {
     setEditingId(food.id)
     setEditName(food.name)
@@ -364,6 +402,111 @@ export default function AdminFoodsPage() {
       setLoadingRecipes(false)
     }
   }
+
+  function openAliasDialog(food: Food) {
+    setAliasDialogFood(food)
+    setAliasSearchQuery('')
+    setAliasSearchResults([])
+    setAliasSearchLoading(false)
+    setAliasDialogOpen(true)
+  }
+
+  async function handleSetCanonical(food: Food, canonicalFoodId: string, canonicalFoodName: string) {
+    try {
+      setError(null)
+      setSuccess(null)
+
+      const response = await fetch('/api/admin/foods/set-canonical', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: food.id, canonicalFoodId }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Kunde inte sätta kanonisk matvara')
+      }
+
+      setFoods((prev) =>
+        prev.map((f) =>
+          f.id === food.id
+            ? { ...f, canonical_food_id: canonicalFoodId, canonical_food_name: canonicalFoodName }
+            : f
+        )
+      )
+      setAliasDialogOpen(false)
+      setAliasDialogFood(null)
+      setSuccess(`"${food.name}" är nu alias för "${canonicalFoodName}"`)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ett fel uppstod')
+    }
+  }
+
+  async function handleClearCanonical(food: Food) {
+    try {
+      setError(null)
+      setSuccess(null)
+
+      const response = await fetch('/api/admin/foods/set-canonical', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: food.id, canonicalFoodId: null }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Kunde inte rensa kanonisk matvara')
+      }
+
+      setFoods((prev) =>
+        prev.map((f) =>
+          f.id === food.id
+            ? { ...f, canonical_food_id: null, canonical_food_name: null }
+            : f
+        )
+      )
+      setAliasDialogOpen(false)
+      setAliasDialogFood(null)
+      setSuccess(`Alias borttaget från "${food.name}"`)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ett fel uppstod')
+    }
+  }
+
+  // Debounced alias search
+  useEffect(() => {
+    if (!aliasSearchQuery.trim()) {
+      setAliasSearchResults([])
+      setAliasSearchLoading(false)
+      return
+    }
+
+    setAliasSearchLoading(true)
+    clearTimeout(aliasSearchTimeoutRef.current)
+    aliasSearchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const params = new URLSearchParams({
+          search: aliasSearchQuery,
+          status: 'approved',
+        })
+        const response = await fetch(`/api/admin/foods?${params}`)
+        if (response.ok) {
+          const data: PaginatedResponse = await response.json()
+          // Filter out the food itself and foods that are already aliases
+          const filtered = data.items.filter(
+            (f) => f.id !== aliasDialogFood?.id && !f.canonical_food_id
+          )
+          setAliasSearchResults(filtered.map((f) => ({ id: f.id, name: f.name })))
+        }
+      } catch {
+        // silently fail search
+      } finally {
+        setAliasSearchLoading(false)
+      }
+    }, 300)
+
+    return () => clearTimeout(aliasSearchTimeoutRef.current)
+  }, [aliasSearchQuery, aliasDialogFood?.id])
 
   function updateURL(newPage: number, newSearch: string, newStatus?: FoodStatus | 'all') {
     const params = new URLSearchParams()
@@ -604,6 +747,12 @@ export default function AdminFoodsPage() {
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{food.name}</span>
                           {getStatusBadge(food.status)}
+                          {food.canonical_food_name && (
+                            <Badge className="bg-blue-100 text-blue-900 hover:bg-blue-100">
+                              <Link2 className="mr-1 h-3 w-3" />
+                              Alias av {food.canonical_food_name}
+                            </Badge>
+                          )}
                         </div>
                         <div className="mt-1 text-sm text-muted-foreground">
                           {food.ingredient_count > 0 ? (
@@ -658,6 +807,17 @@ export default function AdminFoodsPage() {
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
+                        {food.status === 'approved' && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => openAliasDialog(food)}
+                            aria-label="Hantera alias"
+                            className="text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                          >
+                            <Link2 className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           size="sm"
                           variant="ghost"
@@ -777,11 +937,27 @@ export default function AdminFoodsPage() {
           </DialogHeader>
           <div className="my-4">
             <p className="mb-2 text-sm font-medium">Befintliga liknande matvaror:</p>
-            <ul className="list-inside list-disc space-y-1 text-sm text-muted-foreground">
+            <div className="space-y-2">
               {similarFoods.map((similar) => (
-                <li key={similar.id}>{similar.name}</li>
+                <div
+                  key={similar.id}
+                  className="flex items-center justify-between rounded-lg border border-border p-2 text-sm"
+                >
+                  <span>{similar.name}</span>
+                  {foodToApprove && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleApproveAsAlias(foodToApprove, similar.id)}
+                      className="ml-2 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                    >
+                      <Link2 className="mr-1 h-3 w-3" />
+                      Godkänn som alias
+                    </Button>
+                  )}
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
           <DialogFooter>
             <Button
@@ -795,7 +971,7 @@ export default function AdminFoodsPage() {
               Avbryt
             </Button>
             <Button onClick={confirmApprove}>
-              Godkänn ändå
+              Godkänn som egen matvara
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -846,6 +1022,84 @@ export default function AdminFoodsPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setRecipesDialogOpen(false)}>
               Stäng
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Alias management dialog */}
+      <Dialog open={aliasDialogOpen} onOpenChange={setAliasDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Link2 className="h-5 w-5" />
+              Hantera alias: {aliasDialogFood?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Sök efter en kanonisk matvara att koppla som alias.
+            </DialogDescription>
+          </DialogHeader>
+
+          {aliasDialogFood?.canonical_food_name && (
+            <div className="flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 p-3">
+              <span className="text-sm">
+                Nuvarande: <strong>{aliasDialogFood.canonical_food_name}</strong>
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => aliasDialogFood && handleClearCanonical(aliasDialogFood)}
+                className="text-red-600 hover:bg-red-50 hover:text-red-700"
+              >
+                Rensa
+              </Button>
+            </div>
+          )}
+
+          <div className="space-y-3">
+            <Input
+              type="search"
+              placeholder="Sök kanonisk matvara..."
+              value={aliasSearchQuery}
+              onChange={(e) => setAliasSearchQuery(e.target.value)}
+              autoFocus
+            />
+
+            {aliasSearchLoading && (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              </div>
+            )}
+
+            {!aliasSearchLoading && aliasSearchResults.length > 0 && (
+              <div className="max-h-60 space-y-1 overflow-y-auto">
+                {aliasSearchResults.map((result) => (
+                  <button
+                    key={result.id}
+                    onClick={() =>
+                      aliasDialogFood &&
+                      handleSetCanonical(aliasDialogFood, result.id, result.name)
+                    }
+                    className="w-full rounded-lg border border-border p-2 text-left text-sm hover:bg-accent/50 transition-colors"
+                  >
+                    {result.name}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {!aliasSearchLoading &&
+              aliasSearchQuery.trim() &&
+              aliasSearchResults.length === 0 && (
+                <p className="text-center text-sm text-muted-foreground py-2">
+                  Inga matchande matvaror hittades
+                </p>
+              )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setAliasDialogOpen(false)}>
+              Avbryt
             </Button>
           </DialogFooter>
         </DialogContent>
