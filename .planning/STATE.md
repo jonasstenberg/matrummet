@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-01-27)
 ## Current Position
 
 Phase: 2 of 3 (Settings Sidebar Layout)
-Plan: 1 of 2 in current phase
+Plan: 2 of 2 in current phase
 Status: In progress
-Last activity: 2026-01-27 -- Completed 02-01-PLAN.md
+Last activity: 2026-01-27 -- Completed 02-02-PLAN.md
 
-Progress: [████░░░░░░] 40%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
+- Total plans completed: 5
 - Average duration: 3min
-- Total execution time: 10min
+- Total execution time: 13min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-extract-hemmet-to-standalone-page | 3 | 8min | 3min |
-| 02-settings-sidebar-layout | 1 | 2min | 2min |
+| 02-settings-sidebar-layout | 2 | 5min | 3min |
 
 **Recent Trend:**
-- Last 5 plans: 3min, 3min, 2min, 2min
+- Last 5 plans: 3min, 2min, 2min, 3min
 - Trend: Excellent velocity (under target)
 
 *Updated after each plan completion*
@@ -55,6 +55,8 @@ Recent decisions affecting current work:
 - [02-01]: Sidebar sticky positioned at top-20 to remain visible during scroll.
 - [02-01]: Active pill styling uses bg-warm for regular items, bg-destructive for danger items (visual hierarchy).
 - [02-01]: Separated danger zone with Separator component and uppercase label styling.
+- [02-02]: Account deletion requires email confirmation before delete button is enabled (prevents accidental single-click deletions).
+- [02-02]: SecurityForm now handles only password changes; account deletion is separate danger zone concern on /installningar/konto.
 
 ### Pending Todos
 
@@ -64,9 +66,10 @@ None yet.
 
 - Research flagged: `cacheComponents` is experimental in Next.js 16. If it causes issues in Phase 2, fall back to explicit save patterns.
 - [02-01]: Sidebar/pill navigation pattern now established - can be reused for other navigation scenarios if needed.
+- [02-02]: All deprecated components removed (SettingsViewToggle, hemmet settings page) - Phase 2 cleanup complete.
 
 ## Session Continuity
 
 Last session: 2026-01-27
-Stopped at: Completed 02-01-PLAN.md
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None
