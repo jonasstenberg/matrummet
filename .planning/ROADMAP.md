@@ -45,11 +45,11 @@ Plans:
   3. Active settings section is visually highlighted in the sidebar and announced to screen readers (`aria-current="page"`)
   4. Account deletion appears in its own "Konto" section below a visual separator labeled "Farlig zon", completely separate from password change in Sakerhet
   5. The old `SettingsViewToggle` horizontal tabs component is removed; settings pages no longer render tab navigation
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
+- [ ] 02-01-PLAN.md — Create sidebar/pill navigation components and update settings layout to CSS Grid
+- [ ] 02-02-PLAN.md — Extract account deletion to Konto page, strip SecurityForm, delete deprecated files
 
 ### Phase 3: Integration & Visual Polish
 **Goal**: Both pages feel cohesive, modern, and work correctly across all navigation flows and viewports
@@ -73,5 +73,5 @@ Phases execute in numeric order: 1 -> 2 -> 3
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
 | 1. Extract Hemmet | 3/3 | ✓ Complete | 2026-01-27 |
-| 2. Settings Sidebar | 0/TBD | Not started | - |
+| 2. Settings Sidebar | 0/2 | Not started | - |
 | 3. Integration & Polish | 0/TBD | Not started | - |
