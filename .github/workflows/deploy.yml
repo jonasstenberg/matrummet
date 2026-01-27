@@ -205,6 +205,9 @@ jobs:
             -baselineOnMigrate=true \
             migrate
 
+      - name: Seed test admin user
+        run: PGPASSWORD=recept psql -h localhost -p 5433 -U recept -d recept -f tests/api/seed-admin.sql
+
       - name: Start PostgREST
         run: |
           docker run -d \
