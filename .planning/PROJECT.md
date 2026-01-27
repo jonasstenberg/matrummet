@@ -23,14 +23,14 @@ Settings should be clean, navigable, and modern — and the Home feature deserve
 
 ### Active
 
-- [ ] Settings page uses side menu layout (sidebar on desktop, stacked links on mobile)
-- [ ] Settings has 3 sections: Profil, Säkerhet, API-nycklar
-- [ ] Delete account is its own "danger zone" section at bottom of settings, separate from password change
-- [ ] Hemmet is extracted to a standalone page at its own route
-- [ ] Hemmet page linked from user dropdown menu (not top-level nav)
-- [ ] Hemmet page redesigned with clearer section separation (not everything crammed together)
-- [ ] Hemmet invite flow simplified (join codes + email invites less confusing)
-- [ ] Clean, modern visual design for both pages
+- [ ] REQ-01: Settings page uses side menu layout (sidebar on desktop, stacked links on mobile)
+- [ ] REQ-02: Settings has 3 sections: Profil, Säkerhet, API-nycklar
+- [ ] REQ-03: Delete account is its own "danger zone" section at bottom of settings, separate from password change
+- [ ] REQ-04: Hemmet is extracted to a standalone page at its own route
+- [ ] REQ-05: Hemmet page linked from user dropdown menu (not top-level nav)
+- [ ] REQ-06: Hemmet page redesigned with clearer section separation (not everything crammed together)
+- [ ] REQ-07: Hemmet invite flow simplified (join codes + email invites less confusing)
+- [ ] REQ-08: Clean, modern visual design for both pages
 
 ### Out of Scope
 
@@ -38,6 +38,19 @@ Settings should be clean, navigable, and modern — and the Home feature deserve
 - Top-level navigation changes beyond adding Hemmet to user menu — keep existing nav structure
 - Backend/API changes — this is purely frontend restructuring
 - Mobile app or responsive breakpoint overhaul — just handle the side menu responsive behavior
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| REQ-01 | Phase 2 | Pending |
+| REQ-02 | Phase 2 | Pending |
+| REQ-03 | Phase 2 | Pending |
+| REQ-04 | Phase 1 | Pending |
+| REQ-05 | Phase 1 | Pending |
+| REQ-06 | Phase 1 | Pending |
+| REQ-07 | Phase 1 | Pending |
+| REQ-08 | Phase 3 | Pending |
 
 ## Context
 
@@ -62,6 +75,8 @@ The app uses a consistent component library with Radix UI primitives and Tailwin
 | Delete account as separate danger zone | Separating destructive actions from routine security settings improves clarity | — Pending |
 | Mobile settings: stacked links at top | Natural responsive pattern for sidebar navigation on small screens | — Pending |
 | No new settings content | Focus on restructuring, not feature additions | — Pending |
+| Phase 1 before Phase 2 | Phase 2 deletes old hemmet route; Phase 1 must extract it first. Independent ship point. | — Pending |
+| REQ-08 in Phase 3 | Visual polish cross-cuts both pages; can only be fully verified after both structural changes land | — Pending |
 
 ---
-*Last updated: 2026-01-27 after initialization*
+*Last updated: 2026-01-27 after roadmap creation*
