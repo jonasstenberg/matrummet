@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
-import { getSession } from '@/lib/auth'
+import { getAuthFromRequest } from '@/lib/auth'
 import { getDataFilesDir } from '@/lib/paths'
 import { generateImageVariants } from '@/lib/image-processing'
 
 export async function POST(request: NextRequest) {
   try {
     // Check authentication
-    const session = await getSession()
+    const session = await getAuthFromRequest(request)
     if (!session) {
       return NextResponse.json({ error: 'Obehörig' }, { status: 401 })
     }

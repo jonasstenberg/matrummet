@@ -1,5 +1,6 @@
 import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
+import { NextRequest } from 'next/server'
 import { env } from './env'
 
 let jwtSecret: Uint8Array | null = null
@@ -81,4 +82,41 @@ export async function signPostgrestToken(email: string): Promise<string> {
     .sign(getPostgrestJwtSecret())
 
   return token
+}
+
+/**
+ * Authenticate a request using either cookie JWT or x-api-key header.
+ * Tries cookie-based auth first, then falls back to API key validation
+ * via PostgREST's pre_request() hook.
+ */
+export async function getAuthFromRequest(request: NextRequest): Promise<JWTPayload | null> {
+  // Try cookie-based auth first
+  const session = await getSession()
+  if (session) return session
+
+  // Fall back to x-api-key header
+  const apiKey = request.headers.get('x-api-key')
+  if (!apiKey) return null
+
+  try {
+    const response = await fetch(`${env.POSTGREST_URL}/rpc/current_user_info`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+      },
+    })
+
+    if (!response.ok) return null
+
+    const data = await response.json()
+    if (!data?.email) return null
+
+    return {
+      email: data.email,
+      name: data.name || '',
+    }
+  } catch {
+    return null
+  }
 }
