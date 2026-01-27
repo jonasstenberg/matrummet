@@ -8,7 +8,6 @@ import { HomeMemberList } from './home-member-list'
 import { HomeInviteSection } from './home-invite-section'
 import { HomeLeaveDialog } from './home-leave-dialog'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
 import {
   updateHomeName,
   generateJoinCode,
@@ -101,55 +100,70 @@ export function HomeSettings({ home: initialHome, currentUserEmail }: HomeSettin
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Ditt hem</CardTitle>
+          <CardTitle>Hemmet</CardTitle>
           <CardDescription>
-            Hantera ditt hem och dess medlemmar
+            Namn och grundinformation
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent>
           <div className="space-y-2">
             <label className="text-sm font-medium text-muted-foreground">
               Hemnamn
             </label>
             <HomeNameEditor name={home.name} onSave={handleUpdateName} />
           </div>
+        </CardContent>
+      </Card>
 
-          <Separator />
+      <Card>
+        <CardHeader>
+          <CardTitle>Medlemmar ({home.members.length})</CardTitle>
+          <CardDescription>
+            Personer som delar detta hem
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <HomeMemberList
+            members={home.members}
+            currentUserEmail={currentUserEmail}
+            onRemoveMember={handleRemoveMember}
+          />
+        </CardContent>
+      </Card>
 
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Medlemmar</h3>
-            <HomeMemberList
-              members={home.members}
-              currentUserEmail={currentUserEmail}
-              onRemoveMember={handleRemoveMember}
-            />
-          </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Bjud in medlem</CardTitle>
+          <CardDescription>
+            Bjud in nya medlemmar via e-post eller delningslänk
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <HomeInviteSection
+            joinCode={
+              home.join_code && home.join_code_expires_at
+                ? { code: home.join_code, expires_at: home.join_code_expires_at }
+                : null
+            }
+            onRefreshCode={handleRefreshCode}
+            onDisableCode={handleDisableCode}
+            onSendInvite={handleSendInvite}
+          />
+        </CardContent>
+      </Card>
 
-          <Separator />
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Bjud in medlem</h3>
-            <HomeInviteSection
-              joinCode={
-                home.join_code && home.join_code_expires_at
-                  ? { code: home.join_code, expires_at: home.join_code_expires_at }
-                  : null
-              }
-              onRefreshCode={handleRefreshCode}
-              onDisableCode={handleDisableCode}
-              onSendInvite={handleSendInvite}
-            />
-          </div>
-
-          <Separator />
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium text-destructive">Farozon</h3>
-            <p className="text-sm text-muted-foreground">
-              Om du lämnar hemmet förlorar du åtkomst till delade recept och inköpslistor.
-            </p>
-            <HomeLeaveDialog homeName={home.name} onLeave={handleLeaveHome} />
-          </div>
+      <Card className="border-destructive/20">
+        <CardHeader>
+          <CardTitle className="text-destructive">Farozon</CardTitle>
+          <CardDescription>
+            Åtgärder som inte kan ångras
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Om du lämnar hemmet förlorar du åtkomst till delade recept och inköpslistor.
+          </p>
+          <HomeLeaveDialog homeName={home.name} onLeave={handleLeaveHome} />
         </CardContent>
       </Card>
     </div>
