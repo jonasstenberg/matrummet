@@ -13,7 +13,7 @@ This milestone restructures Matrummet's settings page from horizontal tabs to a 
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Extract Hemmet to Standalone Page** - Move Home management out of settings into its own route with improved layout
-- [ ] **Phase 2: Settings Sidebar Layout** - Replace horizontal tabs with vertical sidebar navigation and add danger zone section
+- [x] **Phase 2: Settings Sidebar Layout** - Replace horizontal tabs with vertical sidebar navigation and add danger zone section
 - [ ] **Phase 3: Integration & Visual Polish** - Cross-page verification, visual consistency, and clean modern design for both pages
 
 ## Phase Details
@@ -41,15 +41,15 @@ Plans:
 **Requirements**: REQ-01, REQ-02, REQ-03
 **Success Criteria** (what must be TRUE):
   1. Settings page shows a vertical sidebar on desktop (240px) with links for Profil, Sakerhet, API-nycklar, and Konto (danger zone)
-  2. On mobile, settings navigation appears as stacked links at the top of the page (not a sidebar)
+  2. On mobile, settings navigation appears as horizontal scrolling pills at the top of the page (not a sidebar)
   3. Active settings section is visually highlighted in the sidebar and announced to screen readers (`aria-current="page"`)
   4. Account deletion appears in its own "Konto" section below a visual separator labeled "Farlig zon", completely separate from password change in Sakerhet
   5. The old `SettingsViewToggle` horizontal tabs component is removed; settings pages no longer render tab navigation
 **Plans**: 2 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Create sidebar/pill navigation components and update settings layout to CSS Grid
-- [ ] 02-02-PLAN.md — Extract account deletion to Konto page, strip SecurityForm, delete deprecated files
+- [x] 02-01-PLAN.md — Create sidebar/pill navigation components and update settings layout to CSS Grid
+- [x] 02-02-PLAN.md — Extract account deletion to Konto page, strip SecurityForm, delete deprecated files
 
 ### Phase 3: Integration & Visual Polish
 **Goal**: Both pages feel cohesive, modern, and work correctly across all navigation flows and viewports
@@ -73,5 +73,5 @@ Phases execute in numeric order: 1 -> 2 -> 3
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
 | 1. Extract Hemmet | 3/3 | ✓ Complete | 2026-01-27 |
-| 2. Settings Sidebar | 0/2 | Not started | - |
+| 2. Settings Sidebar | 2/2 | ✓ Complete | 2026-01-27 |
 | 3. Integration & Polish | 0/TBD | Not started | - |
