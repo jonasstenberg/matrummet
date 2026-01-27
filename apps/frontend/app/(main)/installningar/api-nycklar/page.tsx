@@ -1,5 +1,4 @@
 import { ApiKeyManager } from '@/components/api-key-manager'
-import { SettingsViewToggle } from '@/components/settings-view-toggle'
 import { getApiKeys } from '@/lib/actions'
 
 export const dynamic = 'force-dynamic'
@@ -10,7 +9,7 @@ export default async function SettingsApiKeysPage() {
 
   return (
     <div className="space-y-6">
-      <SettingsViewToggle activeView="api-nycklar" />
+      <h2 className="text-2xl font-semibold mb-6">API-nycklar</h2>
       <ApiKeyManager initialKeys={apiKeys} />
     </div>
   )
