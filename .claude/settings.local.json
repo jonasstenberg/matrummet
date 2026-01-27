@@ -8,7 +8,8 @@
       "Bash(find:*)",
       "Bash(.claude/hooks/run-silent.sh:*)",
       "Bash(/Users/jonasstenberg/Development/Private/recept/.claude/hooks/run-silent.sh:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(/Users/jonasstenberg/Development/Private/recept/.claude/hooks/run-api-tests.sh:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
@@ -48,6 +49,10 @@
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/run-silent.sh\" \"Tests\" \"pnpm test --run\""
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/run-api-tests.sh\""
           }
         ]
       },
