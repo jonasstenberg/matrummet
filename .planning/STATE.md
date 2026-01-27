@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-01-27)
 ## Current Position
 
 Phase: 1 of 3 (Extract Hemmet to Standalone Page)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-01-27 -- Completed 01-02-PLAN.md
+Plan: 3 of 3 in current phase
+Status: Phase complete
+Last activity: 2026-01-27 -- Completed 01-03-PLAN.md
 
-Progress: [██░░░░░░░░] 20%
+Progress: [███░░░░░░░] 30%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
+- Total plans completed: 3
 - Average duration: 3min
-- Total execution time: 6min
+- Total execution time: 8min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-extract-hemmet-to-standalone-page | 2 | 6min | 3min |
+| 01-extract-hemmet-to-standalone-page | 3 | 8min | 3min |
 
 **Recent Trend:**
-- Last 5 plans: 3min, 3min
-- Trend: Consistent velocity
+- Last 5 plans: 3min, 3min, 2min
+- Trend: Excellent velocity (under target)
 
 *Updated after each plan completion*
 
@@ -47,6 +47,9 @@ Recent decisions affecting current work:
 - [01-01]: Used max-w-4xl for home page layout (wider than settings' max-w-2xl) because home management UI needs more horizontal space for member lists and invite sections.
 - [01-01]: Added navigation links to header and mobile menu for route discoverability (deviation Rule 3 - blocking user access).
 - [01-02]: Used permanent: true in Next.js redirects to generate HTTP 308 (preserves HTTP method on redirect, correct for route migrations).
+- [01-03]: Split single monolithic Card into 4 separate Cards for clear visual hierarchy (SC-03 requires "clearly separated sections").
+- [01-03]: Put join link first, email invite second in invite flow (simpler method first reduces cognitive load).
+- [01-03]: Removed "eller" divider between invite methods (REQ-07 - eliminates false mutual exclusion confusion).
 
 ### Pending Todos
 
@@ -56,9 +59,12 @@ None yet.
 
 - Research flagged: Household role-based UI specifics (admin vs member visibility) need validation against existing RLS policies during Phase 1 planning.
 - Research flagged: `cacheComponents` is experimental in Next.js 16. If it causes issues in Phase 2, fall back to explicit save patterns.
+- [01-03]: Card layout pattern established here should be considered for Phase 2 settings sidebar consistency.
 
 ## Session Continuity
 
-Last session: 2026-01-27T21:15:38Z
-Stopped at: Completed 01-02-PLAN.md (Navigation and redirect configuration)
+Last session: 2026-01-27T21:19:37Z
+Stopped at: Completed 01-03-PLAN.md (Home page UX redesign with Card sections and clear invite flow)
 Resume file: None
+
+**Phase 1 Status:** Complete - All 3 plans executed successfully. Ready to proceed to Phase 2 (Settings Sidebar & Navigation).
