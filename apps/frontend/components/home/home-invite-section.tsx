@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { HomeJoinCode } from './home-join-code'
 import { HomeJoinCode as JoinCodeType } from '@/lib/types'
@@ -48,9 +47,20 @@ export function HomeInviteSection({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="space-y-3">
-        <h4 className="text-sm font-medium">Via e-post</h4>
+        <h4 className="text-sm font-semibold">Inbjudningslänk</h4>
+        <p className="text-sm text-muted-foreground">
+          Skapa en länk som du kan skicka till den du vill bjuda in. Länken är giltig i 7 dagar.
+        </p>
+        <HomeJoinCode joinCode={joinCode} onRefresh={onRefreshCode} onDisable={onDisableCode} />
+      </div>
+
+      <div className="space-y-3">
+        <h4 className="text-sm font-semibold">Bjud in via e-post</h4>
+        <p className="text-sm text-muted-foreground">
+          Skicka en inbjudan direkt till en e-postadress. Mottagaren får ett mejl med instruktioner.
+        </p>
         <form onSubmit={handleSendInvite} className="flex gap-2">
           <Input
             type="email"
@@ -79,20 +89,6 @@ export function HomeInviteSection({
             <AlertDescription>Inbjudan skickad!</AlertDescription>
           </Alert>
         )}
-      </div>
-
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-border" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card px-2 text-muted-foreground">eller</span>
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        <Label>Dela denna länk</Label>
-        <HomeJoinCode joinCode={joinCode} onRefresh={onRefreshCode} onDisable={onDisableCode} />
       </div>
     </div>
   )
