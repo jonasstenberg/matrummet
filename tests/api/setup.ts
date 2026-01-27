@@ -8,6 +8,9 @@
  */
 
 import { SignJWT } from "jose";
+import { execSync } from "child_process";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
 import { beforeAll, afterAll } from "vitest";
 
 // Test environment configuration
@@ -397,6 +400,31 @@ export function createAnonymousClient(): PostgrestClient {
 }
 
 /**
+ * Seed the admin test user via direct SQL.
+ * Uses psql to INSERT/UPDATE the admin user with role='admin'.
+ * This must run before tests because signup() assigns role='user'.
+ */
+function seedAdminUser(): void {
+  const { DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD } = TEST_CONFIG;
+  const sqlFile = resolve(
+    dirname(fileURLToPath(import.meta.url)),
+    "seed-admin.sql"
+  );
+  try {
+    execSync(
+      `psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} -f ${sqlFile}`,
+      {
+        env: { ...process.env, PGPASSWORD: DB_PASSWORD },
+        stdio: "pipe",
+        timeout: 10000,
+      }
+    );
+  } catch {
+    // psql not available — assume admin was seeded externally (e.g. CI step)
+  }
+}
+
+/**
  * Global test setup - run once before all tests
  */
 export async function globalSetup(): Promise<void> {
@@ -411,6 +439,9 @@ export async function globalSetup(): Promise<void> {
       `PostgREST connection failed at ${TEST_CONFIG.POSTGREST_URL}: ${error}`
     );
   }
+
+  // Seed admin user with role='admin' via direct SQL
+  seedAdminUser();
 }
 
 /**
