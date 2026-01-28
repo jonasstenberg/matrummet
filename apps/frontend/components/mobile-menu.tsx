@@ -8,14 +8,48 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
 import { isAdmin } from "@/lib/is-admin";
-import { Home, LogOut, Menu, Plus, Settings, ShoppingCart, Sparkles, UtensilsCrossed, UserCog } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Home, LogOut, Menu, Settings, ShoppingCart, Sparkles, UtensilsCrossed, UserCog } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
+
+function MobileNavItem({ href, icon: Icon, children, isActive, onClick }: {
+  href: string
+  icon: React.ComponentType<{ className?: string }>
+  children: React.ReactNode
+  isActive: boolean
+  onClick: () => void
+}) {
+  return (
+    <Link
+      href={href}
+      className={cn(
+        'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+        isActive
+          ? 'bg-accent text-accent-foreground font-semibold'
+          : 'hover:bg-accent/50'
+      )}
+      aria-current={isActive ? 'page' : undefined}
+      onClick={onClick}
+    >
+      <Icon className="h-4 w-4" />
+      {children}
+    </Link>
+  )
+}
 
 export function MobileMenu() {
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Safety guard: only render when user exists
+  if (!user) return null;
+
+  const isAdminActive = pathname.startsWith('/admin');
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -30,94 +64,72 @@ export function MobileMenu() {
         </SheetHeader>
         <div className="mt-6 space-y-6">
           <nav aria-label="Mobilmeny" className="flex flex-col gap-2">
-            <Link
-              href="/"
-              className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+            {/* Main nav items */}
+            <MobileNavItem
+              href="/mitt-skafferi"
+              icon={UtensilsCrossed}
+              isActive={pathname === '/mitt-skafferi'}
               onClick={() => setOpen(false)}
             >
-              Hem
-            </Link>
-
-            {user ? (
-              <>
-                <Link
-                  href="/recept/nytt"
-                  className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
-                  onClick={() => setOpen(false)}
-                >
-                  <Plus className="h-4 w-4" />
-                  Lägg till recept
-                </Link>
-                <Link
-                  href="/mitt-skafferi"
-                  className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
-                  onClick={() => setOpen(false)}
-                >
-                  <UtensilsCrossed className="h-4 w-4" />
-                  Mitt skafferi
-                </Link>
-                <Link
-                  href="/inkopslista"
-                  className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
-                  onClick={() => setOpen(false)}
-                >
-                  <ShoppingCart className="h-4 w-4" />
-                  Inköpslista
-                </Link>
-                <Link
-                  href="/hemmet"
-                  className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
-                  onClick={() => setOpen(false)}
-                >
-                  <Home className="h-4 w-4" />
-                  Mitt hem
-                </Link>
-                <Link
-                  href="/krediter"
-                  className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
-                  onClick={() => setOpen(false)}
-                >
-                  <Sparkles className="h-4 w-4" />
-                  AI-krediter
-                </Link>
-                <Link
-                  href="/installningar"
-                  className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
-                  onClick={() => setOpen(false)}
-                >
-                  <UserCog className="h-4 w-4" />
-                  Inställningar
-                </Link>
-                {isAdmin(user) && (
-                  <Link
-                    href="/admin/kategorier"
-                    className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
-                    onClick={() => setOpen(false)}
-                  >
-                    <Settings className="h-4 w-4" />
-                    Admin
-                  </Link>
-                )}
-                <button
-                  onClick={() => {
-                    logout();
-                    setOpen(false);
-                  }}
-                  className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium hover:bg-accent"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Logga ut
-                </button>
-              </>
-            ) : (
-              <Link
-                href="/login"
-                className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+              Mitt skafferi
+            </MobileNavItem>
+            <MobileNavItem
+              href="/inkopslista"
+              icon={ShoppingCart}
+              isActive={pathname === '/inkopslista'}
+              onClick={() => setOpen(false)}
+            >
+              Inköpslista
+            </MobileNavItem>
+            <MobileNavItem
+              href="/hemmet"
+              icon={Home}
+              isActive={pathname === '/hemmet'}
+              onClick={() => setOpen(false)}
+            >
+              Mitt hem
+            </MobileNavItem>
+            <MobileNavItem
+              href="/krediter"
+              icon={Sparkles}
+              isActive={pathname === '/krediter'}
+              onClick={() => setOpen(false)}
+            >
+              AI-krediter
+            </MobileNavItem>
+            {isAdmin(user) && (
+              <MobileNavItem
+                href="/admin/anvandare"
+                icon={Settings}
+                isActive={isAdminActive}
                 onClick={() => setOpen(false)}
               >
-                Logga in
-              </Link>
+                Admin
+              </MobileNavItem>
             )}
+
+            {/* Separator */}
+            <Separator className="my-2" />
+
+            {/* Settings and logout */}
+            <MobileNavItem
+              href="/installningar"
+              icon={UserCog}
+              isActive={pathname === '/installningar'}
+              onClick={() => setOpen(false)}
+            >
+              Inställningar
+            </MobileNavItem>
+            <button
+              onClick={() => {
+                logout();
+                setOpen(false);
+              }}
+              className="flex items-center gap-3 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors hover:bg-accent/50"
+            >
+              <LogOut className="h-4 w-4" />
+              Logga ut
+            </button>
           </nav>
         </div>
       </SheetContent>
