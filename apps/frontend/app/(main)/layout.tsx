@@ -1,6 +1,7 @@
 import { AuthProvider } from "@/components/auth-provider";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
+import { SearchRow } from "@/components/search-row";
 import { getSession, signPostgrestToken } from "@/lib/auth";
 import { env } from "@/lib/env";
 import { User } from "@/lib/types";
@@ -90,6 +91,7 @@ export default async function MainLayout({
   return (
     <AuthProvider initialUser={user}>
       <Header />
+      <SearchRow />
       <main className="flex-1">
         <div className="container mx-auto max-w-7xl px-4 py-8">{children}</div>
       </main>

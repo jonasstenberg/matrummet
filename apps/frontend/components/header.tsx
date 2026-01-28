@@ -1,7 +1,6 @@
 "use client";
 
 import { useAuth } from "@/components/auth-provider";
-import { SearchBar } from "@/components/search-bar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { DesktopNav } from "@/components/desktop-nav";
@@ -9,7 +8,6 @@ import { UserAvatar } from "@/components/user-avatar";
 import { ChefHat, LogOut, Menu, UserCog } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Suspense } from "react";
 
 // Dynamic import with ssr: false to prevent hydration mismatch from Radix UI's dynamic IDs
 const MobileMenu = dynamic(() => import("./mobile-menu").then((m) => m.MobileMenu), {
@@ -49,19 +47,8 @@ export function Header() {
             </div>
           )}
 
-          {/* Spacer to push search and user to right */}
+          {/* Spacer to push user to right */}
           <div className="hidden md:flex flex-1" />
-
-          {/* Desktop Search Bar */}
-          <div className="hidden md:flex items-center">
-            <Suspense
-              fallback={
-                <div className="w-72 h-10 bg-muted rounded-full animate-pulse" />
-              }
-            >
-              <SearchBar className="w-72" />
-            </Suspense>
-          </div>
 
           {/* Desktop User Dropdown */}
           <div className="hidden md:flex items-center">
@@ -97,17 +84,6 @@ export function Header() {
 
           {/* Mobile Menu */}
           <MobileMenu />
-        </div>
-
-        {/* Mobile Search Bar - below header row */}
-        <div className="pb-3 md:hidden">
-          <Suspense
-            fallback={
-              <div className="w-full h-10 bg-muted rounded-full animate-pulse" />
-            }
-          >
-            <SearchBar className="w-full" />
-          </Suspense>
         </div>
       </div>
     </header>
