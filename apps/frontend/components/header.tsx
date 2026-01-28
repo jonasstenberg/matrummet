@@ -3,11 +3,13 @@
 import { useAuth } from "@/components/auth-provider";
 import { SearchBar } from "@/components/search-bar";
 import { Button } from "@/components/ui/button";
-import { isAdmin } from "@/lib/is-admin";
-import { ChefHat, Home, LogOut, Menu, Settings, ShoppingCart, Sparkles, UtensilsCrossed, User, UserCog } from "lucide-react";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { DesktopNav } from "@/components/desktop-nav";
+import { UserAvatar } from "@/components/user-avatar";
+import { ChefHat, LogOut, Menu, UserCog } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense } from "react";
 
 // Dynamic import with ssr: false to prevent hydration mismatch from Radix UI's dynamic IDs
 const MobileMenu = dynamic(() => import("./mobile-menu").then((m) => m.MobileMenu), {
@@ -21,32 +23,15 @@ const MobileMenu = dynamic(() => import("./mobile-menu").then((m) => m.MobileMen
 
 export function Header() {
   const { user, logout } = useAuth();
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const userMenuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
-        setUserMenuOpen(false);
-      }
-    }
-
-    if (userMenuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
-      };
-    }
-  }, [userMenuOpen]);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto max-w-7xl px-4">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-16 items-center gap-6">
           {/* Logo */}
           <Link
             href="/"
-            className="flex items-center gap-3"
+            className="flex flex-shrink-0 items-center gap-3"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-warm">
               <ChefHat className="h-5 w-5 text-warm-foreground" />
@@ -57,96 +42,52 @@ export function Header() {
             </div>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav aria-label="Huvudnavigering" className="hidden items-center gap-6 md:flex">
-            {/* Search Bar */}
+          {/* Desktop Nav */}
+          {user && (
+            <div className="hidden md:flex items-center">
+              <DesktopNav />
+            </div>
+          )}
+
+          {/* Spacer to push search and user to right */}
+          <div className="hidden md:flex flex-1" />
+
+          {/* Desktop Search Bar */}
+          <div className="hidden md:flex items-center">
             <Suspense
               fallback={
-                <div className="w-96 h-10 bg-muted rounded-full animate-pulse" />
+                <div className="w-72 h-10 bg-muted rounded-full animate-pulse" />
               }
             >
-              <SearchBar className="w-96" />
+              <SearchBar className="w-72" />
             </Suspense>
-          </nav>
+          </div>
 
-          {/* Desktop Auth Section */}
-          <div className="hidden items-center gap-4 md:flex">
+          {/* Desktop User Dropdown */}
+          <div className="hidden md:flex items-center">
             {user ? (
-              <div ref={userMenuRef} className="relative">
-                <Button
-                  variant="ghost"
-                  onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="gap-2"
-                >
-                  <User className="h-4 w-4" />
-                  {user.name || user.email}
-                </Button>
-
-                {userMenuOpen && (
-                  <div className="absolute right-0 top-12 z-50 w-48 rounded-md border border-border bg-popover p-1 shadow-md">
-                    <Link
-                      href="/mitt-skafferi"
-                      className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
-                      onClick={() => setUserMenuOpen(false)}
-                    >
-                      <UtensilsCrossed className="h-4 w-4" />
-                      Mitt skafferi
-                    </Link>
-                    <Link
-                      href="/inkopslista"
-                      className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
-                      onClick={() => setUserMenuOpen(false)}
-                    >
-                      <ShoppingCart className="h-4 w-4" />
-                      Inköpslista
-                    </Link>
-                    <Link
-                      href="/hemmet"
-                      className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
-                      onClick={() => setUserMenuOpen(false)}
-                    >
-                      <Home className="h-4 w-4" />
-                      Mitt hem
-                    </Link>
-                    <Link
-                      href="/krediter"
-                      className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
-                      onClick={() => setUserMenuOpen(false)}
-                    >
-                      <Sparkles className="h-4 w-4" />
-                      AI-krediter
-                    </Link>
-                    <Link
-                      href="/installningar"
-                      className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
-                      onClick={() => setUserMenuOpen(false)}
-                    >
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" aria-label="Användarmeny">
+                    <UserAvatar user={user} />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" sideOffset={8}>
+                  <DropdownMenuItem asChild>
+                    <Link href="/installningar" className="flex items-center gap-2">
                       <UserCog className="h-4 w-4" />
                       Inställningar
                     </Link>
-                    {isAdmin(user) && (
-                      <Link
-                        href="/admin/kategorier"
-                        className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
-                        onClick={() => setUserMenuOpen(false)}
-                      >
-                        <Settings className="h-4 w-4" />
-                        Admin
-                      </Link>
-                    )}
-                    <button
-                      onClick={() => {
-                        logout();
-                        setUserMenuOpen(false);
-                      }}
-                      className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      Logga ut
-                    </button>
-                  </div>
-                )}
-              </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={logout}
+                    className="flex items-center gap-2"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logga ut
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <Button asChild>
                 <Link href="/login">Logga in</Link>
