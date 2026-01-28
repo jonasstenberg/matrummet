@@ -73,6 +73,7 @@ export interface Recipe {
   pantry_match_percentage?: number
   pantry_matching_count?: number
   pantry_total_count?: number
+  owner_name?: string
 }
 
 export interface CreateRecipeInput {
