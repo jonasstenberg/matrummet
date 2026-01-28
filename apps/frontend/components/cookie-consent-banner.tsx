@@ -1,10 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Cookie } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
-import { cn } from '@/lib/utils'
 import {
   getConsent,
   setConsent,
@@ -15,25 +14,18 @@ import {
 } from '@/lib/cookie-consent'
 
 export function CookieConsentBanner() {
-  const [visible, setVisible] = useState(false)
+  const [visible, setVisible] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return !hasConsent()
+  })
   const [showDetails, setShowDetails] = useState(false)
-  const [consent, setConsentState] = useState<CookieConsent>(DEFAULT_CONSENT)
-
-  useEffect(() => {
-    // Check if user has already consented
-    if (!hasConsent()) {
-      setVisible(true)
-      const stored = getConsent()
-      if (stored) {
-        setConsentState(stored)
-      }
-    }
-  }, [])
+  const [consent, setConsentState] = useState<CookieConsent>(
+    () => getConsent() ?? DEFAULT_CONSENT
+  )
 
   const handleAcceptAll = () => {
     const allAccepted: CookieConsent = {
       necessary: true,
-      functional: true,
       payment: true,
     }
     setConsent(allAccepted)
@@ -48,7 +40,6 @@ export function CookieConsentBanner() {
   const handleRejectNonEssential = () => {
     const minimal: CookieConsent = {
       necessary: true,
-      functional: true, // Can't disable login
       payment: false,
     }
     setConsent(minimal)
@@ -94,28 +85,11 @@ export function CookieConsentBanner() {
                 <div className="flex-1">
                   <div className="font-medium text-sm">Nödvändiga cookies</div>
                   <div className="text-xs text-muted-foreground">
-                    Krävs för att webbplatsen ska fungera korrekt
+                    Krävs för att webbplatsen ska fungera, inklusive inloggning
+                    och sessionshantering
                   </div>
                 </div>
                 <Switch checked={true} disabled />
-              </div>
-
-              {/* Functional cookies */}
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="font-medium text-sm">
-                    Funktionella cookies
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Möjliggör inloggning och sessionshantering
-                  </div>
-                </div>
-                <Switch
-                  checked={consent.functional}
-                  onCheckedChange={(checked) =>
-                    setConsentState({ ...consent, functional: checked })
-                  }
-                />
               </div>
 
               {/* Payment cookies */}

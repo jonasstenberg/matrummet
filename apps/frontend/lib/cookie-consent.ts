@@ -1,6 +1,5 @@
 export interface CookieConsent {
-  necessary: true // Always true, cannot be toggled off
-  functional: boolean // Login session cookies (auth-token)
+  necessary: true // Always true — includes login/session cookies
   payment: boolean // Stripe payment cookies
 }
 
@@ -8,7 +7,6 @@ export const CONSENT_KEY = 'cookie-consent'
 
 export const DEFAULT_CONSENT: CookieConsent = {
   necessary: true,
-  functional: true, // On by default since login requires it
   payment: false, // Off by default
 }
 
