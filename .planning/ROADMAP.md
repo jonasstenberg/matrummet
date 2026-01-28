@@ -60,10 +60,12 @@ Plans:
   2. Both settings and Hemmet pages use consistent spacing, typography, and visual style that reads as clean and modern
   3. All existing functionality preserved: profile editing, password change, API key management, home creation/joining/leaving, member management, and invites all work as before
   4. No regressions in existing test suites (unit, API integration)
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 03-01: TBD
+- [ ] 03-01-PLAN.md — Restructure Hemmet into sidebar + sub-pages layout matching settings
+- [ ] 03-02-PLAN.md — Remove redundant headings and standardize Card components across settings
+- [ ] 03-03-PLAN.md — Add scroll fade indicators to mobile pills, run tests, human verification
 
 ## Progress
 
@@ -74,4 +76,4 @@ Phases execute in numeric order: 1 -> 2 -> 3
 |-------|---------------|--------|-----------|
 | 1. Extract Hemmet | 3/3 | ✓ Complete | 2026-01-27 |
 | 2. Settings Sidebar | 2/2 | ✓ Complete | 2026-01-27 |
-| 3. Integration & Polish | 0/TBD | Not started | - |
+| 3. Integration & Polish | 0/3 | Not started | - |
