@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Extract Hemmet to Standalone Page** - Move Home management out of settings into its own route with improved layout
 - [x] **Phase 2: Settings Sidebar Layout** - Replace horizontal tabs with vertical sidebar navigation and add danger zone section
-- [ ] **Phase 3: Integration & Visual Polish** - Cross-page verification, visual consistency, and clean modern design for both pages
+- [x] **Phase 3: Integration & Visual Polish** - Cross-page verification, visual consistency, and clean modern design for both pages
 
 ## Phase Details
 
@@ -63,9 +63,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Restructure Hemmet into sidebar + sub-pages layout matching settings
-- [ ] 03-02-PLAN.md — Remove redundant headings and standardize Card components across settings
-- [ ] 03-03-PLAN.md — Add scroll fade indicators to mobile pills, run tests, human verification
+- [x] 03-01-PLAN.md — Restructure Hemmet into sidebar + sub-pages layout matching settings
+- [x] 03-02-PLAN.md — Remove redundant headings and standardize Card components across settings
+- [x] 03-03-PLAN.md — Add scroll fade indicators to mobile pills, run tests, human verification
 
 ## Progress
 
@@ -76,4 +76,4 @@ Phases execute in numeric order: 1 -> 2 -> 3
 |-------|---------------|--------|-----------|
 | 1. Extract Hemmet | 3/3 | ✓ Complete | 2026-01-27 |
 | 2. Settings Sidebar | 2/2 | ✓ Complete | 2026-01-27 |
-| 3. Integration & Polish | 0/3 | Not started | - |
+| 3. Integration & Polish | 3/3 | ✓ Complete | 2026-01-28 |
