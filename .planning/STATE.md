@@ -7,23 +7,23 @@
 See: .planning/PROJECT.md (updated 2026-01-28)
 
 **Core value:** Key features should be immediately visible in the header — not buried in a dropdown menu.
-**Current focus:** Phase 5 - Search Repositioning (complete)
+**Current focus:** Phase 6 - Auth & Mobile States (complete)
 
 ## Current Position
 
-Phase: 5 of 6 (Search Repositioning)
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-01-28 — Completed 05-02-PLAN.md
+Phase: 6 of 6 (Auth & Mobile States)
+Plan: 1 of 1 in current phase
+Status: Phase complete — v1.1 milestone complete
+Last activity: 2026-01-28 — Completed 06-01-PLAN.md
 
-Progress: [████████░░] 75% (12/16 total plans across milestones)
+Progress: [██████████] 100% (13/13 total plans across milestones)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
+- Total plans completed: 13
 - Average duration: 4min
-- Total execution time: 51min
+- Total execution time: 56min
 
 **By Phase:**
 
@@ -34,6 +34,8 @@ Progress: [████████░░] 75% (12/16 total plans across milesto
 | v1.0 Phase 3 | 3 | ~14min | ~5min |
 | v1.1 Phase 4 | 2 | ~10min | ~5min |
 | v1.1 Phase 5 | 2 | ~7min | ~4min |
+
+| v1.1 Phase 6 | 1 | ~5min | ~5min |
 
 **Recent Trend:**
 - Last 5 plans: Consistently ~4-5min per plan
@@ -65,6 +67,7 @@ Recent decisions affecting current work:
 - Wider search bar max-w-2xl (05: user feedback)
 - Spacer visible on mobile for right-aligned hamburger (05: user feedback)
 - No border-t between header and search row (05: user feedback — cleaner visual separation)
+- Remove search bar stickiness on desktop and mobile (06: user feedback — cleaner scroll experience)
 
 (None)
 
@@ -77,7 +80,7 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-28
-Stopped at: Completed 05-02-PLAN.md (Phase 5 complete)
+Stopped at: Completed 06-01-PLAN.md (Phase 6 complete — v1.1 milestone complete)
 Resume file: None
 
 **Next Action:** Start next milestone with `/gsd:new-milestone`

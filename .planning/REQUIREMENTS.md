@@ -19,16 +19,16 @@
 ### Search Bar
 
 - [x] **SRCH-01**: Search bar appears in a full-width dedicated row below the header (not in the header row)
-- [x] **SRCH-02**: Header row and search row are both sticky on desktop
+- [x] **SRCH-02**: ~~Header row and search row are both sticky on desktop~~ Updated: Only header row is sticky; search row scrolls normally (user feedback during Phase 6)
 - [x] **SRCH-03**: Search row is not sticky on mobile
 
 ### Auth States
 
-- [ ] **AUTH-01**: Logged-out state shows Logo + search bar + login button (no nav items visible)
+- [x] **AUTH-01**: Logged-out state shows Logo + search bar + login/signup buttons (no nav items visible)
 
 ### Mobile
 
-- [ ] **MOBI-01**: Mobile keeps slide-out drawer menu with all nav items
+- [x] **MOBI-01**: Mobile keeps slide-out drawer menu with all nav items
 
 ## Future Requirements
 
@@ -56,8 +56,8 @@ None — this is a focused restructuring milestone.
 | SRCH-01 | Phase 5 | Complete |
 | SRCH-02 | Phase 5 | Complete |
 | SRCH-03 | Phase 5 | Complete |
-| AUTH-01 | Phase 6 | Pending |
-| MOBI-01 | Phase 6 | Pending |
+| AUTH-01 | Phase 6 | Complete |
+| MOBI-01 | Phase 6 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 10 total
