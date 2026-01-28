@@ -12,18 +12,18 @@ See: .planning/PROJECT.md (updated 2026-01-28)
 ## Current Position
 
 Phase: 4 of 6 (Desktop Header Restructure)
-Plan: 0 of ? in current phase
-Status: Ready to plan
-Last activity: 2026-01-28 — Roadmap created for v1.1 milestone
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-01-28 — Completed 04-01-PLAN.md
 
-Progress: [██████░░░░] 50% (8/14 total plans across milestones)
+Progress: [██████░░░░] 56% (9/16 total plans across milestones)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
+- Total plans completed: 9
 - Average duration: 4min
-- Total execution time: 34min
+- Total execution time: 38min
 
 **By Phase:**
 
@@ -32,9 +32,10 @@ Progress: [██████░░░░] 50% (8/14 total plans across mileston
 | v1.0 Phase 1 | 3 | ~12min | ~4min |
 | v1.0 Phase 2 | 2 | ~8min | ~4min |
 | v1.0 Phase 3 | 3 | ~14min | ~5min |
+| v1.1 Phase 4 | 1 | ~4min | ~4min |
 
 **Recent Trend:**
-- Last 5 plans: Consistently ~4-5min per plan
+- Last 5 plans: Consistently ~4min per plan
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -53,6 +54,9 @@ Recent decisions affecting current work:
 - Keep mobile drawer unchanged (drawer handles all nav items well)
 - Underline for active nav state (clear, conventional indicator)
 - Logged out: no nav items (all nav items are auth-gated features)
+- Use ::after pseudo-element for underline animation (04-01: smoother than border-bottom)
+- Self-contained credit fetching in DesktopNav (04-01: no global state needed)
+- Tooltip delay 700ms (04-01: balances discoverability with not being intrusive)
 
 (None)
 
@@ -65,7 +69,7 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-28
-Stopped at: Roadmap creation complete for v1.1
+Stopped at: Completed 04-01-PLAN.md
 Resume file: None
 
 **Next Action:** Start next milestone with `/gsd:new-milestone`
