@@ -30,25 +30,27 @@ async function fetchCategories(): Promise<string[]> {
   }
 }
 
-async function deductCredit(
-  postgrestToken: string,
-  description: string
-): Promise<{ success: true; remainingCredits: number } | { success: false }> {
-  const response = await fetch(`${env.POSTGREST_URL}/rpc/deduct_credit`, {
+async function checkCredits(
+  postgrestToken: string
+): Promise<{ hasCredits: true; balance: number } | { hasCredits: false }> {
+  const response = await fetch(`${env.POSTGREST_URL}/rpc/get_user_credits`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${postgrestToken}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ p_description: description }),
+    body: JSON.stringify({}),
   });
 
   if (!response.ok) {
-    return { success: false };
+    return { hasCredits: false };
   }
 
-  const remainingCredits = await response.json();
-  return { success: true, remainingCredits };
+  const balance = await response.json();
+  if (typeof balance !== "number" || balance < 1) {
+    return { hasCredits: false };
+  }
+  return { hasCredits: true, balance };
 }
 
 export async function POST(request: NextRequest) {
@@ -114,14 +116,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Deduct credit BEFORE calling Gemini
+    // Check that user has credits (deduction happens when recipe is saved)
     const postgrestToken = await signPostgrestToken(session.email);
-    const deductResult = await deductCredit(
-      postgrestToken,
-      trimmedText ? `AI: ${trimmedText.substring(0, 100)}` : "AI: bildanalys"
-    );
+    const creditCheck = await checkCredits(postgrestToken);
 
-    if (!deductResult.success) {
+    if (!creditCheck.hasCredits) {
       return NextResponse.json(
         {
           error:
@@ -195,7 +194,7 @@ export async function POST(request: NextRequest) {
       const recipe = validateParsedRecipe(parsedJson);
       return NextResponse.json({
         recipe,
-        remainingCredits: deductResult.remainingCredits,
+        remainingCredits: creditCheck.balance,
       });
     } catch (error) {
       console.error("Recipe validation error:", error);

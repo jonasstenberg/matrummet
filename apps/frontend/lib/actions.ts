@@ -33,6 +33,39 @@ async function getPostgrestToken(): Promise<string | null> {
   return signPostgrestToken(payload.email)
 }
 
+export async function deductAiCredit(
+  description: string
+): Promise<{ remainingCredits: number } | { error: string }> {
+  try {
+    const token = await getPostgrestToken()
+
+    if (!token) {
+      return { error: 'Du måste vara inloggad' }
+    }
+
+    const response = await fetch(`${POSTGREST_URL}/rpc/deduct_credit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ p_description: description }),
+    })
+
+    if (!response.ok) {
+      return {
+        error: 'Du har inga AI-genereringar kvar. Köp fler under AI-krediter i menyn.',
+      }
+    }
+
+    const remainingCredits = await response.json()
+    return { remainingCredits }
+  } catch (error) {
+    console.error('Error deducting AI credit:', error)
+    return { error: 'Kunde inte dra kredit. Försök igen.' }
+  }
+}
+
 export async function createRecipe(
   data: CreateRecipeInput
 ): Promise<{ id: string } | { error: string }> {

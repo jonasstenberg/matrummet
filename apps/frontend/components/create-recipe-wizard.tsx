@@ -13,7 +13,7 @@ import {
   Step,
 } from "@/components/ui/stepper"
 import { useAuth } from "@/components/auth-provider"
-import { createRecipe } from "@/lib/actions"
+import { createRecipe, deductAiCredit } from "@/lib/actions"
 import {
   CreateRecipeInput,
   IngredientGroup,
@@ -309,6 +309,7 @@ export function CreateRecipeWizard() {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [isHistoryNavigation, setIsHistoryNavigation] = useState(false)
   const [credits, setCredits] = useState<number | null>(null)
+  const [aiGenerated, setAiGenerated] = useState(false)
 
   // Fetch credit balance on mount
   useEffect(() => {
@@ -407,6 +408,7 @@ export function CreateRecipeWizard() {
       }))
 
       setLowConfidenceIngredients(lowConfidenceIndices || [])
+      setAiGenerated(!!originalPrompt)
 
       // Auto-advance to next step after import
       setCurrentStep(1)
@@ -503,6 +505,19 @@ export function CreateRecipeWizard() {
     setSubmitError(null)
 
     try {
+      // Deduct AI credit before saving if recipe was AI-generated
+      if (aiGenerated) {
+        const creditResult = await deductAiCredit(
+          formData.originalPrompt
+            ? `AI: ${formData.originalPrompt.substring(0, 100)}`
+            : "AI-generering"
+        )
+        if ("error" in creditResult) {
+          throw new Error(creditResult.error)
+        }
+        setCredits(creditResult.remainingCredits)
+      }
+
       // Handle image upload if needed
       let finalImage: string | null = formData.image
 
@@ -572,7 +587,7 @@ export function CreateRecipeWizard() {
       )
       setIsSubmitting(false)
     }
-  }, [formData, router, transformIngredientsToInlineFormat, transformInstructionsToInlineFormat])
+  }, [formData, router, transformIngredientsToInlineFormat, transformInstructionsToInlineFormat, aiGenerated])
 
   // Validation for each step
   const canProceedStep0 = true // Can always proceed from source (either import or start blank)

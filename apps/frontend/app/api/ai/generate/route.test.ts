@@ -92,10 +92,9 @@ describe("POST /api/ai/generate", () => {
   it("returns 402 with INSUFFICIENT_CREDITS when user has no credits", async () => {
     mockGetSession.mockResolvedValue({ email: "user@test.com", name: "Test" });
 
-    // Categories fetch succeeds
     mockFetch.mockImplementation((url: string) => {
-      if (url.includes("/rpc/deduct_credit")) {
-        return Promise.resolve({ ok: false, status: 400 });
+      if (url.includes("/rpc/get_user_credits")) {
+        return Promise.resolve({ ok: true, json: async () => 0 });
       }
       if (url.includes("/categories")) {
         return Promise.resolve({
@@ -113,15 +112,15 @@ describe("POST /api/ai/generate", () => {
     expect(data.code).toBe("INSUFFICIENT_CREDITS");
   });
 
-  it("deducts credit before calling Gemini and returns recipe with remaining credits", async () => {
+  it("checks credits before calling Gemini and returns recipe with current balance", async () => {
     mockGetSession.mockResolvedValue({ email: "user@test.com", name: "Test" });
 
     const callOrder: string[] = [];
 
     mockFetch.mockImplementation((url: string) => {
-      if (url.includes("/rpc/deduct_credit")) {
-        callOrder.push("deduct_credit");
-        return Promise.resolve({ ok: true, json: async () => 9 });
+      if (url.includes("/rpc/get_user_credits")) {
+        callOrder.push("check_credits");
+        return Promise.resolve({ ok: true, json: async () => 10 });
       }
       if (url.includes("/categories")) {
         return Promise.resolve({
@@ -161,54 +160,22 @@ describe("POST /api/ai/generate", () => {
 
     const data = await response.json();
     expect(data.recipe.recipe_name).toBe("Pannkakor");
-    expect(data.remainingCredits).toBe(9);
+    expect(data.remainingCredits).toBe(10);
 
-    // Verify credit was deducted BEFORE Gemini was called
-    expect(callOrder).toEqual(["deduct_credit", "gemini"]);
+    // Verify credits were checked (not deducted) BEFORE Gemini was called
+    expect(callOrder).toEqual(["check_credits", "gemini"]);
+
+    // Verify no deduct_credit call was made
+    const fetchCalls = mockFetch.mock.calls.map((call: unknown[]) => call[0] as string);
+    expect(fetchCalls.some((url) => url.includes("/rpc/deduct_credit"))).toBe(false);
   });
 
-  it("deducts credit with description containing the user prompt", async () => {
-    mockGetSession.mockResolvedValue({ email: "user@test.com", name: "Test" });
-
-    let deductBody: Record<string, unknown> | null = null;
-
-    mockFetch.mockImplementation((url: string, opts?: RequestInit) => {
-      if (url.includes("/rpc/deduct_credit")) {
-        deductBody = JSON.parse(opts?.body as string);
-        return Promise.resolve({ ok: true, json: async () => 5 });
-      }
-      if (url.includes("/categories")) {
-        return Promise.resolve({ ok: true, json: async () => [] });
-      }
-      return Promise.resolve({ ok: false });
-    });
-
-    mockGenerateContent.mockResolvedValue({
-      text: JSON.stringify({
-        recipe_name: "Test",
-        description: "Test",
-        ingredient_groups: [
-          { group_name: "", ingredients: [{ name: "Salt", measurement: "tsk", quantity: "1" }] },
-        ],
-        instruction_groups: [
-          { group_name: "", instructions: [{ step: "Blanda." }] },
-        ],
-      }),
-    });
-
-    await POST(jsonRequest({ text: "Gör ett recept på lax med dill" }));
-
-    expect(deductBody).toEqual({
-      p_description: "AI: Gör ett recept på lax med dill",
-    });
-  });
-
-  it("returns 422 when Gemini returns invalid JSON", async () => {
+  it("returns 422 when Gemini returns invalid JSON (no credit deducted)", async () => {
     mockGetSession.mockResolvedValue({ email: "user@test.com", name: "Test" });
 
     mockFetch.mockImplementation((url: string) => {
-      if (url.includes("/rpc/deduct_credit")) {
-        return Promise.resolve({ ok: true, json: async () => 9 });
+      if (url.includes("/rpc/get_user_credits")) {
+        return Promise.resolve({ ok: true, json: async () => 10 });
       }
       if (url.includes("/categories")) {
         return Promise.resolve({ ok: true, json: async () => [] });
@@ -220,14 +187,18 @@ describe("POST /api/ai/generate", () => {
 
     const response = await POST(jsonRequest({ text: "pannkakor" }));
     expect(response.status).toBe(422);
+
+    // Verify no credit was deducted
+    const fetchCalls = mockFetch.mock.calls.map((call: unknown[]) => call[0] as string);
+    expect(fetchCalls.some((url) => url.includes("/rpc/deduct_credit"))).toBe(false);
   });
 
-  it("returns 422 when Gemini returns no text", async () => {
+  it("returns 422 when Gemini returns no text (no credit deducted)", async () => {
     mockGetSession.mockResolvedValue({ email: "user@test.com", name: "Test" });
 
     mockFetch.mockImplementation((url: string) => {
-      if (url.includes("/rpc/deduct_credit")) {
-        return Promise.resolve({ ok: true, json: async () => 9 });
+      if (url.includes("/rpc/get_user_credits")) {
+        return Promise.resolve({ ok: true, json: async () => 10 });
       }
       if (url.includes("/categories")) {
         return Promise.resolve({ ok: true, json: async () => [] });
@@ -242,5 +213,9 @@ describe("POST /api/ai/generate", () => {
 
     const data = await response.json();
     expect(data.error).toContain("Inget svar från AI");
+
+    // Verify no credit was deducted
+    const fetchCalls = mockFetch.mock.calls.map((call: unknown[]) => call[0] as string);
+    expect(fetchCalls.some((url) => url.includes("/rpc/deduct_credit"))).toBe(false);
   });
 });
