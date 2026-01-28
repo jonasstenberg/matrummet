@@ -447,14 +447,16 @@ describe("Pantry RPCs Contract Tests", () => {
     });
 
     it("should return correct response shape", async () => {
-      const salt = await getOrCreateFood(clientA, "Salt");
-      const vatten = await getOrCreateFood(clientA, "Vatten");
+      // Use unique ingredient names to avoid collisions with other tests
+      const uid = uniqueId();
+      const foodA = await getOrCreateFood(clientA, `ShapeTestA-${uid}`);
+      const foodB = await getOrCreateFood(clientA, `ShapeTestB-${uid}`);
 
       const recipeId = await createTestRecipe(clientA, {
-        name: `Shape Test Recipe ${uniqueId()}`,
+        name: `Shape Test Recipe ${uid}`,
         ingredients: [
-          { name: "Salt", measurement: "tsk", quantity: "1" },
-          { name: "Vatten", measurement: "dl", quantity: "2" },
+          { name: `ShapeTestA-${uid}`, measurement: "tsk", quantity: "1" },
+          { name: `ShapeTestB-${uid}`, measurement: "dl", quantity: "2" },
         ],
       });
 
@@ -463,7 +465,7 @@ describe("Pantry RPCs Contract Tests", () => {
 
       // Filter by current user to avoid orphaned recipes from previous test runs
       const result = await clientA.rpc<RecipeMatch[]>("find_recipes_by_ingredients", {
-        p_food_ids: [salt.id, vatten.id],
+        p_food_ids: [foodA.id, foodB.id],
         p_user_email: TEST_USERS.userA.email,
         p_min_match_percentage: 50,
         p_limit: 20,
