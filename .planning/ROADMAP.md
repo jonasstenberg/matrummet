@@ -80,10 +80,10 @@ Plans:
   1. Logged-out users see Logo + search bar + login button (no nav items visible)
   2. Mobile users access all nav items through existing slide-out drawer menu
   3. Mobile drawer menu includes all nav items (Mitt skafferi, Inköpslista, Mitt hem, AI-krediter, Admin if admin)
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] TBD
+- [ ] 06-01-PLAN.md — Auth-conditional header (login/signup buttons) and mobile drawer improvements (ordering, icons, active state, separator)
 
 ## Progress
 
@@ -97,4 +97,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Integration & Polish | v1.0 | 3/3 | Complete | 2026-01-28 |
 | 4. Desktop Header Restructure | v1.1 | 2/2 | Complete | 2026-01-28 |
 | 5. Search Repositioning | v1.1 | 2/2 | Complete | 2026-01-28 |
-| 6. Auth & Mobile States | v1.1 | 0/? | Not started | - |
+| 6. Auth & Mobile States | v1.1 | 0/1 | Not started | - |
