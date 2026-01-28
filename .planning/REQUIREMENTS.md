@@ -18,9 +18,9 @@
 
 ### Search Bar
 
-- [ ] **SRCH-01**: Search bar appears in a full-width dedicated row below the header (not in the header row)
-- [ ] **SRCH-02**: Header row and search row are both sticky on desktop
-- [ ] **SRCH-03**: Search row is not sticky on mobile
+- [x] **SRCH-01**: Search bar appears in a full-width dedicated row below the header (not in the header row)
+- [x] **SRCH-02**: Header row and search row are both sticky on desktop
+- [x] **SRCH-03**: Search row is not sticky on mobile
 
 ### Auth States
 
@@ -53,9 +53,9 @@ None — this is a focused restructuring milestone.
 | NAV-03 | Phase 4 | Complete |
 | NAV-04 | Phase 4 | Complete |
 | DROP-01 | Phase 4 | Complete |
-| SRCH-01 | Phase 5 | Pending |
-| SRCH-02 | Phase 5 | Pending |
-| SRCH-03 | Phase 5 | Pending |
+| SRCH-01 | Phase 5 | Complete |
+| SRCH-02 | Phase 5 | Complete |
+| SRCH-03 | Phase 5 | Complete |
 | AUTH-01 | Phase 6 | Pending |
 | MOBI-01 | Phase 6 | Pending |
 

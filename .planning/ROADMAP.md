@@ -69,8 +69,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Create SearchRow component, move search out of header, stacked sticky + mobile scroll-away
-- [ ] 05-02-PLAN.md — Enhance search bar styling, add recent searches dropdown with localStorage
+- [x] 05-01-PLAN.md — Create SearchRow component, move search out of header, stacked sticky + mobile scroll-away
+- [x] 05-02-PLAN.md — Enhance search bar styling, add recent searches dropdown with localStorage
 
 ### Phase 6: Auth & Mobile States
 **Goal**: Navigation works correctly in logged-out state and on mobile devices
@@ -96,5 +96,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Settings Sidebar | v1.0 | 2/2 | Complete | 2026-01-28 |
 | 3. Integration & Polish | v1.0 | 3/3 | Complete | 2026-01-28 |
 | 4. Desktop Header Restructure | v1.1 | 2/2 | Complete | 2026-01-28 |
-| 5. Search Repositioning | v1.1 | 0/2 | Not started | - |
+| 5. Search Repositioning | v1.1 | 2/2 | Complete | 2026-01-28 |
 | 6. Auth & Mobile States | v1.1 | 0/? | Not started | - |
