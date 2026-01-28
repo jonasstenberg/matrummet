@@ -4,6 +4,7 @@ import { env } from '@/lib/env'
 
 interface DeleteAccountBody {
   password: string | null
+  deleteData: boolean
 }
 
 export async function POST(request: NextRequest) {
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
     try {
       body = await request.json()
     } catch {
-      body = { password: null }
+      body = { password: null, deleteData: false }
     }
 
     // Create a PostgREST token for the authenticated user
@@ -37,7 +38,10 @@ export async function POST(request: NextRequest) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${postgrestToken}`,
         },
-        body: JSON.stringify({ p_password: body.password }),
+        body: JSON.stringify({
+          p_password: body.password,
+          p_delete_data: body.deleteData ?? false
+        }),
       }
     )
 

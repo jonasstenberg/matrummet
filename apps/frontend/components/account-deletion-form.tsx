@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -25,6 +26,7 @@ export function AccountDeletionForm() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [emailConfirmation, setEmailConfirmation] = useState('')
   const [password, setPassword] = useState('')
+  const [deleteData, setDeleteData] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -54,7 +56,10 @@ export function AccountDeletionForm() {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({ password: isOAuthUser ? null : password }),
+        body: JSON.stringify({
+          password: isOAuthUser ? null : password,
+          deleteData
+        }),
       })
 
       const data = await response.json()
@@ -81,6 +86,7 @@ export function AccountDeletionForm() {
     if (!open) {
       setEmailConfirmation('')
       setPassword('')
+      setDeleteData(false)
       setError(null)
     }
   }
@@ -111,10 +117,17 @@ export function AccountDeletionForm() {
                   Du håller på att permanent radera ditt konto. All din kontoinformation
                   kommer att tas bort och kan inte återställas.
                 </span>
-                <span className="block">
-                  Dina recept kommer att bevaras men kommer inte längre att vara kopplade
-                  till ditt konto.
-                </span>
+                {deleteData ? (
+                  <span className="block font-medium text-destructive">
+                    Alla dina recept, inköpslistor och övrig data kommer att raderas permanent
+                    och kan inte återställas.
+                  </span>
+                ) : (
+                  <span className="block">
+                    Dina recept kommer att bevaras men kommer inte längre att vara kopplade
+                    till ditt konto.
+                  </span>
+                )}
               </DialogDescription>
             </DialogHeader>
 
@@ -148,6 +161,26 @@ export function AccountDeletionForm() {
                   />
                 </div>
               )}
+
+              {/* Delete all data checkbox */}
+              <div className="flex items-start space-x-3 rounded-md border border-destructive/30 bg-destructive/5 p-3">
+                <Checkbox
+                  id="deleteData"
+                  checked={deleteData}
+                  onCheckedChange={(checked) => setDeleteData(checked === true)}
+                  disabled={isLoading}
+                  className="mt-0.5"
+                />
+                <div className="space-y-1">
+                  <Label htmlFor="deleteData" className="text-sm font-medium leading-none cursor-pointer">
+                    Radera alla mina recept och data
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Om markerad raderas även alla dina recept, inköpslistor och övrig data permanent.
+                    Annars bevaras dina recept men kopplas bort från ditt konto.
+                  </p>
+                </div>
+              </div>
 
               {error && (
                 <Alert variant="destructive">
