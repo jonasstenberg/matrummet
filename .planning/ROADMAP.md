@@ -38,6 +38,11 @@ Plans:
 
 **Dependencies:** Phase 1 (footer must link to these pages)
 
+**Plans:** 1 plan
+
+Plans:
+- [ ] 02-01-PLAN.md — Enable typography plugin + create all three content pages (About, Privacy, Terms)
+
 **Requirements:**
 - PAGE-01: About page at /om with real Swedish content
 - PAGE-02: Privacy Policy page at /integritetspolicy with real Swedish content
