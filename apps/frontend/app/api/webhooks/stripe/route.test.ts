@@ -184,6 +184,7 @@ describe("POST /api/webhooks/stripe", () => {
     mockFetch.mockResolvedValue({
       ok: false,
       status: 500,
+      text: async () => "Internal Server Error",
     });
 
     const response = await POST(webhookRequest(JSON.stringify(event)));
