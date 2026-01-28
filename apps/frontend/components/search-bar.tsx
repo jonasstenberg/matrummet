@@ -119,7 +119,7 @@ export function SearchBar({ className }: SearchBarProps) {
   return (
     <Popover open={showRecent}>
       <PopoverAnchor asChild>
-        <form onSubmit={handleSubmit} className={cn('relative w-full max-w-md group', className)}>
+        <form onSubmit={handleSubmit} className={cn('relative w-full group', className)}>
           <Search className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground/70 transition-colors group-focus-within:text-primary" />
           <input
             type="search"
@@ -131,11 +131,11 @@ export function SearchBar({ className }: SearchBarProps) {
             onBlur={() => setIsFocused(false)}
             autoComplete="off"
             className={cn(
-              'flex h-12 w-full rounded-full bg-muted/50 pl-10 pr-10 text-base transition-all duration-200',
-              'border border-transparent',
+              'flex h-12 w-full rounded-full bg-white pl-10 pr-10 text-base transition-all duration-200',
+              'border border-border/60 shadow-sm',
               'placeholder:text-muted-foreground',
-              'hover:border-border/50',
-              'focus:outline-none focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20',
+              'hover:border-border hover:shadow',
+              'focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20',
               'disabled:cursor-not-allowed disabled:opacity-50',
               isPending && 'opacity-70'
             )}

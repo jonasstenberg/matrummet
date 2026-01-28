@@ -52,7 +52,7 @@ export function SearchRow() {
       `}
     >
       <div className="container mx-auto max-w-7xl px-4 py-3">
-        <div className="mx-auto max-w-xl">
+        <div className="mx-auto max-w-2xl">
           <Suspense
             fallback={
               <div className="w-full h-10 bg-muted rounded-full animate-pulse" />

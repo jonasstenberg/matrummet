@@ -47,8 +47,8 @@ export function Header() {
             </div>
           )}
 
-          {/* Spacer to push user to right */}
-          <div className="hidden md:flex flex-1" />
+          {/* Spacer to push items to right */}
+          <div className="flex-1" />
 
           {/* Desktop User Dropdown */}
           <div className="hidden md:flex items-center">
