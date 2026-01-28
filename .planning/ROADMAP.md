@@ -1,79 +1,26 @@
-# Roadmap: Settings & Home Page Redesign
+# Roadmap: Recept Footer & Legal Pages
 
-## Overview
+## Milestones
 
-This milestone restructures Matrummet's settings page from horizontal tabs to a vertical sidebar layout, and extracts the Home (Hemmet) management feature to its own standalone page. The work moves through three phases: first extract Hemmet to an independent route with improved UX, then rebuild settings with the new sidebar navigation, then verify the whole thing works together with visual polish. All changes are frontend-only with zero new dependencies.
+- SHIPPED **v1.0 Footer & Legal Pages** — Phases 1-2 (shipped 2026-01-28)
 
 ## Phases
 
-**Phase Numbering:**
-- Integer phases (1, 2, 3): Planned milestone work
-- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+<details>
+<summary>v1.0 Footer & Legal Pages (Phases 1-2) — SHIPPED 2026-01-28</summary>
 
-Decimal phases appear between their surrounding integers in numeric order.
+- [x] Phase 1: Footer Infrastructure (1/1 plan) — completed 2026-01-28
+- [x] Phase 2: Content Pages (1/1 plan) — completed 2026-01-28
 
-- [x] **Phase 1: Extract Hemmet to Standalone Page** - Move Home management out of settings into its own route with improved layout
-- [x] **Phase 2: Settings Sidebar Layout** - Replace horizontal tabs with vertical sidebar navigation and add danger zone section
-- [x] **Phase 3: Integration & Visual Polish** - Cross-page verification, visual consistency, and clean modern design for both pages
-
-## Phase Details
-
-### Phase 1: Extract Hemmet to Standalone Page
-**Goal**: Users can access and manage their household from a dedicated page independent of settings
-**Depends on**: Nothing (first phase)
-**Requirements**: REQ-04, REQ-05, REQ-06, REQ-07
-**Success Criteria** (what must be TRUE):
-  1. User navigates to `/hemmet/` and sees a standalone Home management page (not inside settings)
-  2. User finds "Mitt hem" link in both the desktop header dropdown and mobile menu
-  3. Home page displays household info, members, and invite flow in clearly separated sections (not crammed together)
-  4. User can invite a household member via join code or email without confusion about which method to use
-  5. Visiting the old URL `/installningar/hemmet` redirects to `/hemmet/` (no broken bookmarks)
-**Plans**: 3 plans
-
-Plans:
-- [x] 01-01-PLAN.md — Create standalone /hemmet/ route and move HomeSettingsClient to shared components
-- [x] 01-02-PLAN.md — Add navigation links and 308 redirect from old URL
-- [x] 01-03-PLAN.md — Redesign home page layout with separate Card sections and simplified invite flow
-
-### Phase 2: Settings Sidebar Layout
-**Goal**: Users navigate settings through a clean sidebar on desktop and stacked links on mobile, with a separated danger zone for account deletion
-**Depends on**: Phase 1 (Phase 1 removes Hemmet from settings; Phase 2 deletes the old route and rebuilds navigation)
-**Requirements**: REQ-01, REQ-02, REQ-03
-**Success Criteria** (what must be TRUE):
-  1. Settings page shows a vertical sidebar on desktop (240px) with links for Profil, Sakerhet, API-nycklar, and Konto (danger zone)
-  2. On mobile, settings navigation appears as horizontal scrolling pills at the top of the page (not a sidebar)
-  3. Active settings section is visually highlighted in the sidebar and announced to screen readers (`aria-current="page"`)
-  4. Account deletion appears in its own "Konto" section below a visual separator labeled "Farlig zon", completely separate from password change in Sakerhet
-  5. The old `SettingsViewToggle` horizontal tabs component is removed; settings pages no longer render tab navigation
-**Plans**: 2 plans
-
-Plans:
-- [x] 02-01-PLAN.md — Create sidebar/pill navigation components and update settings layout to CSS Grid
-- [x] 02-02-PLAN.md — Extract account deletion to Konto page, strip SecurityForm, delete deprecated files
-
-### Phase 3: Integration & Visual Polish
-**Goal**: Both pages feel cohesive, modern, and work correctly across all navigation flows and viewports
-**Depends on**: Phase 2
-**Requirements**: REQ-08
-**Success Criteria** (what must be TRUE):
-  1. User can navigate the full loop: header dropdown -> settings -> switch sections -> back to header -> Hemmet -> back, with correct active states and no stale UI
-  2. Both settings and Hemmet pages use consistent spacing, typography, and visual style that reads as clean and modern
-  3. All existing functionality preserved: profile editing, password change, API key management, home creation/joining/leaving, member management, and invites all work as before
-  4. No regressions in existing test suites (unit, API integration)
-**Plans**: 3 plans
-
-Plans:
-- [x] 03-01-PLAN.md — Restructure Hemmet into sidebar + sub-pages layout matching settings
-- [x] 03-02-PLAN.md — Remove redundant headings and standardize Card components across settings
-- [x] 03-03-PLAN.md — Add scroll fade indicators to mobile pills, run tests, human verification
+</details>
 
 ## Progress
 
-**Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|---------------|--------|-----------|
+| 1. Footer Infrastructure | v1.0 | 1/1 | Complete | 2026-01-28 |
+| 2. Content Pages | v1.0 | 1/1 | Complete | 2026-01-28 |
 
-| Phase | Plans Complete | Status | Completed |
-|-------|---------------|--------|-----------|
-| 1. Extract Hemmet | 3/3 | ✓ Complete | 2026-01-27 |
-| 2. Settings Sidebar | 2/2 | ✓ Complete | 2026-01-27 |
-| 3. Integration & Polish | 3/3 | ✓ Complete | 2026-01-28 |
+---
+*Roadmap created: 2026-01-28*
+*Last updated: 2026-01-28 — v1.0 shipped*
