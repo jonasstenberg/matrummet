@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter, Playfair_Display } from 'next/font/google'
+import { CookieConsentBanner } from '@/components/cookie-consent-banner'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -32,6 +33,7 @@ export default function RootLayout({
         <div className="flex min-h-screen flex-col">
           {children}
         </div>
+        <CookieConsentBanner />
       </body>
     </html>
   )
