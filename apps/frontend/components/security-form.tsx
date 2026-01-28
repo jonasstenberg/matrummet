@@ -6,6 +6,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { changePasswordSchema } from '@/lib/schemas'
 import { Check } from 'lucide-react'
 
@@ -62,9 +69,13 @@ export function SecurityForm() {
     <div className="space-y-8">
       {/* Password section - only show for non-OAuth users */}
       {user?.provider === null && (
-        <div className="bg-card border border-border rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">Lösenord</h2>
-          <form onSubmit={handleChangePassword} className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Lösenord</CardTitle>
+            <CardDescription>Byt ditt lösenord</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleChangePassword} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="oldPassword">Nuvarande lösenord</Label>
               <Input
@@ -107,7 +118,8 @@ export function SecurityForm() {
               {isPasswordLoading ? 'Byter lösenord...' : 'Byt lösenord'}
             </Button>
           </form>
-        </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   )

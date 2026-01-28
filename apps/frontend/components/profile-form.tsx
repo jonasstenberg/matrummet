@@ -6,6 +6,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { updateProfileSchema } from '@/lib/schemas'
 import { Check } from 'lucide-react'
 
@@ -56,9 +63,13 @@ export function ProfileForm() {
   }
 
   return (
-    <div className="bg-card border border-border rounded-lg p-6">
-      <h2 className="text-xl font-semibold mb-4">Profil</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <Card>
+      <CardHeader>
+        <CardTitle>Profil</CardTitle>
+        <CardDescription>Uppdatera ditt namn</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="email">E-postadress</Label>
           <Input
@@ -100,6 +111,7 @@ export function ProfileForm() {
           {isLoading ? 'Sparar...' : 'Spara namn'}
         </Button>
       </form>
-    </div>
+      </CardContent>
+    </Card>
   )
 }

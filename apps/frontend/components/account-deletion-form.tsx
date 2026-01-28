@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -85,9 +86,11 @@ export function AccountDeletionForm() {
   }
 
   return (
-    <div className="bg-card border border-destructive/50 rounded-lg p-6">
-      <h3 className="text-lg font-semibold mb-4 text-destructive">Radera konto</h3>
-      <div className="space-y-4">
+    <Card className="border-destructive/50">
+      <CardHeader>
+        <CardTitle className="text-destructive">Radera konto</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
           Om du raderar ditt konto kommer all din kontoinformation att tas bort permanent.
           Dina recept kommer att bevaras men kommer inte längre att vara kopplade till ditt konto.
@@ -171,7 +174,7 @@ export function AccountDeletionForm() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }

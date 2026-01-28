@@ -6,6 +6,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -164,33 +171,34 @@ export function ApiKeyManager({ initialKeys }: ApiKeyManagerProps) {
   }
 
   return (
-    <div className="bg-card border border-border rounded-lg p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h2 className="text-xl font-semibold">API-nycklar</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Hantera API-nycklar för externa integrationer som Home Assistant.{' '}
-            <a
-              href="https://api.matrummet.se/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-primary hover:underline"
-            >
-              Se API-dokumentation
-              <ExternalLink className="h-3 w-3" />
-            </a>
-          </p>
-          <p className="text-xs text-muted-foreground mt-2">
-            API:et stödjer: Hämta inköpslista, bocka av/på varor, rensa avbockade varor.
-          </p>
-        </div>
-        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4" />
-              Skapa ny nyckel
-            </Button>
-          </DialogTrigger>
+    <Card>
+      <CardHeader>
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1.5">
+            <CardTitle>API-nycklar</CardTitle>
+            <CardDescription>
+              Hantera API-nycklar för externa integrationer som Home Assistant.{' '}
+              <a
+                href="https://api.matrummet.se/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-primary hover:underline"
+              >
+                Se API-dokumentation
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </CardDescription>
+            <p className="text-xs text-muted-foreground">
+              API:et stödjer: Hämta inköpslista, bocka av/på varor, rensa avbockade varor.
+            </p>
+          </div>
+          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="shrink-0">
+                <Plus className="h-4 w-4" />
+                Skapa ny nyckel
+              </Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Skapa ny API-nyckel</DialogTitle>
@@ -238,9 +246,10 @@ export function ApiKeyManager({ initialKeys }: ApiKeyManagerProps) {
             </form>
           </DialogContent>
         </Dialog>
-      </div>
-
-      {keys.length === 0 ? (
+        </div>
+      </CardHeader>
+      <CardContent>
+        {keys.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           <Key className="h-12 w-12 mx-auto mb-3 opacity-50" />
           <p>Inga API-nycklar.</p>
@@ -276,7 +285,8 @@ export function ApiKeyManager({ initialKeys }: ApiKeyManagerProps) {
             </div>
           ))}
         </div>
-      )}
+        )}
+      </CardContent>
 
       {/* New Key Display Dialog */}
       <Dialog open={newKeyDialogOpen} onOpenChange={handleCloseNewKeyDialog}>
@@ -360,6 +370,6 @@ export function ApiKeyManager({ initialKeys }: ApiKeyManagerProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </Card>
   )
 }
