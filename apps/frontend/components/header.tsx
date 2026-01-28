@@ -76,14 +76,30 @@ export function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button asChild>
-                <Link href="/login">Logga in</Link>
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" asChild>
+                  <Link href="/login">Logga in</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/registrera">Skapa konto</Link>
+                </Button>
+              </div>
             )}
           </div>
 
-          {/* Mobile Menu */}
-          <MobileMenu />
+          {/* Mobile Menu / Mobile Auth */}
+          {user ? (
+            <MobileMenu />
+          ) : (
+            <div className="md:hidden flex items-center gap-2">
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/login">Logga in</Link>
+              </Button>
+              <Button size="sm" asChild>
+                <Link href="/registrera">Skapa konto</Link>
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </header>
