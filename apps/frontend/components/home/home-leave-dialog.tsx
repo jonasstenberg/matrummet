@@ -16,9 +16,10 @@ import { LogOut } from 'lucide-react'
 interface HomeLeaveDialogProps {
   homeName: string
   onLeave: () => Promise<void>
+  children?: React.ReactNode
 }
 
-export function HomeLeaveDialog({ homeName, onLeave }: HomeLeaveDialogProps) {
+export function HomeLeaveDialog({ homeName, onLeave, children }: HomeLeaveDialogProps) {
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -35,10 +36,12 @@ export function HomeLeaveDialog({ homeName, onLeave }: HomeLeaveDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="text-destructive hover:text-destructive">
-          <LogOut className="h-4 w-4 mr-2" />
-          Lämna hemmet
-        </Button>
+        {children || (
+          <Button variant="outline" className="text-destructive hover:text-destructive">
+            <LogOut className="h-4 w-4 mr-2" />
+            Lämna hemmet
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

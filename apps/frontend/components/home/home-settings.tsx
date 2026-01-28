@@ -1,3 +1,4 @@
+// @deprecated — Replaced by /hemmet/hushall, /hemmet/medlemmar, /hemmet/bjud-in sub-pages (Phase 03). Remove in future cleanup.
 'use client'
 
 import { useState } from 'react'
