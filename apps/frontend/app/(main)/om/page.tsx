@@ -13,20 +13,32 @@ export default function OmPage() {
 
         <div className="space-y-6 text-foreground/80 leading-relaxed">
           <p>
-            Matrummet är en digital kokbok för att samla och organisera dina recept.
-            Appen låter dig spara egna recept med ingredienser, instruktioner och kategorier,
-            samt söka snabbt med svensk fulltextsökning.
+            Jag heter{" "}
+            <a
+              href="https://stenberg.io"
+              className="underline hover:text-foreground"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Jonas
+            </a>{" "}
+            och bor i Malmö. Jag byggde Matrummet för att jag ville ha ett
+            ställe att samla recept jag lagar själv tillsammans med recept från
+            min barndom — sådana som annars bara lever i minnet eller på
+            gulnade lappar.
           </p>
 
           <p>
-            Funktioner inkluderar kategorihantering, ingredienshantering med mängder och mått,
-            samt möjlighet att skapa shoppinglistor. All data är privat — du ser bara dina egna recept,
-            och ingen annan har tillgång till dem.
+            Appen låter dig spara recept med ingredienser, instruktioner och
+            kategorier, söka med svensk fulltextsökning, och skapa
+            inköpslistor. Du kan även bläddra bland andras recept för
+            inspiration.
           </p>
 
           <p>
-            Matrummet är byggt för alla som vill ha sina recept organiserade digitalt istället för
-            utspridda i kokböcker, anteckningsblock eller skärmklipp.
+            Matrummet är för dig som vill ha dina recept organiserade digitalt
+            istället för utspridda i kokböcker, anteckningsblock eller
+            bilder i telefonen.
           </p>
         </div>
 
