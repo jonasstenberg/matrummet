@@ -41,7 +41,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 02-01-PLAN.md — Enable typography plugin + create all three content pages (About, Privacy, Terms)
+- [x] 02-01-PLAN.md — Enable typography plugin + create all three content pages (About, Privacy, Terms)
 
 **Requirements:**
 - PAGE-01: About page at /om with real Swedish content
@@ -60,10 +60,10 @@ Plans:
 | Phase | Goal | Status | Requirements |
 |-------|------|--------|--------------|
 | 1 - Footer Infrastructure | Users see a professional multi-column footer on all pages | Complete | FOOT-01, FOOT-02, FOOT-03 |
-| 2 - Content Pages | Users can access About, Privacy, Terms pages | Pending | PAGE-01, PAGE-02, PAGE-03 |
+| 2 - Content Pages | Users can access About, Privacy, Terms pages | Complete | PAGE-01, PAGE-02, PAGE-03 |
 
-**Overall Progress:** 3/6 requirements complete (50%)
+**Overall Progress:** 6/6 requirements complete (100%)
 
 ---
 *Roadmap created: 2026-01-28*
-*Last updated: 2026-01-28 — Phase 1 complete*
+*Last updated: 2026-01-28 — All phases complete*
