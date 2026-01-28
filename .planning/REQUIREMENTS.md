@@ -13,9 +13,9 @@
 
 ### Pages
 
-- [ ] **PAGE-01**: About page at /om with real Swedish content — personal project built for family, passion for cooking, humble note about being useful for others
-- [ ] **PAGE-02**: Privacy Policy page at /integritetspolicy with real Swedish content — covers auth cookies, recipe/user data, Stripe payments, no analytics or third-party tracking
-- [ ] **PAGE-03**: Terms of Service page at /villkor with real Swedish content — usage terms for the app
+- [x] **PAGE-01**: About page at /om with real Swedish content — personal project built for family, passion for cooking, humble note about being useful for others
+- [x] **PAGE-02**: Privacy Policy page at /integritetspolicy with real Swedish content — covers auth cookies, recipe/user data, Stripe payments, no analytics or third-party tracking
+- [x] **PAGE-03**: Terms of Service page at /villkor with real Swedish content — usage terms for the app
 
 ## v2 Requirements
 
@@ -37,9 +37,9 @@
 | FOOT-01 | Phase 1 | Complete |
 | FOOT-02 | Phase 1 | Complete |
 | FOOT-03 | Phase 1 | Complete |
-| PAGE-01 | Phase 2 | Pending |
-| PAGE-02 | Phase 2 | Pending |
-| PAGE-03 | Phase 2 | Pending |
+| PAGE-01 | Phase 2 | Complete |
+| PAGE-02 | Phase 2 | Complete |
+| PAGE-03 | Phase 2 | Complete |
 
 **Coverage:**
 - v1 requirements: 6 total
@@ -48,4 +48,4 @@
 
 ---
 *Requirements defined: 2026-01-28*
-*Last updated: 2026-01-28 — Phase 1 complete (FOOT-01, FOOT-02, FOOT-03)*
+*Last updated: 2026-01-28 — All requirements complete (FOOT-01–03, PAGE-01–03)*
