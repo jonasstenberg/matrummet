@@ -297,7 +297,7 @@ BEGIN
         END IF;
 
         -- Grant 10 free AI generation credits
-        PERFORM add_credits(p_email, 10, 'signup_bonus', 'Välkomstbonus: 10 gratis AI-genereringar');
+        PERFORM add_credits(p_email, 3, 'signup_bonus', 'Välkomstbonus: 10 gratis AI-genereringar');
     END IF;
 
     SELECT * INTO _result FROM users WHERE id = _user_id;
