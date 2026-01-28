@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-27)
 ## Current Position
 
 Phase: 3 of 3 (Integration & Visual Polish)
-Plan: 2 of 4 in current phase
-Status: In progress
-Last activity: 2026-01-28 -- Completed 03-01-PLAN.md (Hemmet sidebar layout)
+Plan: 3 of 3 in current phase
+Status: Phase complete
+Last activity: 2026-01-28 -- Completed 03-03-PLAN.md (Scroll fade indicators & phase 3 verification)
 
-Progress: [██████████] 83%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
-- Average duration: 5min
-- Total execution time: 32min
+- Total plans completed: 8
+- Average duration: 4min
+- Total execution time: 34min
 
 **By Phase:**
 
@@ -29,11 +29,11 @@ Progress: [██████████] 83%
 |-------|-------|-------|----------|
 | 01-extract-hemmet-to-standalone-page | 3 | 8min | 3min |
 | 02-settings-sidebar-layout | 2 | 5min | 3min |
-| 03-integration-visual-polish | 2 | 19min | 10min |
+| 03-integration-visual-polish | 3 | 21min | 7min |
 
 **Recent Trend:**
-- Last 5 plans: 2min, 3min, 9min, 10min
-- Trend: Good velocity (Phase 3 plans longer due to structural refactoring)
+- Last 5 plans: 3min, 9min, 10min, 2min
+- Trend: Excellent velocity - Phase 3 complete with all integration verified
 
 *Updated after each plan completion*
 
@@ -65,6 +65,8 @@ Recent decisions affecting current work:
 - [03-02]: Removed all redundant h2 headings from settings pages - sidebar active state and card titles provide sufficient context.
 - [03-02]: Standardized all settings forms to Card/CardHeader/CardContent structure for visual consistency with Hemmet pages.
 - [03-02]: API key manager button placed inside CardHeader using flexbox layout to keep action near title while maintaining Card visual unity.
+- [03-03]: Used ResizeObserver for overflow detection instead of CSS-only approach - provides reliable cross-browser detection of when pills actually overflow.
+- [03-03]: Applied mask-x-from-5% mask-x-to-95% for subtle scroll fade edges - fade only appears when content overflows (not always visible).
 
 ### Pending Todos
 
@@ -72,12 +74,19 @@ None yet.
 
 ### Blockers/Concerns
 
-- Research flagged: `cacheComponents` is experimental in Next.js 16. If it causes issues in Phase 2, fall back to explicit save patterns.
-- [02-01]: Sidebar/pill navigation pattern now established - can be reused for other navigation scenarios if needed.
-- [02-02]: All deprecated components removed (SettingsViewToggle, hemmet settings page) - Phase 2 cleanup complete.
+None - Phase 3 complete. All requirements delivered and verified.
 
 ## Session Continuity
 
 Last session: 2026-01-28
-Stopped at: Completed 03-01-PLAN.md - Hemmet restructured into sidebar layout with three sub-pages (hushall, medlemmar, bjud-in)
+Stopped at: Completed 03-03-PLAN.md - Phase 3 complete (scroll fade indicators + full integration verification)
 Resume file: None
+
+## Project Status
+
+**All phases complete.** Roadmap delivered:
+- Phase 1: Hemmet extracted to standalone page with sidebar navigation
+- Phase 2: Settings restructured with sidebar layout
+- Phase 3: Integration verified, visual polish complete
+
+All 8 requirements (REQ-01 through REQ-08) delivered and verified by user.
