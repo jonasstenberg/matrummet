@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-01-27)
 Phase: 3 of 3 (Integration & Visual Polish)
 Plan: 3 of 3 in current phase
 Status: Phase complete
-Last activity: 2026-01-28 -- Completed 03-03-PLAN.md (Scroll fade indicators & phase 3 verification)
+Last activity: 2026-01-28 -- Completed quick task 002: Account deletion checkbox for data deletion
 
 Progress: [██████████] 100%
 
@@ -82,9 +82,12 @@ Last session: 2026-01-28
 Stopped at: Completed quick-002-PLAN.md - Account deletion with optional data deletion
 Resume file: None
 
-**Quick tasks completed:**
-- quick-001: Cookie consent banner
-- quick-002: Account deletion checkbox for data deletion
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 001 | Cookie consent banner | 2026-01-28 | bf38120 | [001-cookie-consent](./quick/001-cookie-consent/) |
+| 002 | Account deletion checkbox for data deletion | 2026-01-28 | 35d80c5 | [002-account-deletion-checkbox-delete-all-user-data](./quick/002-account-deletion-checkbox-delete-all-user-data/) |
 
 ## Project Status
 
