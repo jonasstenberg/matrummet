@@ -7,14 +7,14 @@
 
 ### Desktop Navigation
 
-- [ ] **NAV-01**: Nav items (Mitt skafferi, Inköpslista, Mitt hem, AI-krediter, Admin) appear as top-level items in the header row on desktop
-- [ ] **NAV-02**: AI-krediter displays as Sparkles icon only; other nav items display as text labels
-- [ ] **NAV-03**: Admin nav item only visible to admin users
-- [ ] **NAV-04**: Active page's nav item has an underline indicator
+- [x] **NAV-01**: Nav items (Mitt skafferi, Inköpslista, Mitt hem, AI-krediter, Admin) appear as top-level items in the header row on desktop
+- [x] **NAV-02**: AI-krediter displays as Sparkles icon only; other nav items display as text labels
+- [x] **NAV-03**: Admin nav item only visible to admin users
+- [x] **NAV-04**: Active page's nav item has an underline indicator
 
 ### User Dropdown
 
-- [ ] **DROP-01**: User dropdown contains only Inställningar and Logga ut (all other items removed)
+- [x] **DROP-01**: User dropdown contains only Inställningar and Logga ut (all other items removed)
 
 ### Search Bar
 
@@ -48,11 +48,11 @@ None — this is a focused restructuring milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| NAV-01 | Phase 4 | Pending |
-| NAV-02 | Phase 4 | Pending |
-| NAV-03 | Phase 4 | Pending |
-| NAV-04 | Phase 4 | Pending |
-| DROP-01 | Phase 4 | Pending |
+| NAV-01 | Phase 4 | Complete |
+| NAV-02 | Phase 4 | Complete |
+| NAV-03 | Phase 4 | Complete |
+| NAV-04 | Phase 4 | Complete |
+| DROP-01 | Phase 4 | Complete |
 | SRCH-01 | Phase 5 | Pending |
 | SRCH-02 | Phase 5 | Pending |
 | SRCH-03 | Phase 5 | Pending |
