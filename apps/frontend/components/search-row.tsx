@@ -43,7 +43,7 @@ export function SearchRow() {
   return (
     <div
       className={`
-        w-full border-t border-border
+        w-full
         bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60
         transition-transform duration-300
         ${isHidden ? "-translate-y-full" : "translate-y-0"}
