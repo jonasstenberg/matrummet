@@ -7,9 +7,9 @@
 
 ### Footer
 
-- [ ] **FOOT-01**: Multi-column footer layout with grouped links (legal, about)
-- [ ] **FOOT-02**: Copyright line with current year preserved in new design
-- [ ] **FOOT-03**: Footer renders on all pages including auth (login, register)
+- [x] **FOOT-01**: Multi-column footer layout with grouped links (legal, about)
+- [x] **FOOT-02**: Copyright line with current year preserved in new design
+- [x] **FOOT-03**: Footer renders on all pages including auth (login, register)
 
 ### Pages
 
@@ -34,9 +34,9 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOOT-01 | Phase 1 | Pending |
-| FOOT-02 | Phase 1 | Pending |
-| FOOT-03 | Phase 1 | Pending |
+| FOOT-01 | Phase 1 | Complete |
+| FOOT-02 | Phase 1 | Complete |
+| FOOT-03 | Phase 1 | Complete |
 | PAGE-01 | Phase 2 | Pending |
 | PAGE-02 | Phase 2 | Pending |
 | PAGE-03 | Phase 2 | Pending |
@@ -48,4 +48,4 @@
 
 ---
 *Requirements defined: 2026-01-28*
-*Last updated: 2026-01-28 after roadmap creation*
+*Last updated: 2026-01-28 — Phase 1 complete (FOOT-01, FOOT-02, FOOT-03)*
