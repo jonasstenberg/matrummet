@@ -7,7 +7,6 @@ import { Sparkles } from 'lucide-react'
 import { useAuth } from '@/components/auth-provider'
 import { isAdmin } from '@/lib/is-admin'
 import { Badge } from '@/components/ui/badge'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 const navItems = [
@@ -68,35 +67,26 @@ export function DesktopNav() {
           )
         })}
 
-        {/* AI-krediter icon with badge and tooltip */}
-        <TooltipProvider delayDuration={700}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Link
-                href="/krediter"
-                className={cn(
-                  navLinkClass(isCreditsActive),
-                  'inline-flex items-center justify-center'
-                )}
-                aria-current={isCreditsActive ? 'page' : undefined}
-                aria-label={credits !== null ? `AI-krediter (${credits} krediter kvar)` : 'AI-krediter'}
-              >
-                <Sparkles className="h-5 w-5" />
-                {credits !== null && (
-                  <Badge
-                    className="absolute -top-2 -right-2.5 min-w-[1.25rem] h-5 px-1 text-[10px]"
-                    variant="default"
-                  >
-                    {credits}
-                  </Badge>
-                )}
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" sideOffset={8}>
-              AI-krediter
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        {/* AI-krediter with icon, text, and badge */}
+        <Link
+          href="/krediter"
+          className={cn(
+            navLinkClass(isCreditsActive),
+            'inline-flex items-center gap-1.5'
+          )}
+          aria-current={isCreditsActive ? 'page' : undefined}
+        >
+          <Sparkles className="h-4 w-4" />
+          AI-krediter
+          {credits !== null && (
+            <Badge
+              className="min-w-[1.25rem] h-5 px-1 text-[10px]"
+              variant="default"
+            >
+              {credits}
+            </Badge>
+          )}
+        </Link>
 
         {/* Admin nav item (admin-gated) */}
         {isAdmin(user) && (
