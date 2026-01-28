@@ -52,10 +52,11 @@ Plans:
   3. Admin nav item only visible to admin users (hidden for regular users)
   4. Active page's nav item shows underline indicator
   5. User dropdown contains only Inställningar and Logga ut
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] TBD
+- [ ] 04-01-PLAN.md — Create UI primitives (DropdownMenu, Tooltip), DesktopNav component, and UserAvatar component
+- [ ] 04-02-PLAN.md — Rewire header.tsx with new desktop nav layout and slim user dropdown
 
 ### Phase 5: Search Repositioning
 **Goal**: Search bar has more space and prominence in a dedicated row below the header
@@ -93,6 +94,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Extract Hemmet | v1.0 | 3/3 | Complete | 2026-01-28 |
 | 2. Settings Sidebar | v1.0 | 2/2 | Complete | 2026-01-28 |
 | 3. Integration & Polish | v1.0 | 3/3 | Complete | 2026-01-28 |
-| 4. Desktop Header Restructure | v1.1 | 0/? | Not started | - |
+| 4. Desktop Header Restructure | v1.1 | 0/2 | Not started | - |
 | 5. Search Repositioning | v1.1 | 0/? | Not started | - |
 | 6. Auth & Mobile States | v1.1 | 0/? | Not started | - |
