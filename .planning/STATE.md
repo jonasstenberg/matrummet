@@ -6,44 +6,48 @@
 
 See: .planning/PROJECT.md (updated 2026-01-28)
 
-**Core value:** The app feels trustworthy and complete with proper legal pages and a polished footer visible everywhere.
-**Current focus:** v1.0 shipped — planning next milestone
+**Core value:** Key features should be immediately visible in the header — not buried in a dropdown menu.
+**Current focus:** Milestone v1.1 — Navigation & Header Restructure
 
 ## Current Position
 
-**Phase:** All v1.0 phases complete (2 of 2)
-**Plan:** All plans complete
-**Status:** Milestone v1.0 shipped
-**Last activity:** 2026-01-28 — v1.0 milestone complete
-**Progress:** [████████████████████] 6/6 requirements (100%)
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-01-28 — Milestone v1.1 started
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
-**Completed:**
-- Requirements: 6/6 (100%)
-- Phases: 2/2 (100%)
-- Plans: 2/2 (100%)
+**Previous Milestone (v1.0 — Settings & Home Page Redesign):**
+- Total plans completed: 8
+- Average duration: 4min
+- Total execution time: 34min
 
 ## Accumulated Context
 
 ### Key Decisions
 
-See PROJECT.md for full decision log with outcomes.
-
-### Active Todos
+Decisions are logged in PROJECT.md Key Decisions table.
 
 (None)
 
 ### Blockers
 
-(None)
+### Blockers/Concerns
+
+None.
 
 ## Session Continuity
 
-**Last Action:** v1.0 milestone archived and tagged.
+Last session: 2026-01-28
+Stopped at: Milestone v1.1 initialization
+Resume file: None
 
 **Next Action:** Start next milestone with `/gsd:new-milestone`
 
----
-*State initialized: 2026-01-28*
-*Last updated: 2026-01-28 — v1.0 milestone complete*
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 001 | Cookie consent banner | 2026-01-28 | bf38120 | [001-cookie-consent](./quick/001-cookie-consent/) |
+| 002 | Account deletion checkbox for data deletion | 2026-01-28 | 35d80c5 | [002-account-deletion-checkbox-delete-all-user-data](./quick/002-account-deletion-checkbox-delete-all-user-data/) |
