@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-01-27)
 
 ## Current Position
 
-Phase: 2 of 3 (Settings Sidebar Layout) — COMPLETE
-Plan: 2 of 2 in current phase — all verified
-Status: Phase 2 verified. Ready for Phase 3.
-Last activity: 2026-01-27 -- Phase 2 verified (5/5 must-haves passed)
+Phase: 3 of 3 (Integration & Visual Polish)
+Plan: 2 of 4 in current phase
+Status: In progress
+Last activity: 2026-01-28 -- Completed 03-01-PLAN.md (Hemmet sidebar layout)
 
-Progress: [██████░░░░] 67%
+Progress: [██████████] 83%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
-- Average duration: 3min
-- Total execution time: 13min
+- Total plans completed: 7
+- Average duration: 5min
+- Total execution time: 32min
 
 **By Phase:**
 
@@ -29,10 +29,11 @@ Progress: [██████░░░░] 67%
 |-------|-------|-------|----------|
 | 01-extract-hemmet-to-standalone-page | 3 | 8min | 3min |
 | 02-settings-sidebar-layout | 2 | 5min | 3min |
+| 03-integration-visual-polish | 2 | 19min | 10min |
 
 **Recent Trend:**
-- Last 5 plans: 3min, 2min, 2min, 3min
-- Trend: Excellent velocity (under target)
+- Last 5 plans: 2min, 3min, 9min, 10min
+- Trend: Good velocity (Phase 3 plans longer due to structural refactoring)
 
 *Updated after each plan completion*
 
@@ -57,6 +58,13 @@ Recent decisions affecting current work:
 - [02-01]: Separated danger zone with Separator component and uppercase label styling.
 - [02-02]: Account deletion requires email confirmation before delete button is enabled (prevents accidental single-click deletions).
 - [02-02]: SecurityForm now handles only password changes; account deletion is separate danger zone concern on /installningar/konto.
+- [03-01]: Used React cache() for getHomeInfo to deduplicate fetches within single request - cleaner than prop drilling.
+- [03-01]: Used bg-secondary/10 (green) for Hemmet active navigation - distinct from settings' neutral/destructive colors.
+- [03-01]: Moved leave household from danger zone card to inline button on hushall page - less visual weight, cleaner layout.
+- [03-01]: Layout conditionally shows sidebar when user has home, full-width wizard when no home.
+- [03-02]: Removed all redundant h2 headings from settings pages - sidebar active state and card titles provide sufficient context.
+- [03-02]: Standardized all settings forms to Card/CardHeader/CardContent structure for visual consistency with Hemmet pages.
+- [03-02]: API key manager button placed inside CardHeader using flexbox layout to keep action near title while maintaining Card visual unity.
 
 ### Pending Todos
 
@@ -70,6 +78,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-27
-Stopped at: Phase 2 execution complete and verified. Ready for Phase 3 planning.
+Last session: 2026-01-28
+Stopped at: Completed 03-01-PLAN.md - Hemmet restructured into sidebar layout with three sub-pages (hushall, medlemmar, bjud-in)
 Resume file: None
