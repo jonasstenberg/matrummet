@@ -16,6 +16,11 @@ Transform the basic footer into a professional multi-column layout and add three
 
 **Dependencies:** None (foundation phase)
 
+**Plans:** 1 plan
+
+Plans:
+- [ ] 01-01-PLAN.md — Redesign footer component + add to auth layout
+
 **Requirements:**
 - FOOT-01: Multi-column footer layout with grouped links
 - FOOT-02: Copyright line with current year preserved in new design
@@ -49,7 +54,7 @@ Transform the basic footer into a professional multi-column layout and add three
 
 | Phase | Goal | Status | Requirements |
 |-------|------|--------|--------------|
-| 1 - Footer Infrastructure | Users see a professional multi-column footer on all pages | Pending | FOOT-01, FOOT-02, FOOT-03 |
+| 1 - Footer Infrastructure | Users see a professional multi-column footer on all pages | Planned | FOOT-01, FOOT-02, FOOT-03 |
 | 2 - Content Pages | Users can access About, Privacy, Terms pages | Pending | PAGE-01, PAGE-02, PAGE-03 |
 
 **Overall Progress:** 0/6 requirements complete (0%)
