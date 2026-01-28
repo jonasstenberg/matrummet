@@ -7,29 +7,52 @@
 See: .planning/PROJECT.md (updated 2026-01-28)
 
 **Core value:** Key features should be immediately visible in the header — not buried in a dropdown menu.
-**Current focus:** Milestone v1.1 — Navigation & Header Restructure
+**Current focus:** Phase 4 - Desktop Header Restructure
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-01-28 — Milestone v1.1 started
+Phase: 4 of 6 (Desktop Header Restructure)
+Plan: 0 of ? in current phase
+Status: Ready to plan
+Last activity: 2026-01-28 — Roadmap created for v1.1 milestone
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██████░░░░] 50% (8/14 total plans across milestones)
 
 ## Performance Metrics
 
-**Previous Milestone (v1.0 — Settings & Home Page Redesign):**
+**Velocity:**
 - Total plans completed: 8
 - Average duration: 4min
 - Total execution time: 34min
+
+**By Phase:**
+
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+| v1.0 Phase 1 | 3 | ~12min | ~4min |
+| v1.0 Phase 2 | 2 | ~8min | ~4min |
+| v1.0 Phase 3 | 3 | ~14min | ~5min |
+
+**Recent Trend:**
+- Last 5 plans: Consistently ~4-5min per plan
+- Trend: Stable
+
+*Updated after each plan completion*
 
 ## Accumulated Context
 
 ### Key Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting current work:
+
+- Move 5 items out of user dropdown to top-level nav (key features should be immediately visible)
+- Search bar to dedicated full-width row (header needs space; search benefits from width)
+- Icons for AI-krediter and user profile, text for rest (saves horizontal space)
+- Sticky header + sticky search on desktop only (vertical space available on desktop)
+- Keep mobile drawer unchanged (drawer handles all nav items well)
+- Underline for active nav state (clear, conventional indicator)
+- Logged out: no nav items (all nav items are auth-gated features)
 
 (None)
 
@@ -37,12 +60,12 @@ Decisions are logged in PROJECT.md Key Decisions table.
 
 ### Blockers/Concerns
 
-None.
+None yet.
 
 ## Session Continuity
 
 Last session: 2026-01-28
-Stopped at: Milestone v1.1 initialization
+Stopped at: Roadmap creation complete for v1.1
 Resume file: None
 
 **Next Action:** Start next milestone with `/gsd:new-milestone`
