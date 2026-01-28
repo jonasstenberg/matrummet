@@ -34,18 +34,18 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOOT-01 | — | Pending |
-| FOOT-02 | — | Pending |
-| FOOT-03 | — | Pending |
-| PAGE-01 | — | Pending |
-| PAGE-02 | — | Pending |
-| PAGE-03 | — | Pending |
+| FOOT-01 | Phase 1 | Pending |
+| FOOT-02 | Phase 1 | Pending |
+| FOOT-03 | Phase 1 | Pending |
+| PAGE-01 | Phase 2 | Pending |
+| PAGE-02 | Phase 2 | Pending |
+| PAGE-03 | Phase 2 | Pending |
 
 **Coverage:**
 - v1 requirements: 6 total
-- Mapped to phases: 0
-- Unmapped: 6
+- Mapped to phases: 6 (100%)
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-01-28*
-*Last updated: 2026-01-28 after initial definition*
+*Last updated: 2026-01-28 after roadmap creation*

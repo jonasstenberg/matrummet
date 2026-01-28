@@ -1,79 +1,59 @@
-# Roadmap: Settings & Home Page Redesign
+# Roadmap: Recept Footer & Legal Pages
+
+**Created:** 2026-01-28
+**Depth:** Quick
+**Total Phases:** 2
 
 ## Overview
 
-This milestone restructures Matrummet's settings page from horizontal tabs to a vertical sidebar layout, and extracts the Home (Hemmet) management feature to its own standalone page. The work moves through three phases: first extract Hemmet to an independent route with improved UX, then rebuild settings with the new sidebar navigation, then verify the whole thing works together with visual polish. All changes are frontend-only with zero new dependencies.
+Transform the basic footer into a professional multi-column layout and add three essential content pages (About, Privacy Policy, Terms of Service) to make the app feel trustworthy and complete.
 
 ## Phases
 
-**Phase Numbering:**
-- Integer phases (1, 2, 3): Planned milestone work
-- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+### Phase 1: Footer Infrastructure
 
-Decimal phases appear between their surrounding integers in numeric order.
+**Goal:** Users see a professional multi-column footer on all pages including auth.
 
-- [x] **Phase 1: Extract Hemmet to Standalone Page** - Move Home management out of settings into its own route with improved layout
-- [x] **Phase 2: Settings Sidebar Layout** - Replace horizontal tabs with vertical sidebar navigation and add danger zone section
-- [x] **Phase 3: Integration & Visual Polish** - Cross-page verification, visual consistency, and clean modern design for both pages
+**Dependencies:** None (foundation phase)
 
-## Phase Details
+**Requirements:**
+- FOOT-01: Multi-column footer layout with grouped links
+- FOOT-02: Copyright line with current year preserved in new design
+- FOOT-03: Footer renders on all pages including auth (login, register)
 
-### Phase 1: Extract Hemmet to Standalone Page
-**Goal**: Users can access and manage their household from a dedicated page independent of settings
-**Depends on**: Nothing (first phase)
-**Requirements**: REQ-04, REQ-05, REQ-06, REQ-07
-**Success Criteria** (what must be TRUE):
-  1. User navigates to `/hemmet/` and sees a standalone Home management page (not inside settings)
-  2. User finds "Mitt hem" link in both the desktop header dropdown and mobile menu
-  3. Home page displays household info, members, and invite flow in clearly separated sections (not crammed together)
-  4. User can invite a household member via join code or email without confusion about which method to use
-  5. Visiting the old URL `/installningar/hemmet` redirects to `/hemmet/` (no broken bookmarks)
-**Plans**: 3 plans
+**Success Criteria:**
+1. User sees multi-column footer with link groups on any main app page
+2. User sees the same footer on login and register pages
+3. User sees copyright line with current year in footer
+4. Footer layout is responsive and works on mobile and desktop
 
-Plans:
-- [x] 01-01-PLAN.md — Create standalone /hemmet/ route and move HomeSettingsClient to shared components
-- [x] 01-02-PLAN.md — Add navigation links and 308 redirect from old URL
-- [x] 01-03-PLAN.md — Redesign home page layout with separate Card sections and simplified invite flow
+### Phase 2: Content Pages
 
-### Phase 2: Settings Sidebar Layout
-**Goal**: Users navigate settings through a clean sidebar on desktop and stacked links on mobile, with a separated danger zone for account deletion
-**Depends on**: Phase 1 (Phase 1 removes Hemmet from settings; Phase 2 deletes the old route and rebuilds navigation)
-**Requirements**: REQ-01, REQ-02, REQ-03
-**Success Criteria** (what must be TRUE):
-  1. Settings page shows a vertical sidebar on desktop (240px) with links for Profil, Sakerhet, API-nycklar, and Konto (danger zone)
-  2. On mobile, settings navigation appears as horizontal scrolling pills at the top of the page (not a sidebar)
-  3. Active settings section is visually highlighted in the sidebar and announced to screen readers (`aria-current="page"`)
-  4. Account deletion appears in its own "Konto" section below a visual separator labeled "Farlig zon", completely separate from password change in Sakerhet
-  5. The old `SettingsViewToggle` horizontal tabs component is removed; settings pages no longer render tab navigation
-**Plans**: 2 plans
+**Goal:** Users can access About, Privacy Policy, and Terms pages with real Swedish content.
 
-Plans:
-- [x] 02-01-PLAN.md — Create sidebar/pill navigation components and update settings layout to CSS Grid
-- [x] 02-02-PLAN.md — Extract account deletion to Konto page, strip SecurityForm, delete deprecated files
+**Dependencies:** Phase 1 (footer must link to these pages)
 
-### Phase 3: Integration & Visual Polish
-**Goal**: Both pages feel cohesive, modern, and work correctly across all navigation flows and viewports
-**Depends on**: Phase 2
-**Requirements**: REQ-08
-**Success Criteria** (what must be TRUE):
-  1. User can navigate the full loop: header dropdown -> settings -> switch sections -> back to header -> Hemmet -> back, with correct active states and no stale UI
-  2. Both settings and Hemmet pages use consistent spacing, typography, and visual style that reads as clean and modern
-  3. All existing functionality preserved: profile editing, password change, API key management, home creation/joining/leaving, member management, and invites all work as before
-  4. No regressions in existing test suites (unit, API integration)
-**Plans**: 3 plans
+**Requirements:**
+- PAGE-01: About page at /om with real Swedish content
+- PAGE-02: Privacy Policy page at /integritetspolicy with real Swedish content
+- PAGE-03: Terms of Service page at /villkor with real Swedish content
 
-Plans:
-- [x] 03-01-PLAN.md — Restructure Hemmet into sidebar + sub-pages layout matching settings
-- [x] 03-02-PLAN.md — Remove redundant headings and standardize Card components across settings
-- [x] 03-03-PLAN.md — Add scroll fade indicators to mobile pills, run tests, human verification
+**Success Criteria:**
+1. User can navigate to /om and read about the project's personal origins and purpose
+2. User can navigate to /integritetspolicy and understand what data is stored (auth cookies, recipes, Stripe payments) and what isn't (no analytics/tracking)
+3. User can navigate to /villkor and understand usage terms for the app
+4. All three pages are accessible from footer links
+5. Content reads naturally in Swedish and matches the app's tone (personal, humble, family-focused)
 
 ## Progress
 
-**Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3
+| Phase | Goal | Status | Requirements |
+|-------|------|--------|--------------|
+| 1 - Footer Infrastructure | Users see a professional multi-column footer on all pages | Pending | FOOT-01, FOOT-02, FOOT-03 |
+| 2 - Content Pages | Users can access About, Privacy, Terms pages | Pending | PAGE-01, PAGE-02, PAGE-03 |
 
-| Phase | Plans Complete | Status | Completed |
-|-------|---------------|--------|-----------|
-| 1. Extract Hemmet | 3/3 | ✓ Complete | 2026-01-27 |
-| 2. Settings Sidebar | 2/2 | ✓ Complete | 2026-01-27 |
-| 3. Integration & Polish | 3/3 | ✓ Complete | 2026-01-28 |
+**Overall Progress:** 0/6 requirements complete (0%)
+
+---
+*Roadmap created: 2026-01-28*
+*Last updated: 2026-01-28*
