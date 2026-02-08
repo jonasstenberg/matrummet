@@ -1,0 +1,11 @@
+{
+  "name": "@matrummet/tsconfig",
+  "version": "1.0.0",
+  "description": "Shared TypeScript configurations for matrummet",
+  "license": "MIT",
+  "files": [
+    "base.json",
+    "node.json",
+    "web.json"
+  ]
+}

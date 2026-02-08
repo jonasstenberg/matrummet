@@ -1,0 +1,422 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      run_migrations:
+        description: "Run database migrations"
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+      deploy_frontend:
+        description: "Deploy frontend application"
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+      deploy_email_service:
+        description: "Deploy email service"
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+
+env:
+  NODE_VERSION: "22"
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      run_migrations: ${{ steps.changes.outputs.run_migrations }}
+      deploy_frontend: ${{ steps.changes.outputs.deploy_frontend }}
+      deploy_email_service: ${{ steps.changes.outputs.deploy_email_service }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changes
+        id: changes
+        run: |
+          WORKFLOW_SHA=$(git rev-parse HEAD)
+          echo "Using HEAD SHA: $WORKFLOW_SHA"
+
+          # For push events, compare against the before SHA (catches multi-commit pushes)
+          # For workflow_dispatch, compare against parent commit
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            PARENT_SHA="${{ github.event.before }}"
+            # Handle initial push (all zeros)
+            if [[ "$PARENT_SHA" == "0000000000000000000000000000000000000000" ]]; then
+              PARENT_SHA=""
+            fi
+            echo "Using push before SHA: $PARENT_SHA"
+          else
+            git fetch origin ${{ github.ref_name }} --depth=100 || echo "Fetching history failed"
+            PARENT_SHA=$(git rev-parse $WORKFLOW_SHA^ 2>/dev/null || echo "")
+            echo "Using parent SHA: $PARENT_SHA"
+          fi
+
+          # Check for migration changes
+          if [[ "${{ github.event.inputs.run_migrations }}" == "false" ]]; then
+            echo "run_migrations=false" >> $GITHUB_OUTPUT
+            echo "Skipping migrations as requested"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.run_migrations }}" == "true" ]]; then
+            echo "run_migrations=true" >> $GITHUB_OUTPUT
+            echo "Manual request to run migrations"
+          elif [[ -z "$PARENT_SHA" ]]; then
+            echo "run_migrations=true" >> $GITHUB_OUTPUT
+            echo "First commit, running migrations"
+          else
+            CHANGED_FILES=$(git diff --name-only $PARENT_SHA $WORKFLOW_SHA 2>/dev/null || git ls-files)
+            if echo "$CHANGED_FILES" | grep -q "^flyway/"; then
+              echo "run_migrations=true" >> $GITHUB_OUTPUT
+              echo "Database changes detected"
+            else
+              echo "run_migrations=false" >> $GITHUB_OUTPUT
+              echo "No database changes detected"
+            fi
+          fi
+
+          # Check for frontend changes
+          if [[ "${{ github.event.inputs.deploy_frontend }}" == "false" ]]; then
+            echo "deploy_frontend=false" >> $GITHUB_OUTPUT
+            echo "Skipping frontend deployment as requested"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.deploy_frontend }}" == "true" ]]; then
+            echo "deploy_frontend=true" >> $GITHUB_OUTPUT
+            echo "Manual request to deploy frontend"
+          elif [[ -z "$PARENT_SHA" ]]; then
+            echo "deploy_frontend=true" >> $GITHUB_OUTPUT
+            echo "First commit, deploying frontend"
+          else
+            CHANGED_FILES=$(git diff --name-only $PARENT_SHA $WORKFLOW_SHA 2>/dev/null || git ls-files)
+            if echo "$CHANGED_FILES" | grep -q "^apps/frontend/"; then
+              echo "deploy_frontend=true" >> $GITHUB_OUTPUT
+              echo "Frontend changes detected"
+            else
+              echo "deploy_frontend=false" >> $GITHUB_OUTPUT
+              echo "No frontend changes detected"
+            fi
+          fi
+
+          # Check for email-service changes
+          if [[ "${{ github.event.inputs.deploy_email_service }}" == "false" ]]; then
+            echo "deploy_email_service=false" >> $GITHUB_OUTPUT
+            echo "Skipping email-service deployment as requested"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.deploy_email_service }}" == "true" ]]; then
+            echo "deploy_email_service=true" >> $GITHUB_OUTPUT
+            echo "Manual request to deploy email-service"
+          elif [[ -z "$PARENT_SHA" ]]; then
+            echo "deploy_email_service=true" >> $GITHUB_OUTPUT
+            echo "First commit, deploying email-service"
+          else
+            CHANGED_FILES=$(git diff --name-only $PARENT_SHA $WORKFLOW_SHA 2>/dev/null || git ls-files)
+            if echo "$CHANGED_FILES" | grep -q "^apps/email-service/"; then
+              echo "deploy_email_service=true" >> $GITHUB_OUTPUT
+              echo "Email-service changes detected"
+            else
+              echo "deploy_email_service=false" >> $GITHUB_OUTPUT
+              echo "No email-service changes detected"
+            fi
+          fi
+
+  test:
+    needs: setup
+    if: needs.setup.outputs.deploy_frontend == 'true' || needs.setup.outputs.deploy_email_service == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build shared packages
+        run: pnpm --filter @matrummet/shared --filter @matrummet/testing build
+
+      - name: Run tests
+        run: pnpm vitest run
+
+  api-tests:
+    needs: setup
+    if: needs.setup.outputs.deploy_frontend == 'true' || needs.setup.outputs.run_migrations == 'true'
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: matrummet
+          POSTGRES_USER: matrummet
+          POSTGRES_PASSWORD: matrummet
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U matrummet -d matrummet"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Flyway migrations
+        run: |
+          docker run --rm \
+            --network host \
+            -v ${{ github.workspace }}/flyway/sql:/flyway/sql:ro \
+            flyway/flyway:11 \
+            -url=jdbc:postgresql://localhost:5433/matrummet \
+            -user=matrummet \
+            -password=matrummet \
+            -locations=filesystem:/flyway/sql \
+            -baselineOnMigrate=true \
+            migrate
+
+      - name: Seed test admin user
+        run: PGPASSWORD=matrummet psql -h localhost -p 5433 -U matrummet -d matrummet -f tests/api/seed-admin.sql
+
+      - name: Start PostgREST
+        run: |
+          docker run -d \
+            --name postgrest \
+            --network host \
+            -e PGRST_DB_URI=postgres://matrummet:matrummet@localhost:5433/matrummet \
+            -e PGRST_DB_SCHEMAS=public \
+            -e PGRST_DB_ANON_ROLE=anon \
+            -e PGRST_JWT_SECRET=matrummet-jwt-secret-change-in-production-min-32-chars \
+            -e PGRST_JWT_SECRET_IS_BASE64=false \
+            -e PGRST_JWT_ROLE_CLAIM_KEY=.role \
+            -e PGRST_DB_PRE_REQUEST=pre_request \
+            -e PGRST_DB_EXTRA_SEARCH_PATH=extensions \
+            -e PGRST_OPENAPI_MODE=follow-privileges \
+            -e PGRST_SERVER_PORT=4445 \
+            postgrest/postgrest:v14.3
+
+      - name: Wait for PostgREST to be ready
+        run: |
+          echo "Waiting for PostgREST to start..."
+          for i in {1..30}; do
+            if curl -s http://localhost:4445/ > /dev/null 2>&1; then
+              echo "PostgREST is ready!"
+              exit 0
+            fi
+            echo "Attempt $i: PostgREST not ready yet..."
+            sleep 2
+          done
+          echo "PostgREST failed to start"
+          docker logs postgrest
+          exit 1
+
+      - name: Run API integration tests
+        env:
+          TEST_POSTGREST_URL: http://localhost:4445
+          TEST_JWT_SECRET: matrummet-jwt-secret-change-in-production-min-32-chars
+          TEST_DB_HOST: localhost
+          TEST_DB_PORT: "5433"
+          TEST_DB_NAME: matrummet
+          TEST_DB_USER: matrummet
+          TEST_DB_PASSWORD: matrummet
+        run: pnpm test:api
+
+      - name: Show PostgREST logs on failure
+        if: failure()
+        run: docker logs postgrest
+
+  deploy-migrations:
+    needs: [setup, test, api-tests]
+    if: always() && needs.setup.outputs.run_migrations == 'true' && (needs.test.result == 'success' || needs.test.result == 'skipped') && (needs.api-tests.result == 'success' || needs.api-tests.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy migrations
+        run: |
+          rsync -avz --delete --exclude='backups' flyway/ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ vars.DEPLOY_PATH }}/flyway/
+
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'source ${{ vars.DEPLOY_PATH }}/.flyway.env && cd ${{ vars.DEPLOY_PATH }}/flyway && ./run-flyway.sh migrate' || {
+            echo "::error::Database migration failed. Please check the logs for details."
+            exit 1
+          }
+
+          echo "Migrations deployed successfully"
+
+      - name: Restart PostgREST
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'sudo systemctl restart ${{ vars.SERVICE_POSTGREST }}'
+
+  deploy-services:
+    needs: [setup, test, api-tests, deploy-migrations]
+    if: always() && (needs.setup.outputs.deploy_frontend == 'true' || needs.setup.outputs.deploy_email_service == 'true') && (needs.test.result == 'success' || needs.test.result == 'skipped') && (needs.api-tests.result == 'success' || needs.api-tests.result == 'skipped') && (needs.deploy-migrations.result == 'success' || needs.deploy-migrations.result == 'skipped')
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [frontend, email-service]
+      fail-fast: false
+    steps:
+      - name: Check if service should be deployed
+        id: should-deploy
+        run: |
+          if [[ "${{ matrix.service }}" == "frontend" && "${{ needs.setup.outputs.deploy_frontend }}" == "true" ]]; then
+            echo "deploy=true" >> $GITHUB_OUTPUT
+          elif [[ "${{ matrix.service }}" == "email-service" && "${{ needs.setup.outputs.deploy_email_service }}" == "true" ]]; then
+            echo "deploy=true" >> $GITHUB_OUTPUT
+          else
+            echo "deploy=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout repository
+        if: steps.should-deploy.outputs.deploy == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        if: steps.should-deploy.outputs.deploy == 'true'
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        if: steps.should-deploy.outputs.deploy == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        if: steps.should-deploy.outputs.deploy == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache Next.js build
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'frontend'
+        uses: actions/cache@v4
+        with:
+          path: apps/frontend/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/frontend/**/*.js', 'apps/frontend/**/*.jsx', 'apps/frontend/**/*.ts', 'apps/frontend/**/*.tsx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('pnpm-lock.yaml') }}-
+            ${{ runner.os }}-nextjs-
+
+      - name: Build frontend
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'frontend'
+        working-directory: apps/frontend
+        run: |
+          pnpm build
+          ls -la .next/standalone/  # Verify build output exists
+
+      - name: Build and prepare email-service deployment
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'email-service'
+        run: |
+          pnpm --filter @matrummet/shared build
+          pnpm --filter @matrummet/email-service build
+          pnpm deploy --filter @matrummet/email-service --prod --legacy deploy/email-service
+          ls -la deploy/email-service/  # Verify deployment package
+
+      - name: Prepare frontend deployment package
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'frontend'
+        run: |
+          mkdir -p deploy/.next
+          # Next.js standalone preserves monorepo structure, copy from nested path
+          cp -r apps/frontend/.next/standalone/apps/frontend/. deploy/
+          # Copy root node_modules (shared dependencies)
+          cp -r apps/frontend/.next/standalone/node_modules deploy/
+          # Copy static assets
+          cp -r apps/frontend/.next/static deploy/.next/static
+          # Merge source public files into standalone public (standalone only has uploads)
+          cp -r apps/frontend/public/. deploy/public/
+          cp -r apps/frontend/scripts deploy/scripts
+          # Verify structure
+          ls -la deploy/
+
+      - name: Setup SSH
+        if: steps.should-deploy.outputs.deploy == 'true'
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy frontend to VPS
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'frontend'
+        run: |
+          rsync -avz --delete --exclude='public/uploads' \
+            deploy/ \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ vars.DEPLOY_PATH }}/apps/frontend/
+
+          echo "Frontend deployed successfully"
+
+      - name: Install Playwright browsers on VPS
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'frontend'
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'cd ${{ vars.DEPLOY_PATH }}/apps/frontend && npx playwright install chromium'
+
+      - name: Deploy email-service to VPS
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'email-service'
+        run: |
+          rsync -avz --delete \
+            deploy/email-service/ \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ vars.DEPLOY_PATH }}/apps/email-service/
+
+          echo "Email-service deployed successfully"
+
+      - name: Restart frontend service
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'frontend'
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'sudo systemctl restart ${{ vars.SERVICE_FRONTEND }}'
+
+      - name: Restart email-service
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'email-service'
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'sudo systemctl restart ${{ vars.SERVICE_EMAIL }}'
+
+  notify:
+    needs: [setup, test, api-tests, deploy-migrations, deploy-services]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deployment summary
+        run: |
+          echo "Deployment completed at $(date)"
+          echo "Summary:"
+          echo "- Unit Tests: ${{ needs.test.result == 'success' && 'Passed' || needs.test.result == 'skipped' && 'Skipped' || 'Failed' }}"
+          echo "- API Tests: ${{ needs.api-tests.result == 'success' && 'Passed' || needs.api-tests.result == 'skipped' && 'Skipped' || 'Failed' }}"
+          echo "- Migrations: ${{ needs.setup.outputs.run_migrations == 'true' && (needs.deploy-migrations.result == 'success' && 'Deployed' || 'Failed') || 'Skipped' }}"
+          echo "- Frontend: ${{ needs.setup.outputs.deploy_frontend == 'true' && 'Deployed' || 'Skipped' }}"
+          echo "- Email-service: ${{ needs.setup.outputs.deploy_email_service == 'true' && 'Deployed' || 'Skipped' }}"

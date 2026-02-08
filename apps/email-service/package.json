@@ -1,0 +1,44 @@
+{
+  "name": "@matrummet/email-service",
+  "version": "0.0.1",
+  "description": "Email service for Matrummet",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@matrummet/shared": "workspace:*",
+    "express": "^5.1.0",
+    "handlebars": "^4.7.8",
+    "nodemailer": "^6.10.0",
+    "pg": "^8.14.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.24.0",
+    "@matrummet/eslint": "workspace:*",
+    "@matrummet/tsconfig": "workspace:*",
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.14.0",
+    "@types/nodemailer": "^6.4.17",
+    "@types/pg": "^8.11.11",
+    "@typescript-eslint/eslint-plugin": "^8.48.0",
+    "@typescript-eslint/parser": "^8.48.0",
+    "eslint": "^9.22.0",
+    "eslint-plugin-import": "^2.31.0",
+    "globals": "^16.0.0",
+    "prettier": "^3.5.3",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.48.0",
+    "vitest": "^4.0.15"
+  }
+}

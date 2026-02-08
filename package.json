@@ -1,0 +1,40 @@
+{
+  "name": "matrummet",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "description": "Matrummet - A Swedish recipe management app with full-text search, JWT auth, and row-level security",
+  "author": "Jonas Stenberg",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jonasstenberg/matrummet.git"
+  },
+  "packageManager": "pnpm@10.26.0",
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "test:api": "PGPASSWORD=${TEST_DB_PASSWORD:-matrummet} psql -h ${TEST_DB_HOST:-localhost} -p ${TEST_DB_PORT:-5433} -U ${TEST_DB_USER:-matrummet} -d ${TEST_DB_NAME:-matrummet} -f tests/api/seed-admin.sql && vitest run --config tests/api/vitest.config.ts",
+    "lint": "pnpm -r lint",
+    "check": ".claude/hooks/run-silent.sh 'All checks' 'pnpm lint && pnpm test --run'",
+    "check:build": ".claude/hooks/run-silent.sh 'Build' 'pnpm build'",
+    "check:lint": ".claude/hooks/run-silent.sh 'Lint' 'pnpm lint'",
+    "check:test": ".claude/hooks/run-silent.sh 'Tests' 'pnpm test --run'",
+    "check:api": ".claude/hooks/run-silent.sh 'API Tests' 'pnpm test:api'",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "inbucket": "docker compose up -d inbucket",
+    "inbucket:stop": "docker compose stop inbucket"
+  },
+  "devDependencies": {
+    "vitest": "^4.0.15",
+    "jose": "^6.0.10"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "19.2.7",
+      "@types/react-dom": "19.2.3"
+    }
+  }
+}

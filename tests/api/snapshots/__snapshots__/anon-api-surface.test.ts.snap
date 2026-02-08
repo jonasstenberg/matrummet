@@ -1,0 +1,38 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Anon API Surface Area > snapshot: anon-visible functions 1`] = `
+[
+  "complete_password_reset",
+  "escape_like_pattern",
+  "get_shared_recipe",
+  "get_user_display_name",
+  "get_user_id",
+  "login",
+  "pre_request",
+  "request_password_reset",
+  "reset_password",
+  "signup",
+  "signup_provider",
+  "unsubscribe_from_emails",
+  "validate_api_key",
+  "validate_password_reset_token",
+]
+`;
+
+exports[`Anon API Surface Area > snapshot: anon-visible tables 1`] = `
+[
+  "categories",
+  "category_groups",
+  "featured_recipes",
+  "foods",
+  "ingredient_groups",
+  "ingredients",
+  "instruction_groups",
+  "instruction_ingredient_matches",
+  "instructions",
+  "recipe_categories",
+  "recipe_share_tokens",
+  "recipes",
+  "units",
+]
+`;

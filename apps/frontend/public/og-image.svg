@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#f0fdf4"/>
+  
+  <!-- Decorative circles -->
+  <circle cx="100" cy="100" r="200" fill="#dcfce7" opacity="0.5"/>
+  <circle cx="1100" cy="530" r="150" fill="#dcfce7" opacity="0.5"/>
+  
+  <!-- Logo -->
+  <g transform="translate(500, 180)">
+    <rect width="200" height="200" rx="32" fill="#16a34a"/>
+    <g transform="translate(30, 30)">
+      <path d="M70 14c-19.3 0-35 15.7-35 35 0 4.8 1 9.4 2.7 13.6C24.5 68.6 17.5 80.4 17.5 94c0 19.3 15.7 35 35 35v17.5c0 4.8 4 8.7 8.7 8.7h52.5c4.8 0 8.7-4 8.7-8.7v-17.5c19.3 0 35-15.7 35-35 0-13.6-7-25.4-20.2-31.4 1.7-4.2 2.7-8.8 2.7-13.6 0-19.3-15.7-35-35-35-9.6 0-18.4 4-24.6 10.3C74.8 21.3 72.2 14 70 14z" fill="white"/>
+    </g>
+  </g>
+  
+  <!-- Title -->
+  <text x="600" y="450" text-anchor="middle" font-family="Georgia, serif" font-size="72" font-weight="bold" fill="#166534">
+    Matrummet
+  </text>
+  
+  <!-- Subtitle -->
+  <text x="600" y="520" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" fill="#4b5563">
+    Din digitala receptsamling
+  </text>
+</svg>

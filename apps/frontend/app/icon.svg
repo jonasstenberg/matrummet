@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Rounded background -->
+  <rect width="32" height="32" rx="6" fill="#8a6d3b"/>
+  <!-- Chef hat icon (lucide ChefHat) scaled and centered -->
+  <g transform="translate(6, 6)" stroke="#ffffff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M15.18 11.085C17.24 10.287 18.667 8.291 18.667 5.98c0-3.093-2.58-5.313-5.667-5.313a5.53 5.53 0 0 0-3.62 1.347A5.53 5.53 0 0 0 5.76.667C2.68.667.093 2.887.093 5.98c0 2.31 1.427 4.307 3.487 5.105"/>
+    <path d="M3.333 10v6.667a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V10"/>
+    <path d="M3.333 14.667h12"/>
+  </g>
+</svg>
