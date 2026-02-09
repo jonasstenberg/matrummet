@@ -74,7 +74,7 @@ export function IngredientsList({
   return (
     <Card className="overflow-hidden rounded-2xl">
       <div className="border-b border-border/50 bg-muted/30 px-5 py-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-1 lg:flex-row lg:items-center lg:justify-between lg:gap-3">
           <h2 className="text-lg font-semibold text-foreground">
             Ingredienser
           </h2>

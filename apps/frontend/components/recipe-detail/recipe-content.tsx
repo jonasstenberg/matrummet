@@ -22,9 +22,9 @@ export function RecipeContent({
   scaleFactor,
 }: RecipeContentProps) {
   return (
-    <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-8 landscape:sm:grid-cols-3 lg:grid-cols-3">
       {/* Ingredients */}
-      <div className="lg:col-span-1">
+      <div className="landscape:sm:col-span-1 lg:col-span-1">
         <div>
           {recipe.ingredients && recipe.ingredients.length > 0 ? (
             <div className="space-y-4">
@@ -60,7 +60,7 @@ export function RecipeContent({
       </div>
 
       {/* Instructions */}
-      <div className="lg:col-span-2">
+      <div className="landscape:sm:col-span-2 lg:col-span-2">
         {recipe.instructions && recipe.instructions.length > 0 ? (
           <InstructionsChecklist
             recipe={recipe}
