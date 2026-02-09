@@ -9,6 +9,7 @@ const navItems = [
   { href: '/installningar', label: 'Profil' },
   { href: '/installningar/sakerhet', label: 'Säkerhet' },
   { href: '/installningar/api-nycklar', label: 'API-nycklar' },
+  { href: '/installningar/data', label: 'Data' },
   { href: '/installningar/konto', label: 'Konto' },
 ]
 
