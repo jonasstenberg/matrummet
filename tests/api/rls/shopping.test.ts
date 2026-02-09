@@ -28,7 +28,6 @@ import {
   cleanupTestData,
   resetCreatedResources,
   uniqueId,
-  ensureUserHasHome,
 } from "../seed";
 import { expectSuccess, expectRlsBlocked } from "../helpers";
 
@@ -779,14 +778,14 @@ describe("RLS: Shopping List RPC functions", () => {
       expect(typeof result.data).toBe("string");
     });
 
-    it("should fail for user without home", async () => {
-      // User B has no home yet
+    it("should succeed for user without home (personal list)", async () => {
+      // User B has no home - should create a personal shopping list
       const result = await clientB.rpc("create_shopping_list", {
-        p_name: "Should Fail List",
+        p_name: "Personal List",
       });
 
-      expect(result.error).not.toBeNull();
-      expect(result.error?.message).toContain("user-has-no-home");
+      expect(result.error).toBeNull();
+      expect(typeof result.data).toBe("string");
     });
 
     it("should fail for anonymous users", async () => {
