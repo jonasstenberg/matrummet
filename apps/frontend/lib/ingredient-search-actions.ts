@@ -115,7 +115,8 @@ export async function getUserPantry(): Promise<PantryItem[] | { error: string }>
 }
 
 export async function addToPantry(
-  foodIds: string[]
+  foodIds: string[],
+  expiresAt?: string | null
 ): Promise<{ success: boolean } | { error: string }> {
   try {
     const token = await getPostgrestToken()
@@ -130,15 +131,18 @@ export async function addToPantry(
 
     // Add each food to pantry
     for (const foodId of foodIds) {
+      const body: Record<string, string> = { p_food_id: foodId }
+      if (expiresAt) {
+        body.p_expires_at = expiresAt
+      }
+
       const response = await fetch(`${POSTGREST_URL}/rpc/add_to_pantry`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          p_food_id: foodId,
-        }),
+        body: JSON.stringify(body),
       })
 
       if (!response.ok) {
@@ -150,6 +154,41 @@ export async function addToPantry(
     return { success: true }
   } catch (error) {
     console.error('Error adding to pantry:', error)
+    return { error: 'Ett oväntat fel uppstod' }
+  }
+}
+
+export async function updatePantryItemExpiry(
+  foodId: string,
+  expiresAt: string | null
+): Promise<{ success: boolean } | { error: string }> {
+  try {
+    const token = await getPostgrestToken()
+
+    if (!token) {
+      return { error: 'Du måste vara inloggad' }
+    }
+
+    const response = await fetch(`${POSTGREST_URL}/rpc/add_to_pantry`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        p_food_id: foodId,
+        p_expires_at: expiresAt,
+      }),
+    })
+
+    if (!response.ok) {
+      console.error('Failed to update pantry item expiry:', await response.text())
+      return { error: 'Kunde inte uppdatera utgångsdatum' }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating pantry item expiry:', error)
     return { error: 'Ett oväntat fel uppstod' }
   }
 }

@@ -2,10 +2,11 @@
 
 import { useState, useTransition, useEffect } from 'react'
 import { AddCustomItemInput } from '@/components/add-custom-item-input'
+import { AddToPantryDialog } from '@/components/add-to-pantry-dialog'
 import { ShoppingListItem } from '@/components/shopping-list-item'
 import { clearCheckedItems } from '@/lib/actions'
 import type { ShoppingListItem as ShoppingListItemType } from '@/lib/types'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, PackagePlus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface ShoppingListProps {
@@ -17,6 +18,7 @@ export function ShoppingList({ items, listId }: ShoppingListProps) {
   const [localItems, setLocalItems] = useState(items)
   const [isPending, startTransition] = useTransition()
   const [checkedCollapsed, setCheckedCollapsed] = useState(false)
+  const [pantryDialogOpen, setPantryDialogOpen] = useState(false)
 
   useEffect(() => {
     setLocalItems(items)
@@ -104,14 +106,34 @@ export function ShoppingList({ items, listId }: ShoppingListProps) {
             </div>
           </button>
           {!checkedCollapsed && (
-            <div className="divide-y divide-border/40 border-t border-border/40">
-              {checkedItems.map((item) => (
-                <ShoppingListItem key={item.id} item={item} />
-              ))}
-            </div>
+            <>
+              <div className="divide-y divide-border/40 border-t border-border/40">
+                {checkedItems.map((item) => (
+                  <ShoppingListItem key={item.id} item={item} />
+                ))}
+              </div>
+              {checkedItems.some((i) => i.food_id) && (
+                <div className="border-t border-border/40 px-5 py-3">
+                  <button
+                    type="button"
+                    onClick={() => setPantryDialogOpen(true)}
+                    className="flex items-center gap-2 text-xs font-medium text-primary transition-colors hover:text-primary/80"
+                  >
+                    <PackagePlus className="h-3.5 w-3.5" />
+                    Lägg till i skafferiet
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
+
+      <AddToPantryDialog
+        items={checkedItems}
+        open={pantryDialogOpen}
+        onOpenChange={setPantryDialogOpen}
+      />
     </div>
   )
 }

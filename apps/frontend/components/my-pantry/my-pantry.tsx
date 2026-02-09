@@ -3,7 +3,7 @@
 import { useState, useCallback, useMemo } from 'react'
 import { ChevronDown, Plus, Check } from 'lucide-react'
 import type { PantryItem, CommonPantryItem } from '@/lib/ingredient-search-types'
-import { addToPantry, removeFromPantry } from '@/lib/ingredient-search-actions'
+import { addToPantry, removeFromPantry, updatePantryItemExpiry } from '@/lib/ingredient-search-actions'
 import { cn } from '@/lib/utils'
 import { IngredientSearch } from './ingredient-search'
 import { PantryList } from './pantry-list'
@@ -55,12 +55,12 @@ export function MyPantry({ initialPantry = [], commonPantryItems = [] }: MyPantr
   )
 
   const handleIngredientAdd = useCallback(
-    async (ingredient: { id: string; name: string }) => {
+    async (ingredient: { id: string; name: string }, expiresAt?: string) => {
       if (existingFoodIds.has(ingredient.id)) return
 
       setIsLoading(true)
 
-      addToPantry([ingredient.id]).catch((err) => {
+      addToPantry([ingredient.id], expiresAt).catch((err) => {
         console.error('Failed to save to pantry:', err)
       })
 
@@ -71,7 +71,8 @@ export function MyPantry({ initialPantry = [], commonPantryItems = [] }: MyPantr
         quantity: null,
         unit: null,
         added_at: new Date().toISOString(),
-        expires_at: null,
+        expires_at: expiresAt ?? null,
+        is_expired: expiresAt ? new Date(expiresAt) < new Date(new Date().toDateString()) : false,
       }
       setPantryItems((prev) => [newItem, ...prev])
       setIsLoading(false)
@@ -86,11 +87,28 @@ export function MyPantry({ initialPantry = [], commonPantryItems = [] }: MyPantr
     setPantryItems((prev) => prev.filter((item) => item.food_id !== foodId))
   }, [])
 
+  const handleUpdateExpiry = useCallback((foodId: string, expiresAt: string | null) => {
+    updatePantryItemExpiry(foodId, expiresAt).catch((err) => {
+      console.error('Failed to update expiry:', err)
+    })
+    setPantryItems((prev) =>
+      prev.map((item) =>
+        item.food_id === foodId
+          ? {
+              ...item,
+              expires_at: expiresAt,
+              is_expired: expiresAt ? new Date(expiresAt) < new Date(new Date().toDateString()) : false,
+            }
+          : item
+      )
+    )
+  }, [])
+
   return (
     <div className="space-y-4">
       {/* Main pantry card */}
       <div className="rounded-2xl bg-card shadow-(--shadow-card)">
-        <PantryList items={pantryItems} onRemoveItem={handleRemoveItem} />
+        <PantryList items={pantryItems} onRemoveItem={handleRemoveItem} onUpdateExpiry={handleUpdateExpiry} />
 
         {/* Inline search input */}
         <div

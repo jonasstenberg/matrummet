@@ -31,6 +31,7 @@ export interface PantryItem {
   unit: string | null
   added_at: string
   expires_at: string | null
+  is_expired?: boolean
 }
 
 export interface SubstitutionSuggestion {
