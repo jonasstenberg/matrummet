@@ -412,7 +412,7 @@ export function UnifiedImportForm({ onImport }: UnifiedImportFormProps) {
                   Släpp bild här eller klicka
                 </p>
                 <p className="text-xs text-muted-foreground/60 mt-0.5">
-                  valfritt
+                  valfritt · tolkas med AI
                 </p>
               </div>
             ) : (
@@ -452,16 +452,21 @@ export function UnifiedImportForm({ onImport }: UnifiedImportFormProps) {
               <div className="h-px flex-1 bg-border/50" />
             </div>
 
-            <Textarea
-              placeholder="Klistra in länk eller recepttext..."
-              value={input}
-              onChange={(e) => {
-                setInput(e.target.value)
-                setError(null)
-              }}
-              className="min-h-[100px] bg-background text-[15px]"
-              disabled={isLoading}
-            />
+            <div>
+              <Textarea
+                placeholder="Klistra in länk eller recepttext..."
+                value={input}
+                onChange={(e) => {
+                  setInput(e.target.value)
+                  setError(null)
+                }}
+                className="min-h-[100px] bg-background text-[15px]"
+                disabled={isLoading}
+              />
+              <p className="text-xs text-muted-foreground/60 mt-1.5 px-1">
+                Länkar hämtas gratis · text tolkas med AI
+              </p>
+            </div>
 
             {/* AI toggle — only when URL is detected */}
             {isUrl && !hasImage && (
