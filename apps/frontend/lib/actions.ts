@@ -14,6 +14,7 @@ export {
   copyRecipe,
   toggleRecipeLike,
   importRecipeFromUrl,
+  fetchUrlPageText,
   downloadAndSaveImage,
   // Share link operations
   createShareLink,

@@ -586,6 +586,39 @@ export async function importRecipeFromUrl(
 }
 
 /**
+ * Fetch page text from a URL using Playwright (for AI import).
+ * Skips JSON-LD extraction — goes straight to rendered page text.
+ */
+export async function fetchUrlPageText(
+  url: string
+): Promise<{ pageText: string | null; error?: string }> {
+  try {
+    const token = await getPostgrestToken()
+    if (!token) {
+      return { pageText: null, error: 'Du måste vara inloggad' }
+    }
+
+    try {
+      const parsedUrl = new URL(url)
+      if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+        return { pageText: null, error: 'Ogiltig URL' }
+      }
+    } catch {
+      return { pageText: null, error: 'Ogiltig URL-format' }
+    }
+
+    const result = await fetchWithPlaywright(url)
+    if (!result.pageText) {
+      return { pageText: null, error: 'Kunde inte hämta sidans innehåll' }
+    }
+    return { pageText: result.pageText }
+  } catch (error) {
+    console.error('Error fetching page text:', error)
+    return { pageText: null, error: 'Ett oväntat fel uppstod' }
+  }
+}
+
+/**
  * Download an image from a URL and save it locally (server-side).
  * This bypasses CORS restrictions that would block client-side downloads.
  */
