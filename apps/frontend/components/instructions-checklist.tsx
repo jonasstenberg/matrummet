@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MarkAsCookedButton } from "@/components/mark-as-cooked-button";
-import { useIsMobile } from "@/lib/hooks/use-media-query";
+import { useIsTouchDevice } from "@/lib/hooks/use-media-query";
 import { useWakeLock } from "@/lib/hooks/use-wake-lock";
 import type { Instruction, Recipe } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -31,7 +31,7 @@ export function InstructionsChecklist({
   const recipeId = recipe.id;
   const [checkedSteps, setCheckedSteps] = useState<Set<number>>(new Set());
   const [wakeLockEnabled, setWakeLockEnabled] = useState(false);
-  const isMobile = useIsMobile();
+  const isTouchDevice = useIsTouchDevice();
 
   useWakeLock(wakeLockEnabled);
 
@@ -150,7 +150,7 @@ export function InstructionsChecklist({
               Börja om
             </button>
           )}
-          {isMobile && (
+          {isTouchDevice && (
             <button
               onClick={() => setWakeLockEnabled((prev) => !prev)}
               className={cn(
