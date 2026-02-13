@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getSession, signPostgrestToken } from '@/lib/auth'
 import { env } from '@/lib/env'
 
 type Unit = {
-  id: number
+  id: string
   name: string
   plural: string
   abbreviation: string
@@ -20,11 +21,20 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const session = await getSession()
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    }
+
+    if (session) {
+      const token = await signPostgrestToken(session.email)
+      headers.Authorization = `Bearer ${token}`
+    }
+
     const response = await fetch(`${env.POSTGREST_URL}/rpc/search_units`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify({
         p_query: query,
         p_limit: limit,

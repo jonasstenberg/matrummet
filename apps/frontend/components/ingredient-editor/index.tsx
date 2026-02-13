@@ -66,7 +66,7 @@ export function IngredientEditor({
         items.push({
           type: "group",
           id: groupId,
-          name: group?.name || "Grupp",
+          name: group?.name ?? "Grupp",
         });
         currentGroupId = groupId;
       } else if (!groupId && currentGroupId !== null) {

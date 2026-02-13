@@ -205,7 +205,7 @@ export function transformIngredientsToInlineFormat(
 
     // If we encounter a new group, add a group marker
     if (currentGroupId && currentGroupId !== lastGroupId) {
-      const groupName = groupMap.get(currentGroupId) || "Grupp"
+      const groupName = groupMap.get(currentGroupId) ?? "Grupp"
       result.push({ group: groupName })
       lastGroupId = currentGroupId
     } else if (!currentGroupId && lastGroupId !== null) {
@@ -241,7 +241,7 @@ export function transformInstructionsToInlineFormat(
 
     // If we encounter a new group, add a group marker
     if (currentGroupId && currentGroupId !== lastGroupId) {
-      const groupName = groupMap.get(currentGroupId) || "Grupp"
+      const groupName = groupMap.get(currentGroupId) ?? "Grupp"
       result.push({ group: groupName })
       lastGroupId = currentGroupId
     } else if (!currentGroupId && lastGroupId !== null) {
