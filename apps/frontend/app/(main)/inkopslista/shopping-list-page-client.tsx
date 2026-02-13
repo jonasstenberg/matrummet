@@ -10,12 +10,14 @@ interface ShoppingListPageClientProps {
   lists: ShoppingList[]
   items: ShoppingListItem[]
   initialSelectedListId: string | null
+  pantryMap: Record<string, string | null>
 }
 
 export function ShoppingListPageClient({
   lists,
   items,
   initialSelectedListId,
+  pantryMap,
 }: ShoppingListPageClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -50,6 +52,7 @@ export function ShoppingListPageClient({
       <ShoppingListComponent
         items={selectedList ? items : []}
         listId={selectedListId || undefined}
+        pantryMap={pantryMap}
       />
     </div>
   )

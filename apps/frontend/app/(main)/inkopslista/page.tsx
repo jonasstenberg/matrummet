@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { ShoppingListPageClient } from './shopping-list-page-client'
 import { getShoppingList } from '@/lib/api'
 import { getUserShoppingLists } from '@/lib/actions'
+import { getUserPantry } from '@/lib/ingredient-search-actions'
 import { getSession, signPostgrestToken } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 
@@ -41,14 +42,26 @@ export default async function ShoppingListPage({ searchParams }: PageProps) {
     selectedListId = defaultList?.id || lists[0].id
   }
 
-  // Fetch items for the selected list
-  const items = selectedListId ? await getShoppingList(token, selectedListId) : []
+  // Fetch items for the selected list and pantry data in parallel
+  const [items, pantryResult] = await Promise.all([
+    selectedListId ? getShoppingList(token, selectedListId) : Promise.resolve([]),
+    getUserPantry(),
+  ])
+
+  // Build a food_id -> expires_at map for pantry items
+  const pantryMap: Record<string, string | null> = {}
+  if (!('error' in pantryResult)) {
+    for (const p of pantryResult) {
+      pantryMap[p.food_id] = p.expires_at
+    }
+  }
 
   return (
     <ShoppingListPageClient
       lists={lists}
       items={items}
       initialSelectedListId={selectedListId}
+      pantryMap={pantryMap}
     />
   )
 }
