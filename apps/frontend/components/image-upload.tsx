@@ -38,6 +38,7 @@ export function ImageUpload({
   const [preview, setPreview] = useState<string | null>(() => getPreviewUrl(value))
   const [localFilePreview, setLocalFilePreview] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [showOverlay, setShowOverlay] = useState(false)
   const [imageUrl, setImageUrl] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -100,6 +101,7 @@ export function ImageUpload({
   function handleRemove() {
     setPreview(null)
     setLocalFilePreview(null)
+    setShowOverlay(false)
     onChange(null)
     onFileSelect?.(null)
     if (fileInputRef.current) {
@@ -163,7 +165,10 @@ export function ImageUpload({
 
       {/* Preview for uploaded or imported image */}
       {hasPreview && displayPreview && (
-        <div className="group relative h-64 w-full max-w-md overflow-hidden rounded-xl bg-muted/40">
+        <div
+          className="group relative h-64 w-full max-w-md overflow-hidden rounded-xl bg-muted/40"
+          onClick={() => setShowOverlay((v) => !v)}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={displayPreview}
@@ -171,13 +176,16 @@ export function ImageUpload({
             className="h-full w-full object-cover"
           />
 
-          {/* Overlay with actions */}
-          <div className="absolute inset-0 flex items-center justify-center gap-2 rounded-xl bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+          {/* Overlay with actions — hover on desktop, tap to toggle on mobile */}
+          <div className={cn(
+            "absolute inset-0 flex items-center justify-center gap-2 rounded-xl bg-black/40 transition-opacity",
+            showOverlay ? "opacity-100" : "opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
+          )}>
             <Button
               type="button"
               variant="secondary"
               size="sm"
-              onClick={() => fileInputRef.current?.click()}
+              onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click() }}
               className="gap-2"
             >
               <Upload className="h-4 w-4" />
@@ -187,7 +195,7 @@ export function ImageUpload({
               type="button"
               variant="destructive"
               size="sm"
-              onClick={handleRemove}
+              onClick={(e) => { e.stopPropagation(); handleRemove() }}
               className="gap-2"
             >
               <X className="h-4 w-4" />
