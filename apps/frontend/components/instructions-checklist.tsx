@@ -7,6 +7,7 @@ import { MarkAsCookedButton } from "@/components/mark-as-cooked-button";
 import { useIsTouchDevice } from "@/lib/hooks/use-media-query";
 import { useWakeLock } from "@/lib/hooks/use-wake-lock";
 import type { Instruction, Recipe } from "@/lib/types";
+import { scaleQuantity } from "@/lib/quantity-utils";
 import { cn } from "@/lib/utils";
 import { Smartphone } from "@/lib/icons";
 import { useEffect, useState } from "react";
@@ -21,12 +22,14 @@ interface InstructionsChecklistProps {
   recipe: Recipe;
   instructions: Instruction[];
   instructionGroups?: InstructionGroup[];
+  scaleFactor?: number;
 }
 
 export function InstructionsChecklist({
   recipe,
   instructions,
   instructionGroups,
+  scaleFactor = 1,
 }: InstructionsChecklistProps) {
   const recipeId = recipe.id;
   const [checkedSteps, setCheckedSteps] = useState<Set<number>>(new Set());
@@ -245,7 +248,7 @@ export function InstructionsChecklist({
                               : "border-primary/30 text-primary/70"
                           )}
                         >
-                          {[ing.quantity, ing.measurement, ing.name]
+                          {[ing.quantity ? scaleQuantity(ing.quantity, scaleFactor) : null, ing.measurement, ing.name]
                             .filter(Boolean)
                             .join(" ")}
                         </Badge>

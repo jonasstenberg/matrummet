@@ -66,6 +66,7 @@ export function RecipeContent({
             recipe={recipe}
             instructions={recipe.instructions}
             instructionGroups={recipe.instruction_groups}
+            scaleFactor={scaleFactor}
           />
         ) : (
           <Card className="overflow-hidden rounded-2xl">
