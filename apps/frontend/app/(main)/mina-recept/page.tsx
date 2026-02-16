@@ -8,6 +8,7 @@ import { getUserPantry } from "@/lib/ingredient-search-actions";
 export const metadata: Metadata = {
   title: 'Mina recept',
   description: 'Dina egna recept',
+  robots: { index: false, follow: false },
 }
 
 // ISR: Revalidate every 60 seconds for public (logged-out) content

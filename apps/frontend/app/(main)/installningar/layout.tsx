@@ -1,7 +1,12 @@
+import type { Metadata } from 'next'
 import { getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { SettingsSidebar } from '@/components/settings-sidebar'
 import { SettingsPillNav } from '@/components/settings-pill-nav'
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+}
 
 export default async function SettingsLayout({
   children,

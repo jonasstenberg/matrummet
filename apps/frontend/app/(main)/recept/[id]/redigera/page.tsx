@@ -16,6 +16,7 @@ export async function generateMetadata({
 
   return {
     title: recipe ? `Redigera ${recipe.name}` : 'Redigera recept',
+    robots: { index: false, follow: false },
   }
 }
 

@@ -22,6 +22,7 @@ export async function generateMetadata({
     description: query
       ? `Sökresultat för "${query}"`
       : 'Sök efter dina favoritrecept',
+    robots: { index: false, follow: false },
   }
 }
 

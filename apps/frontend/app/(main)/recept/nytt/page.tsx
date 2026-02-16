@@ -5,6 +5,7 @@ import { CreateRecipePage } from './create-recipe-page'
 
 export const metadata: Metadata = {
   title: 'Nytt recept',
+  robots: { index: false, follow: false },
 }
 
 export default async function NewRecipePage() {

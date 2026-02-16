@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: 'Mitt skafferi',
   description:
     'Hantera ingredienser i ditt skafferi. Lägg till och ta bort ingredienser för att filtrera recept.',
+  robots: { index: false, follow: false },
 }
 
 export default async function MyPantryPage() {

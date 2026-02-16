@@ -9,6 +9,7 @@ import { redirect } from 'next/navigation'
 export const metadata: Metadata = {
   title: 'Inköpslista',
   description: 'Din inköpslista',
+  robots: { index: false, follow: false },
 }
 
 export const dynamic = 'force-dynamic'

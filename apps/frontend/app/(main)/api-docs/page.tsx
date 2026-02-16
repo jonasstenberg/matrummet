@@ -5,6 +5,7 @@ import { SwaggerUI } from './swagger-ui'
 export const metadata: Metadata = {
   title: 'API-dokumentation',
   description: 'OpenAPI-dokumentation för Matrummets REST API.',
+  robots: { index: false, follow: false },
 }
 
 export default async function ApiDocsPage() {

@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 export const metadata: Metadata = {
   title: 'Gillade recept',
   description: 'Dina sparade favoritrecept',
+  robots: { index: false, follow: false },
 }
 
 export const dynamic = "force-dynamic";

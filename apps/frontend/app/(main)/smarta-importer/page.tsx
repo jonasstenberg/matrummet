@@ -7,6 +7,7 @@ import { getCreditsData } from '@/lib/credits-actions'
 export const metadata: Metadata = {
   title: 'Smarta importer',
   description: 'Hantera dina smarta importer',
+  robots: { index: false, follow: false },
 }
 
 export default async function CreditsPage() {

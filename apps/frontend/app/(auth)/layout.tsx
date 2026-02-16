@@ -1,6 +1,11 @@
+import type { Metadata } from 'next'
 import { APP_NAME } from '@/lib/constants'
 import { AuthProvider } from '@/components/auth-provider'
 import { Footer } from '@/components/footer'
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+}
 
 interface AuthLayoutProps {
   children: React.ReactNode
