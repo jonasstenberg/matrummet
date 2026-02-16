@@ -34,6 +34,9 @@ export async function generateMetadata({ params }: RecipePageProps): Promise<Met
   return {
     title: recipe.name,
     description: recipe.description || undefined,
+    alternates: {
+      canonical: `/recept/${id}`,
+    },
     openGraph: {
       title: recipe.name,
       description: recipe.description || undefined,
