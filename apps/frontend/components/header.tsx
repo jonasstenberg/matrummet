@@ -25,6 +25,7 @@ import {
   ShoppingCart,
   Home,
   Shield,
+  BookOpen,
 } from "@/lib/icons";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -195,6 +196,12 @@ export function Header() {
                       <Link href="/hushall" className="flex items-center gap-2">
                         <Home className="h-4 w-4" />
                         Hantera hushåll
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/installningar/delning" className="flex items-center gap-2">
+                        <BookOpen className="h-4 w-4" />
+                        Dela receptbok
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />

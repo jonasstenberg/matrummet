@@ -290,6 +290,20 @@ export interface ShareLink {
   is_active: boolean
 }
 
+export interface BookShareConnection {
+  id: string
+  sharer_name: string
+  sharer_id: string
+  created_at: string
+}
+
+export interface BookShareInfo {
+  sharer_name: string
+  sharer_email: string
+  recipe_count: number
+  already_connected: boolean
+}
+
 export interface SharedRecipe {
   id: string
   name: string

@@ -15,7 +15,7 @@ interface RecipePageClientProps {
   initialRecipes: Recipe[]
   initialPantry: PantryItem[]
   groupedCategories: CategoryGroup[]
-  members: Array<{ id: string; name: string; isCurrentUser: boolean }>
+  members: Array<{ id: string; name: string; isCurrentUser: boolean; type?: 'household' | 'shared-book' }>
   selectedMemberIds: string[]
   isAuthenticated: boolean
   totalCount?: number

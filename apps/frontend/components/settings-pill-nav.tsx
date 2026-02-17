@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 const navItems = [
   { href: '/installningar', label: 'Profil' },
   { href: '/installningar/sakerhet', label: 'Säkerhet' },
+  { href: '/installningar/delning', label: 'Delning' },
   { href: '/installningar/api-nycklar', label: 'API-nycklar' },
   { href: '/installningar/data', label: 'Data' },
   { href: '/installningar/konto', label: 'Konto' },

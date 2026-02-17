@@ -40,6 +40,9 @@ const ALLOWED_ANON_FUNCTIONS = [
 
   // Share links - allows viewing shared recipes without login
   "get_shared_recipe",
+
+  // Book sharing - allows viewing sharer info on accept page without login
+  "get_book_share_info",
 ];
 
 // Tables/views that SHOULD be visible to anonymous users (SELECT only)

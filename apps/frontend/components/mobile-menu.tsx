@@ -11,7 +11,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { isAdmin } from "@/lib/is-admin";
 import { cn } from "@/lib/utils";
-import { CalendarDays, Home, LogOut, Menu, PenLine, Settings, ShoppingCart, Sparkles, UtensilsCrossed, UserCog } from "@/lib/icons";
+import { BookOpen, CalendarDays, Home, LogOut, Menu, PenLine, Settings, ShoppingCart, Sparkles, UtensilsCrossed, UserCog } from "@/lib/icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -150,6 +150,14 @@ export function MobileMenu() {
               onClick={() => setOpen(false)}
             >
               Hantera hushåll
+            </MobileNavItem>
+            <MobileNavItem
+              href="/installningar/delning"
+              icon={BookOpen}
+              isActive={pathname === '/installningar/delning'}
+              onClick={() => setOpen(false)}
+            >
+              Dela receptbok
             </MobileNavItem>
             <MobileNavItem
               href="/ai-poang"

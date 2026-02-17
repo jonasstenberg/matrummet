@@ -3,11 +3,12 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { User, Lock, Key, Download, Trash2 } from 'lucide-react'
+import { User, Lock, Key, Download, Trash2, Share2 } from 'lucide-react'
 
 const settingsLinks = [
   { href: '/installningar', label: 'Profil', icon: User },
   { href: '/installningar/sakerhet', label: 'Säkerhet', icon: Lock },
+  { href: '/installningar/delning', label: 'Delning', icon: Share2 },
   { href: '/installningar/api-nycklar', label: 'API-nycklar', icon: Key },
   { href: '/installningar/data', label: 'Data', icon: Download },
 ]

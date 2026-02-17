@@ -1,7 +1,7 @@
 import { cache } from 'react'
 import { getSession, signPostgrestToken } from '@/lib/auth'
 import { env } from '@/lib/env'
-import { HomeInfo, UserHome } from '@/lib/types'
+import { HomeInfo, UserHome, BookShareConnection } from '@/lib/types'
 
 export interface HomeInfoResult {
   home: HomeInfo | null
@@ -120,4 +120,30 @@ export const getUserHomes = cache(async (): Promise<UserHome[]> => {
   const result = await response.json()
 
   return result as UserHome[]
+})
+
+export const getSharedBookUsers = cache(async (): Promise<BookShareConnection[]> => {
+  const session = await getSession()
+
+  if (!session) {
+    return []
+  }
+
+  const postgrestToken = await signPostgrestToken(session.email)
+
+  const response = await fetch(`${env.POSTGREST_URL}/rpc/get_shared_books`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${postgrestToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({}),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    return []
+  }
+
+  return await response.json()
 })
