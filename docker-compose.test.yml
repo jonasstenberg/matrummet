@@ -42,6 +42,9 @@ services:
       PGRST_DB_PRE_REQUEST: pre_request
       PGRST_DB_EXTRA_SEARCH_PATH: extensions
       PGRST_OPENAPI_MODE: follow-privileges
+      PGRST_DB_MAX_ROWS: "1000"
+      PGRST_DB_POOL: "10"
+      PGRST_DB_POOL_ACQUISITION_TIMEOUT: "10"
     ports:
       - "4445:3000"
     depends_on:
