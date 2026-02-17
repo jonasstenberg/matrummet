@@ -34,6 +34,7 @@ export async function getRecipes(options?: {
         p_category: options.categories?.[0] ?? null,
         p_limit: options.limit ?? 50,
         p_offset: options.offset ?? 0,
+        ...(options.ownerIds && options.ownerIds.length > 0 ? { p_owner_ids: options.ownerIds } : {}),
       }),
       cache: 'no-store',
     });
