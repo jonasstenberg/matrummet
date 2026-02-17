@@ -100,7 +100,7 @@ export const config = {
   matcher: [
     // Match protected routes
     '/mina-recept/:path*',
-    '/recept/nytt',
+    '/recept/nytt/:path*',
     '/recept/:id/redigera',
     '/admin/:path*',
     '/installningar/:path*',

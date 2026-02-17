@@ -69,7 +69,7 @@ export function MobileMenu() {
             <MobileNavItem
               href="/recept/nytt"
               icon={PenLine}
-              isActive={pathname === '/recept/nytt'}
+              isActive={pathname.startsWith('/recept/nytt')}
               onClick={() => setOpen(false)}
             >
               Lägg till recept

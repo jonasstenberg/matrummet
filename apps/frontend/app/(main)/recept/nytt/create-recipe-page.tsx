@@ -2,40 +2,75 @@
 
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { RecipeForm } from '@/components/recipe-form'
 import { UnifiedImportForm } from '@/components/unified-import-form'
-import { RecipeFormData } from '@/lib/recipe-form-utils'
+import {
+  RecipeFormData,
+  transformIngredientsToInlineFormat,
+  transformInstructionsToInlineFormat,
+} from '@/lib/recipe-form-utils'
 import { CreateRecipeInput } from '@/lib/types'
-import { createRecipe } from '@/lib/actions'
-import { ArrowLeft, ChefHat } from '@/lib/icons'
+import { createRecipe, downloadAndSaveImage } from '@/lib/actions'
+import { ArrowLeft, ChefHat, Loader2 } from '@/lib/icons'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export function CreateRecipePage() {
   const router = useRouter()
-  const [importedData, setImportedData] = useState<RecipeFormData | null>(null)
-  const [lowConfidenceIngredients, setLowConfidenceIngredients] = useState<number[]>([])
-  const [formKey, setFormKey] = useState(0)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
-  const handleImport = useCallback((data: RecipeFormData, lowConfidenceIndices: number[]) => {
-    setImportedData(data)
-    setLowConfidenceIngredients(lowConfidenceIndices)
-    setFormKey(k => k + 1)
-  }, [])
-
-  const handleSubmit = useCallback(async (data: CreateRecipeInput) => {
-    setIsSubmitting(true)
+  const handleImport = useCallback(async (data: RecipeFormData) => {
+    setIsSaving(true)
+    setSaveError(null)
 
     try {
-      const result = await createRecipe(data)
+      // Handle image — download external URL if needed
+      let image: string | null = null
+      if (data.image && /^https?:\/\//.test(data.image)) {
+        const result = await downloadAndSaveImage(data.image)
+        if (!('error' in result)) {
+          image = result.filename
+        }
+      } else {
+        image = data.image
+      }
 
-      if ("error" in result) {
+      const ingredients = transformIngredientsToInlineFormat(
+        data.ingredients.filter(i => i.name.trim()),
+        data.ingredientGroups
+      )
+
+      const instructions = transformInstructionsToInlineFormat(
+        data.instructions.filter(i => i.step.trim()),
+        data.instructionGroups
+      )
+
+      const input: CreateRecipeInput = {
+        recipe_name: data.name.trim(),
+        author: data.author.trim() || null,
+        description: data.description.trim(),
+        url: data.url.trim() || null,
+        recipe_yield: data.recipeYield || null,
+        recipe_yield_name: data.recipeYieldName.trim() || null,
+        prep_time: data.prepTime.trim() ? parseInt(data.prepTime.trim(), 10) : null,
+        cook_time: data.cookTime.trim() ? parseInt(data.cookTime.trim(), 10) : null,
+        cuisine: data.cuisine.trim() || null,
+        image,
+        thumbnail: image,
+        categories: data.categories,
+        ingredients,
+        instructions,
+      }
+
+      const result = await createRecipe(input)
+
+      if ('error' in result) {
         throw new Error(result.error)
       }
 
       router.push(`/recept/${result.id}`)
     } catch (error) {
-      setIsSubmitting(false)
-      throw error
+      setSaveError(error instanceof Error ? error.message : 'Kunde inte spara receptet')
+      setIsSaving(false)
     }
   }, [router])
 
@@ -68,21 +103,38 @@ export function CreateRecipePage() {
               Nytt recept
             </h1>
             <p className="text-sm text-muted-foreground">
-              Importera eller fyll i formuläret manuellt
+              Importera med bild eller länk
             </p>
           </div>
         </div>
       </header>
 
-      <UnifiedImportForm onImport={handleImport} />
+      {isSaving ? (
+        <div className="flex flex-col items-center gap-3 rounded-2xl bg-card p-10 shadow-(--shadow-card)">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Sparar receptet...</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <UnifiedImportForm onImport={handleImport} />
 
-      <RecipeForm
-        key={formKey}
-        initialData={importedData ?? undefined}
-        lowConfidenceIngredients={lowConfidenceIngredients}
-        onSubmit={handleSubmit}
-        isSubmitting={isSubmitting}
-      />
+          {saveError && (
+            <Alert variant="destructive">
+              <AlertDescription>{saveError}</AlertDescription>
+            </Alert>
+          )}
+
+          <p className="text-center text-sm text-muted-foreground">
+            <button
+              type="button"
+              onClick={() => router.push('/recept/nytt/manuellt')}
+              className="underline underline-offset-2 transition-colors hover:text-foreground"
+            >
+              Skriv in manuellt
+            </button>
+          </p>
+        </div>
+      )}
     </div>
   )
 }
