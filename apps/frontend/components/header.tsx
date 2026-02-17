@@ -42,7 +42,8 @@ const MobileMenu = dynamic(
 );
 
 export function Header() {
-  const { user, logout, credits } = useAuth();
+  const { user, homes, logout, credits } = useAuth();
+
 
   return (
     <header className="md:sticky md:top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -129,28 +130,55 @@ export function Header() {
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link
-                        href="/mitt-skafferi"
-                        className="flex items-center gap-2"
-                      >
-                        <UtensilsCrossed className="h-4 w-4" />
-                        Mitt skafferi
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link
-                        href="/inkopslista"
-                        className="flex items-center gap-2"
-                      >
-                        <ShoppingCart className="h-4 w-4" />
-                        Inköpslista
-                      </Link>
-                    </DropdownMenuItem>
+                    {homes.length > 0 ? (
+                      homes.map((home) => (
+                        <div key={home.home_id}>
+                          {homes.length > 1 && (
+                            <DropdownMenuLabel className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+                              {home.home_name}
+                            </DropdownMenuLabel>
+                          )}
+                          <DropdownMenuItem asChild>
+                            <Link
+                              href={`/hem/${home.home_id}/skafferi`}
+                              className="flex items-center gap-2"
+                            >
+                              <UtensilsCrossed className="h-4 w-4" />
+                              Skafferi
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link
+                              href={`/hem/${home.home_id}/inkopslista`}
+                              className="flex items-center gap-2"
+                            >
+                              <ShoppingCart className="h-4 w-4" />
+                              Inköpslista
+                            </Link>
+                          </DropdownMenuItem>
+                        </div>
+                      ))
+                    ) : (
+                      <>
+                        <DropdownMenuItem asChild>
+                          <Link href="/mitt-skafferi" className="flex items-center gap-2">
+                            <UtensilsCrossed className="h-4 w-4" />
+                            Skafferi
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/inkopslista" className="flex items-center gap-2">
+                            <ShoppingCart className="h-4 w-4" />
+                            Inköpslista
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <Link href="/hushall" className="flex items-center gap-2">
                         <Home className="h-4 w-4" />
-                        Hushåll
+                        Hantera hushåll
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />

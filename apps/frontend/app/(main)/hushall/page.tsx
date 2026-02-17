@@ -1,17 +1,17 @@
 import type { Metadata } from 'next'
-import { getHomeInfo } from '@/lib/home-api'
-import { HushallClient } from '@/components/home/hushall-client'
+import { getUserHomes } from '@/lib/home-api'
 import { HomeSetupWizard } from '@/components/home/home-setup-wizard'
+import { HushallOverview } from '@/components/home/hushall-overview'
 
 export const metadata: Metadata = {
   title: 'Hushåll',
-  description: 'Hantera ditt hushåll, medlemmar och inbjudningar.',
+  description: 'Hantera dina hushåll, medlemmar och inbjudningar.',
 }
 
 export default async function HushallPage() {
-  const { home } = await getHomeInfo()
+  const homes = await getUserHomes()
 
-  if (!home) {
+  if (homes.length === 0) {
     return <HomeSetupWizard />
   }
 
@@ -22,7 +22,7 @@ export default async function HushallPage() {
           Hushåll
         </h1>
       </header>
-      <HushallClient home={home} />
+      <HushallOverview homes={homes} />
     </>
   )
 }

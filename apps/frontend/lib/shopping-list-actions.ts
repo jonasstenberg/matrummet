@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { ShoppingList } from '@/lib/types'
-import { getPostgrestToken } from './action-utils'
+import { getPostgrestToken, postgrestHeaders } from './action-utils'
 import { shoppingListsArraySchema } from './schemas'
 
 const POSTGREST_URL = process.env.POSTGREST_URL || 'http://localhost:4444'
@@ -13,7 +13,8 @@ export async function addRecipeToShoppingList(
     servings?: number
     ingredientIds?: string[]
     listId?: string
-  }
+  },
+  homeId?: string
 ): Promise<{ success: true; listId: string; addedCount: number } | { error: string }> {
   try {
     const token = await getPostgrestToken()
@@ -24,10 +25,7 @@ export async function addRecipeToShoppingList(
 
     const response = await fetch(`${POSTGREST_URL}/rpc/add_recipe_to_shopping_list`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await postgrestHeaders(token, homeId),
       body: JSON.stringify({
         p_recipe_id: recipeId,
         p_shopping_list_id: options?.listId ?? null,
@@ -44,7 +42,7 @@ export async function addRecipeToShoppingList(
 
     const result = await response.json()
 
-    revalidatePath('/inkopslista')
+    revalidatePath('/hem/[homeId]/inkopslista', 'page')
 
     return {
       success: true,
@@ -58,7 +56,8 @@ export async function addRecipeToShoppingList(
 }
 
 export async function toggleShoppingListItem(
-  itemId: string
+  itemId: string,
+  homeId?: string
 ): Promise<{ checked: boolean } | { error: string }> {
   try {
     const token = await getPostgrestToken()
@@ -69,10 +68,7 @@ export async function toggleShoppingListItem(
 
     const response = await fetch(`${POSTGREST_URL}/rpc/toggle_shopping_list_item`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await postgrestHeaders(token, homeId),
       body: JSON.stringify({ p_item_id: itemId }),
     })
 
@@ -84,7 +80,7 @@ export async function toggleShoppingListItem(
 
     const result = await response.json()
 
-    revalidatePath('/inkopslista')
+    revalidatePath('/hem/[homeId]/inkopslista', 'page')
 
     return { checked: result.checked }
   } catch (error) {
@@ -94,7 +90,8 @@ export async function toggleShoppingListItem(
 }
 
 export async function clearCheckedItems(
-  listId?: string
+  listId?: string,
+  homeId?: string
 ): Promise<{ success: true; cleared: number } | { error: string }> {
   try {
     const token = await getPostgrestToken()
@@ -105,10 +102,7 @@ export async function clearCheckedItems(
 
     const response = await fetch(`${POSTGREST_URL}/rpc/clear_checked_items`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await postgrestHeaders(token, homeId),
       body: JSON.stringify({ p_shopping_list_id: listId || null }),
     })
 
@@ -120,7 +114,7 @@ export async function clearCheckedItems(
 
     const result = await response.json()
 
-    revalidatePath('/inkopslista')
+    revalidatePath('/hem/[homeId]/inkopslista', 'page')
 
     return { success: true, cleared: result.cleared ?? result }
   } catch (error) {
@@ -129,7 +123,9 @@ export async function clearCheckedItems(
   }
 }
 
-export async function getUserShoppingLists(): Promise<ShoppingList[] | { error: string }> {
+export async function getUserShoppingLists(
+  homeId?: string
+): Promise<ShoppingList[] | { error: string }> {
   try {
     const token = await getPostgrestToken()
 
@@ -139,10 +135,7 @@ export async function getUserShoppingLists(): Promise<ShoppingList[] | { error: 
 
     const response = await fetch(`${POSTGREST_URL}/rpc/get_user_shopping_lists`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await postgrestHeaders(token, homeId),
       body: JSON.stringify({}),
     })
 
@@ -169,7 +162,8 @@ export async function getUserShoppingLists(): Promise<ShoppingList[] | { error: 
 }
 
 export async function createShoppingList(
-  name: string
+  name: string,
+  homeId?: string
 ): Promise<{ id: string } | { error: string }> {
   try {
     const token = await getPostgrestToken()
@@ -180,11 +174,8 @@ export async function createShoppingList(
 
     const response = await fetch(`${POSTGREST_URL}/rpc/create_shopping_list`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ p_name: name }),
+      headers: await postgrestHeaders(token, homeId),
+      body: JSON.stringify({ p_name: name, p_home_id: homeId ?? null }),
     })
 
     if (!response.ok) {
@@ -200,7 +191,7 @@ export async function createShoppingList(
 
     const result = await response.json()
 
-    revalidatePath('/inkopslista')
+    revalidatePath('/hem/[homeId]/inkopslista', 'page')
 
     return { id: result }
   } catch (error) {
@@ -211,7 +202,8 @@ export async function createShoppingList(
 
 export async function renameShoppingList(
   listId: string,
-  name: string
+  name: string,
+  homeId?: string
 ): Promise<{ success: true } | { error: string }> {
   try {
     const token = await getPostgrestToken()
@@ -222,10 +214,7 @@ export async function renameShoppingList(
 
     const response = await fetch(`${POSTGREST_URL}/rpc/rename_shopping_list`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await postgrestHeaders(token, homeId),
       body: JSON.stringify({ p_list_id: listId, p_name: name }),
     })
 
@@ -240,7 +229,7 @@ export async function renameShoppingList(
       return { error: 'Kunde inte byta namn på listan' }
     }
 
-    revalidatePath('/inkopslista')
+    revalidatePath('/hem/[homeId]/inkopslista', 'page')
 
     return { success: true }
   } catch (error) {
@@ -250,7 +239,8 @@ export async function renameShoppingList(
 }
 
 export async function deleteShoppingList(
-  listId: string
+  listId: string,
+  homeId?: string
 ): Promise<{ success: true } | { error: string }> {
   try {
     const token = await getPostgrestToken()
@@ -261,10 +251,7 @@ export async function deleteShoppingList(
 
     const response = await fetch(`${POSTGREST_URL}/rpc/delete_shopping_list`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await postgrestHeaders(token, homeId),
       body: JSON.stringify({ p_list_id: listId }),
     })
 
@@ -274,7 +261,7 @@ export async function deleteShoppingList(
       return { error: 'Kunde inte ta bort listan' }
     }
 
-    revalidatePath('/inkopslista')
+    revalidatePath('/hem/[homeId]/inkopslista', 'page')
 
     return { success: true }
   } catch (error) {
@@ -286,7 +273,8 @@ export async function deleteShoppingList(
 export async function addCustomShoppingListItem(
   name: string,
   listId?: string,
-  foodId?: string
+  foodId?: string,
+  homeId?: string
 ): Promise<{ success: true; itemId: string; listId: string } | { error: string }> {
   try {
     const token = await getPostgrestToken()
@@ -302,10 +290,7 @@ export async function addCustomShoppingListItem(
 
     const response = await fetch(`${POSTGREST_URL}/rpc/add_custom_shopping_list_item`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await postgrestHeaders(token, homeId),
       body: JSON.stringify({
         p_name: trimmed,
         p_shopping_list_id: listId ?? null,
@@ -321,7 +306,7 @@ export async function addCustomShoppingListItem(
 
     const result = await response.json()
 
-    revalidatePath('/inkopslista')
+    revalidatePath('/hem/[homeId]/inkopslista', 'page')
 
     return {
       success: true,
@@ -335,7 +320,8 @@ export async function addCustomShoppingListItem(
 }
 
 export async function setDefaultShoppingList(
-  listId: string
+  listId: string,
+  homeId?: string
 ): Promise<{ success: true } | { error: string }> {
   try {
     const token = await getPostgrestToken()
@@ -346,10 +332,7 @@ export async function setDefaultShoppingList(
 
     const response = await fetch(`${POSTGREST_URL}/rpc/set_default_shopping_list`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await postgrestHeaders(token, homeId),
       body: JSON.stringify({ p_list_id: listId }),
     })
 
@@ -359,7 +342,7 @@ export async function setDefaultShoppingList(
       return { error: 'Kunde inte ändra standardlista' }
     }
 
-    revalidatePath('/inkopslista')
+    revalidatePath('/hem/[homeId]/inkopslista', 'page')
 
     return { success: true }
   } catch (error) {

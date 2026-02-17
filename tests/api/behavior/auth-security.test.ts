@@ -20,6 +20,7 @@ import {
   createTestUser,
   createTestHome,
   cleanupTestData,
+  leaveAllHomes,
   uniqueId,
 } from "../seed";
 import { expectSuccess, expectNoError } from "../helpers";
@@ -148,19 +149,12 @@ describe("Auth Security Behavior", () => {
 
   describe("Home Join Code Expiration", () => {
     beforeEach(async () => {
-      // Ensure User B leaves any existing home before tests that require joining
-      await clientB.rpc("leave_home");
+      // Multi-home: leave ALL homes for both users before each test
+      await leaveAllHomes(clientB);
+      await leaveAllHomes(clientA);
 
-      // User A creates a home
-      try {
-        await createTestHome(clientA, `Home ${uniqueId()}`);
-      } catch {
-        // User might already have a home, get it instead
-        const homeInfo = await clientA.rpc<{ id: string } | null>("get_home_info");
-        if (homeInfo.data?.id) {
-          userAHomeId = homeInfo.data.id;
-        }
-      }
+      // User A creates a fresh home
+      await createTestHome(clientA, `Home ${uniqueId()}`);
     });
 
     it("should generate join code with expiration", async () => {
@@ -442,15 +436,12 @@ describe("Auth Security Behavior", () => {
 
   describe("Home Invitation Token Security", () => {
     beforeEach(async () => {
-      // Ensure User B leaves any existing home before tests that require accepting invitations
-      await clientB.rpc("leave_home");
+      // Multi-home: leave ALL homes for both users before each test
+      await leaveAllHomes(clientB);
+      await leaveAllHomes(clientA);
 
-      // Ensure user A has a home
-      try {
-        await createTestHome(clientA, `Invite Home ${uniqueId()}`);
-      } catch {
-        // User might already have a home, that's fine
-      }
+      // User A creates a fresh home
+      await createTestHome(clientA, `Invite Home ${uniqueId()}`);
     });
 
     it("should generate unique invitation tokens", async () => {

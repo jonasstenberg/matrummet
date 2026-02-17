@@ -12,9 +12,10 @@ interface ShoppingListProps {
   items: ShoppingListItemType[]
   listId?: string
   pantryMap?: Record<string, string | null>
+  homeId?: string
 }
 
-export function ShoppingList({ items, listId, pantryMap }: ShoppingListProps) {
+export function ShoppingList({ items, listId, pantryMap, homeId }: ShoppingListProps) {
   const [localItems, setLocalItems] = useState(items)
   const [isPending, startTransition] = useTransition()
   const [checkedCollapsed, setCheckedCollapsed] = useState(false)
@@ -35,7 +36,7 @@ export function ShoppingList({ items, listId, pantryMap }: ShoppingListProps) {
     setLocalItems((prev) => prev.filter((item) => !checkedIds.has(item.id)))
 
     startTransition(async () => {
-      const result = await clearCheckedItems(listId)
+      const result = await clearCheckedItems(listId, homeId)
       if ('error' in result) {
         setLocalItems(items)
       }
@@ -50,7 +51,7 @@ export function ShoppingList({ items, listId, pantryMap }: ShoppingListProps) {
         {uncheckedItems.length > 0 && (
           <div className="divide-y divide-border/40">
             {uncheckedItems.map((item) => (
-              <ShoppingListItem key={item.id} item={item} />
+              <ShoppingListItem key={item.id} item={item} homeId={homeId} />
             ))}
           </div>
         )}
@@ -60,7 +61,7 @@ export function ShoppingList({ items, listId, pantryMap }: ShoppingListProps) {
           'border-t border-border/40 px-4 py-3',
           uncheckedItems.length === 0 && 'border-t-0'
         )}>
-          <AddCustomItemInput listId={listId} onItemAdded={handleAddItem} />
+          <AddCustomItemInput listId={listId} onItemAdded={handleAddItem} homeId={homeId} />
         </div>
       </div>
 
@@ -107,7 +108,7 @@ export function ShoppingList({ items, listId, pantryMap }: ShoppingListProps) {
           {!checkedCollapsed && (
             <div className="divide-y divide-border/40 border-t border-border/40">
               {checkedItems.map((item) => (
-                <ShoppingListItem key={item.id} item={item} pantryMap={pantryMap} />
+                <ShoppingListItem key={item.id} item={item} pantryMap={pantryMap} homeId={homeId} />
               ))}
             </div>
           )}

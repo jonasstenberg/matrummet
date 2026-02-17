@@ -17,6 +17,7 @@ import {
   createTestUser,
   createTestHome,
   cleanupTestData,
+  leaveAllHomes,
   getOrCreateFood,
   ensureUserHasHome,
 } from "../seed";
@@ -33,7 +34,8 @@ describe("Shopping List Scaling Behavior", () => {
     await createTestUser(TEST_USERS.userA);
     clientA = await createAuthenticatedClient(TEST_USERS.userA.email);
 
-    // Create a home for the user (required for shopping lists)
+    // Multi-home: leave all existing homes first, then create a fresh one
+    await leaveAllHomes(clientA);
     await createTestHome(clientA, "Test Home for Scaling");
 
     // Get or create food items for ingredients

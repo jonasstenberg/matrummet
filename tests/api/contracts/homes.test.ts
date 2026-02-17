@@ -27,6 +27,7 @@ import {
 import {
   createTestUser,
   createTestHome,
+  leaveAllHomes,
   uniqueId,
 } from "../seed";
 import {
@@ -53,25 +54,16 @@ describe("Home RPCs Contract Tests", () => {
     clientB = await createAuthenticatedClient(TEST_USERS.userB.email);
   });
 
-  /**
-   * Helper to ensure user has no home (for test isolation)
-   * Note: PostgREST doesn't throw - it returns error in response, so try/catch doesn't work.
-   * We call leave_home and ignore any error response.
-   */
-  async function ensureNoHome(client: PostgrestClient) {
-    await client.rpc("leave_home");
-  }
-
   beforeEach(async () => {
-    // Ensure clean state: both users should have no home
-    await ensureNoHome(clientA);
-    await ensureNoHome(clientB);
+    // Ensure clean state: both users should have no homes
+    await leaveAllHomes(clientA);
+    await leaveAllHomes(clientB);
   });
 
   afterEach(async () => {
-    // Clean up: have both users leave their homes if they have one
-    await ensureNoHome(clientA);
-    await ensureNoHome(clientB);
+    // Clean up: have both users leave all their homes
+    await leaveAllHomes(clientA);
+    await leaveAllHomes(clientB);
   });
 
   // ===========================================================================
@@ -89,7 +81,7 @@ describe("Home RPCs Contract Tests", () => {
       expectValidUuid(result.data);
     });
 
-    it("fails when user already has a home", async () => {
+    it("allows user to create multiple homes", async () => {
       const homeName1 = `Test Home ${uniqueId()}`;
       const homeName2 = `Test Home ${uniqueId()}`;
 
@@ -99,13 +91,13 @@ describe("Home RPCs Contract Tests", () => {
       });
       expectSuccess(result1);
 
-      // Try to create second home
+      // Create second home - should succeed (multi-home support)
       const result2 = await clientA.rpc<string>("create_home", {
         p_name: homeName2,
       });
-
-      expect(result2.error).not.toBeNull();
-      expect(result2.error?.message).toContain("user-already-has-home");
+      expectSuccess(result2);
+      expectValidUuid(result2.data);
+      expect(result2.data).not.toBe(result1.data);
     });
 
     it("fails with invalid home name", async () => {
@@ -407,7 +399,7 @@ describe("Home RPCs Contract Tests", () => {
       expect(result.error?.message).toContain("invalid-join-code");
     });
 
-    it("fails when user already has a home", async () => {
+    it("allows user with existing home to join another via code", async () => {
       // User A creates home and generates code
       await createTestHome(clientA);
       const codeResult = await clientA.rpc<string>("generate_join_code");
@@ -416,13 +408,13 @@ describe("Home RPCs Contract Tests", () => {
       // User B creates their own home first
       await createTestHome(clientB);
 
-      // User B tries to join with code
+      // User B joins User A's home - should succeed (multi-home)
       const result = await clientB.rpc<string>("join_home_by_code", {
         p_code: joinCode,
       });
 
-      expect(result.error).not.toBeNull();
-      expect(result.error?.message).toContain("user-already-has-home");
+      expectSuccess(result);
+      expectValidUuid(result.data);
     });
 
     it("adds user as member after joining", async () => {
@@ -624,25 +616,27 @@ describe("Home RPCs Contract Tests", () => {
       expect(result.error?.message).toContain("invalid-invitation-token");
     });
 
-    it("fails when user already has a home", async () => {
+    it("allows user with existing home to accept invitation", async () => {
       await createTestHome(clientA);
       await clientA.rpc("invite_to_home", { p_email: TEST_USERS.userB.email });
 
       // User B creates their own home first
       await createTestHome(clientB);
 
-      // Get the token
-      await clientB.rpc<Array<{ token: string }>>(
+      // Get the token - should be visible (multi-home allows multiple homes)
+      const invitations = await clientB.rpc<Array<{ token: string }>>(
         "get_pending_invitations"
       );
+      expectSuccess(invitations);
+      expect(invitations.data!.length).toBeGreaterThanOrEqual(1);
 
-      // Token won't be visible since get_pending_invitations only returns for users without homes
-      // So we test this differently - by trying with a made-up token
+      const token = invitations.data![0].token;
       const result = await clientB.rpc<string>("accept_invitation", {
-        p_token: "a".repeat(64), // Valid format but doesn't exist
+        p_token: token,
       });
 
-      expect(result.error).not.toBeNull();
+      expectSuccess(result);
+      expectValidUuid(result.data);
     });
 
     it("adds user as member after accepting", async () => {

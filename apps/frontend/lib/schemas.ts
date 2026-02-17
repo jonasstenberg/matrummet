@@ -217,6 +217,8 @@ export const shoppingListSchema = z.object({
   checked_count: z.number(),
   date_published: z.string(),
   date_modified: z.string(),
+  home_id: z.string().nullable(),
+  home_name: z.string().nullable(),
 })
 
 export type ShoppingListSchema = z.infer<typeof shoppingListSchema>

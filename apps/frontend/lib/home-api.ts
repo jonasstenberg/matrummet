@@ -1,7 +1,7 @@
 import { cache } from 'react'
 import { getSession, signPostgrestToken } from '@/lib/auth'
 import { env } from '@/lib/env'
-import { HomeInfo } from '@/lib/types'
+import { HomeInfo, UserHome } from '@/lib/types'
 
 export interface HomeInfoResult {
   home: HomeInfo | null
@@ -14,7 +14,7 @@ export interface HomeInfoResult {
  *
  * Both layout and sub-pages call this directly - no prop drilling needed.
  */
-export const getHomeInfo = cache(async (): Promise<HomeInfoResult> => {
+export const getHomeInfo = cache(async (homeId?: string): Promise<HomeInfoResult> => {
   const session = await getSession()
 
   if (!session) {
@@ -29,7 +29,7 @@ export const getHomeInfo = cache(async (): Promise<HomeInfoResult> => {
       Authorization: `Bearer ${postgrestToken}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({}),
+    body: JSON.stringify({ p_home_id: homeId ?? null }),
     cache: 'no-store',
   })
 
@@ -62,4 +62,32 @@ export const getHomeInfo = cache(async (): Promise<HomeInfoResult> => {
     },
     userEmail: session.email,
   }
+})
+
+export const getUserHomes = cache(async (): Promise<UserHome[]> => {
+  const session = await getSession()
+
+  if (!session) {
+    throw new Error('Not authenticated')
+  }
+
+  const postgrestToken = await signPostgrestToken(session.email)
+
+  const response = await fetch(`${env.POSTGREST_URL}/rpc/get_user_homes`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${postgrestToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({}),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    return []
+  }
+
+  const result = await response.json()
+
+  return result as UserHome[]
 })

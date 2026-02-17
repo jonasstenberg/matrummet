@@ -284,7 +284,7 @@ export async function getLikedRecipes(
   return res.json();
 }
 
-export async function getShoppingList(token: string, listId?: string): Promise<ShoppingListItem[]> {
+export async function getShoppingList(token: string, listId?: string, homeId?: string): Promise<ShoppingListItem[]> {
   const params = new URLSearchParams();
   params.set("order", "is_checked.asc,sort_order.asc");
 
@@ -292,10 +292,15 @@ export async function getShoppingList(token: string, listId?: string): Promise<S
     params.set("shopping_list_id", `eq.${listId}`);
   }
 
+  const headers: HeadersInit = {
+    Authorization: `Bearer ${token}`,
+  };
+  if (homeId) {
+    headers['X-Active-Home-Id'] = homeId;
+  }
+
   const res = await fetch(`${env.POSTGREST_URL}/shopping_list_view?${params}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers,
     cache: 'no-store',
   });
 

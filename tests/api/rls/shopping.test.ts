@@ -28,6 +28,7 @@ import {
   cleanupTestData,
   resetCreatedResources,
   uniqueId,
+  leaveAllHomes,
 } from "../seed";
 import { expectSuccess, expectRlsBlocked } from "../helpers";
 
@@ -88,12 +89,8 @@ describe("RLS: shopping_lists table", () => {
 
   describe("User without home", () => {
     beforeAll(async () => {
-      // Ensure user has no home for these tests
-      try {
-        await clientA.rpc("leave_home");
-      } catch {
-        // Ignore if user has no home
-      }
+      // Ensure user has no home for these tests (leave ALL homes for multi-home support)
+      await leaveAllHomes(clientA);
     });
 
     it("should return empty results when user has no home", async () => {
@@ -116,12 +113,8 @@ describe("RLS: shopping_lists table", () => {
     });
 
     afterAll(async () => {
-      // Leave home to clean up
-      try {
-        await clientA.rpc("leave_home");
-      } catch {
-        // Ignore cleanup errors
-      }
+      // Leave all homes to clean up (multi-home support)
+      await leaveAllHomes(clientA);
     });
 
     it("should allow user to SELECT their own shopping lists", async () => {
@@ -211,12 +204,8 @@ describe("RLS: shopping_lists table", () => {
     });
 
     afterAll(async () => {
-      try {
-        await clientA.rpc("leave_home");
-        await clientB.rpc("leave_home");
-      } catch {
-        // Ignore cleanup errors
-      }
+      await leaveAllHomes(clientA);
+      await leaveAllHomes(clientB);
     });
 
     it("should NOT allow user B to SELECT user A's shopping lists", async () => {
@@ -277,7 +266,9 @@ describe("RLS: shopping_lists table", () => {
     let sharedListId: string;
 
     beforeAll(async () => {
-      // User A creates a home
+      // Multi-home: leave all existing homes first
+      await leaveAllHomes(clientA);
+      await leaveAllHomes(clientB);
       sharedHomeId = await createTestHome(clientA, `Shared Home ${uniqueId()}`);
 
       // User A creates a shopping list in the home
@@ -328,12 +319,8 @@ describe("RLS: shopping_lists table", () => {
     });
 
     afterAll(async () => {
-      try {
-        await clientB.rpc("leave_home");
-        await clientA.rpc("leave_home");
-      } catch {
-        // Ignore cleanup errors
-      }
+      await leaveAllHomes(clientB);
+      await leaveAllHomes(clientA);
     });
 
     it("should allow home member (User B) to SELECT shared shopping lists", async () => {
@@ -432,16 +419,13 @@ describe("RLS: shopping_list_items table", () => {
     let itemId: string;
 
     beforeAll(async () => {
+      await leaveAllHomes(clientA);
       await createTestHome(clientA, `Items Test Home ${uniqueId()}`);
       listId = await createTestShoppingList(clientA, `Items Test List ${uniqueId()}`);
     });
 
     afterAll(async () => {
-      try {
-        await clientA.rpc("leave_home");
-      } catch {
-        // Ignore cleanup errors
-      }
+      await leaveAllHomes(clientA);
     });
 
     it("should allow user to INSERT items in their own lists", async () => {
@@ -520,12 +504,8 @@ describe("RLS: shopping_list_items table", () => {
     });
 
     afterAll(async () => {
-      try {
-        await clientA.rpc("leave_home");
-        await clientB.rpc("leave_home");
-      } catch {
-        // Ignore cleanup errors
-      }
+      await leaveAllHomes(clientA);
+      await leaveAllHomes(clientB);
     });
 
     it("should NOT allow user B to SELECT items in user A's lists", async () => {
@@ -645,12 +625,8 @@ describe("RLS: shopping_list_items table", () => {
     });
 
     afterAll(async () => {
-      try {
-        await clientB.rpc("leave_home");
-        await clientA.rpc("leave_home");
-      } catch {
-        // Ignore cleanup errors
-      }
+      await leaveAllHomes(clientB);
+      await leaveAllHomes(clientA);
     });
 
     it("should allow home member to SELECT items in shared lists", async () => {
@@ -758,15 +734,13 @@ describe("RLS: Shopping List RPC functions", () => {
 
   describe("create_shopping_list function", () => {
     beforeAll(async () => {
+      await leaveAllHomes(clientA);
+      await leaveAllHomes(clientB);
       await createTestHome(clientA, `RPC Test Home ${uniqueId()}`);
     });
 
     afterAll(async () => {
-      try {
-        await clientA.rpc("leave_home");
-      } catch {
-        // Ignore
-      }
+      await leaveAllHomes(clientA);
     });
 
     it("should create shopping list for authenticated user with home", async () => {
@@ -781,7 +755,7 @@ describe("RLS: Shopping List RPC functions", () => {
     it("should succeed for user without home (personal list)", async () => {
       // User B has no home - should create a personal shopping list
       const result = await clientB.rpc("create_shopping_list", {
-        p_name: "Personal List",
+        p_name: `Personal List ${uniqueId()}`,
       });
 
       expect(result.error).toBeNull();
@@ -811,11 +785,7 @@ describe("RLS: Shopping List RPC functions", () => {
     });
 
     afterAll(async () => {
-      try {
-        await clientA.rpc("leave_home");
-      } catch {
-        // Ignore
-      }
+      await leaveAllHomes(clientA);
     });
 
     it("should toggle item for owner", async () => {
@@ -856,12 +826,8 @@ describe("RLS: Shopping List RPC functions", () => {
     });
 
     afterAll(async () => {
-      try {
-        await clientA.rpc("leave_home");
-        await clientB.rpc("leave_home");
-      } catch {
-        // Ignore
-      }
+      await leaveAllHomes(clientA);
+      await leaveAllHomes(clientB);
     });
 
     it("should allow owner to delete their list", async () => {

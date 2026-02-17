@@ -15,9 +15,10 @@ interface FoodSuggestion {
 interface AddCustomItemInputProps {
   listId?: string
   onItemAdded: (item: ShoppingListItem) => void
+  homeId?: string
 }
 
-export function AddCustomItemInput({ listId, onItemAdded }: AddCustomItemInputProps) {
+export function AddCustomItemInput({ listId, onItemAdded, homeId }: AddCustomItemInputProps) {
   const [inputValue, setInputValue] = useState('')
   const [suggestions, setSuggestions] = useState<FoodSuggestion[]>([])
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
@@ -102,7 +103,7 @@ export function AddCustomItemInput({ listId, onItemAdded }: AddCustomItemInputPr
     inputRef.current?.focus()
 
     startTransition(async () => {
-      await addCustomShoppingListItem(trimmed, listId, foodId)
+      await addCustomShoppingListItem(trimmed, listId, foodId, homeId)
     })
   }
 

@@ -2,10 +2,11 @@
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { User } from '@/lib/types'
+import { User, UserHome } from '@/lib/types'
 
 interface AuthContextValue {
   user: User | null
+  homes: UserHome[]
   isLoading: boolean
   credits: number | null
   login: (email: string, password: string) => Promise<void>
@@ -30,12 +31,19 @@ export function useAuth() {
 interface AuthProviderProps {
   children: React.ReactNode
   initialUser: User | null
+  initialHomes?: UserHome[]
 }
 
-export function AuthProvider({ children, initialUser }: AuthProviderProps) {
+export function AuthProvider({ children, initialUser, initialHomes = [] }: AuthProviderProps) {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(initialUser)
+  const [homes, setHomes] = useState<UserHome[]>(initialHomes)
   const [isLoading, setIsLoading] = useState(false)
+
+  // Sync homes when server re-renders with fresh data (e.g. after creating/deleting a home)
+  useEffect(() => {
+    setHomes(initialHomes)
+  }, [initialHomes])
   const [credits, setCredits] = useState<number | null>(null)
 
   const refreshCredits = useCallback(async () => {
@@ -135,7 +143,7 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, credits, login, signup, logout, clearUser, updateUser, setCredits, refreshCredits }}>
+    <AuthContext.Provider value={{ user, homes, isLoading, credits, login, signup, logout, clearUser, updateUser, setCredits, refreshCredits }}>
       {children}
     </AuthContext.Provider>
   )

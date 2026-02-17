@@ -28,7 +28,7 @@ import {
   cleanupTestData,
   resetCreatedResources,
   uniqueId,
-  ensureUserHasHome,
+  leaveAllHomes,
 } from "../seed";
 import { expectSuccess, expectRlsBlocked, expectPantryItemShape } from "../helpers";
 
@@ -82,12 +82,8 @@ describe("RLS: user_pantry table", () => {
 
   describe("User without home", () => {
     beforeAll(async () => {
-      // Ensure user has no home for these tests
-      try {
-        await clientA.rpc("leave_home");
-      } catch {
-        // Ignore if user has no home
-      }
+      // Ensure user has no home for these tests (must leave ALL homes for multi-home support)
+      await leaveAllHomes(clientA);
     });
 
     it("should return empty results when user has no home", async () => {
@@ -129,12 +125,8 @@ describe("RLS: user_pantry table", () => {
     });
 
     afterAll(async () => {
-      // Leave home to clean up
-      try {
-        await clientA.rpc("leave_home");
-      } catch {
-        // Ignore cleanup errors
-      }
+      // Leave all homes to clean up (multi-home support)
+      await leaveAllHomes(clientA);
     });
 
     it("should allow user to SELECT their own pantry items", async () => {
@@ -231,12 +223,8 @@ describe("RLS: user_pantry table", () => {
     });
 
     afterAll(async () => {
-      try {
-        await clientA.rpc("leave_home");
-        await clientB.rpc("leave_home");
-      } catch {
-        // Ignore cleanup errors
-      }
+      await leaveAllHomes(clientA);
+      await leaveAllHomes(clientB);
     });
 
     it("should NOT allow user B to SELECT user A's pantry items", async () => {
@@ -373,12 +361,8 @@ describe("RLS: user_pantry table", () => {
     });
 
     afterAll(async () => {
-      try {
-        await clientB.rpc("leave_home");
-        await clientA.rpc("leave_home");
-      } catch {
-        // Ignore cleanup errors
-      }
+      await leaveAllHomes(clientB);
+      await leaveAllHomes(clientA);
     });
 
     it("should allow home member (User B) to SELECT shared pantry items", async () => {
@@ -508,11 +492,7 @@ describe("RLS: Pantry RPC functions", () => {
     });
 
     afterAll(async () => {
-      try {
-        await clientA.rpc("leave_home");
-      } catch {
-        // Ignore
-      }
+      await leaveAllHomes(clientA);
     });
 
     it("should add to pantry for authenticated user with home", async () => {
@@ -527,6 +507,9 @@ describe("RLS: Pantry RPC functions", () => {
     });
 
     it("should fail for user without home", async () => {
+      // Ensure user B has no homes (multi-home support)
+      await leaveAllHomes(clientB);
+
       const food = await getOrCreateFood(clientB, `No Home Food ${uniqueId()}`);
 
       const result = await clientB.rpc("add_to_pantry", {
@@ -562,12 +545,8 @@ describe("RLS: Pantry RPC functions", () => {
     });
 
     afterAll(async () => {
-      try {
-        await clientA.rpc("leave_home");
-        await clientB.rpc("leave_home");
-      } catch {
-        // Ignore
-      }
+      await leaveAllHomes(clientA);
+      await leaveAllHomes(clientB);
     });
 
     it("should remove from pantry for owner", async () => {
@@ -628,11 +607,7 @@ describe("RLS: Pantry RPC functions", () => {
     });
 
     afterAll(async () => {
-      try {
-        await clientA.rpc("leave_home");
-      } catch {
-        // Ignore
-      }
+      await leaveAllHomes(clientA);
     });
 
     it("should return pantry items for authenticated user with home", async () => {
@@ -677,11 +652,7 @@ describe("RLS: Pantry RPC functions", () => {
     });
 
     afterAll(async () => {
-      try {
-        await clientA.rpc("leave_home");
-      } catch {
-        // Ignore
-      }
+      await leaveAllHomes(clientA);
     });
 
     it("should work for authenticated user with home", async () => {
@@ -759,12 +730,8 @@ describe("RLS: Pantry data isolation verification", () => {
     expect(itemsB.some((item) => item.food_id === foodA.id)).toBe(false);
 
     // Cleanup
-    try {
-      await clientA.rpc("leave_home");
-      await clientB.rpc("leave_home");
-    } catch {
-      // Ignore
-    }
+    await leaveAllHomes(clientA);
+    await leaveAllHomes(clientB);
   });
 
   it("should properly share pantry when users join the same home", async () => {
@@ -803,17 +770,16 @@ describe("RLS: Pantry data isolation verification", () => {
     expect(aSeesB[0].quantity).toBe(75);
 
     // Cleanup
-    try {
-      await clientB.rpc("leave_home");
-      await clientA.rpc("leave_home");
-    } catch {
-      // Ignore
-    }
+    await leaveAllHomes(clientB);
+    await leaveAllHomes(clientA);
   });
 
   it("should orphan pantry items when user leaves home", async () => {
+    // Ensure user starts with no homes for a clean test
+    await leaveAllHomes(clientA);
+
     // User A creates a home and adds items
-    await createTestHome(clientA, `Leave Home Test ${uniqueId()}`);
+    const homeId = await createTestHome(clientA, `Leave Home Test ${uniqueId()}`);
     const food = await getOrCreateFood(clientA, `Leave Home Food ${uniqueId()}`);
     await addToPantry(clientA, food.id, { quantity: 30, unit: "st" });
 
@@ -822,10 +788,10 @@ describe("RLS: Pantry data isolation verification", () => {
     expectSuccess(beforeResult);
     expect((beforeResult.data as PantryItem[]).length).toBe(1);
 
-    // User A leaves home
-    await clientA.rpc("leave_home");
+    // User A leaves the specific home
+    await clientA.rpc("leave_home", { p_home_id: homeId });
 
-    // User A should no longer see the item (home_id is now NULL, RLS filters it out)
+    // User A should no longer see the item (no homes left, RLS filters it out)
     const afterResult = await clientA.from("user_pantry").select("*").eq("food_id", food.id);
     expectSuccess(afterResult);
     expect((afterResult.data as PantryItem[]).length).toBe(0);

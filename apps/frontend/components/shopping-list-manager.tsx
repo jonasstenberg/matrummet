@@ -31,12 +31,14 @@ interface ShoppingListManagerProps {
   lists: ShoppingList[]
   selectedListId: string | null
   onSelectList: (listId: string) => void
+  homeId?: string
 }
 
 export function ShoppingListManager({
   lists,
   selectedListId,
   onSelectList,
+  homeId,
 }: ShoppingListManagerProps) {
   const [actionsMenuOpen, setActionsMenuOpen] = useState<string | null>(null)
 
@@ -53,7 +55,7 @@ export function ShoppingListManager({
     handleSetDefault,
     setCreateName,
     setRenameName,
-  } = useShoppingListDialogs({ lists, selectedListId, onSelectList })
+  } = useShoppingListDialogs({ lists, selectedListId, onSelectList, homeId })
 
   const useTabs = lists.length <= 3
 
@@ -195,7 +197,7 @@ export function ShoppingListManager({
                   <Star className="h-4 w-4 fill-primary text-primary" />
                 )}
                 <span className="font-medium">
-                  {selectedList?.name || 'Välj lista'}
+                  {selectedList ? selectedList.name : 'Välj lista'}
                 </span>
                 {selectedList && selectedList.item_count > 0 && (
                   <span className="text-sm text-muted-foreground">
@@ -208,69 +210,18 @@ export function ShoppingListManager({
             {actionsMenuOpen === 'selector' && (
               <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border bg-popover p-1 shadow-md">
                 {lists.map((list) => (
-                  <div
+                  <DropdownListItem
                     key={list.id}
-                    className={cn(
-                      'group flex items-center justify-between rounded-sm px-2 py-1.5 hover:bg-accent',
-                      list.id === selectedListId && 'bg-accent'
-                    )}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onSelectList(list.id)
-                        setActionsMenuOpen(null)
-                      }}
-                      className="flex flex-1 items-center gap-2 text-sm"
-                    >
-                      {list.is_default && (
-                        <Star className="h-3 w-3 fill-primary text-primary" />
-                      )}
-                      <span>{list.name}</span>
-                      {list.item_count > 0 && (
-                        <span className="text-muted-foreground">
-                          ({list.item_count - list.checked_count})
-                        </span>
-                      )}
-                    </button>
-                    <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleOpenRenameDialog(list)
-                        }}
-                        className="rounded p-1 hover:bg-muted"
-                        title="Byt namn"
-                      >
-                        <Pencil className="h-3 w-3" />
-                      </button>
-                      {!list.is_default && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleSetDefaultAndCloseMenu(list)
-                          }}
-                          className="rounded p-1 hover:bg-muted"
-                          title="Ange som standard"
-                        >
-                          <Star className="h-3 w-3" />
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleOpenDeleteDialog(list)
-                        }}
-                        className="rounded p-1 text-destructive hover:bg-muted"
-                        title="Ta bort"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    </div>
-                  </div>
+                    list={list}
+                    isSelected={list.id === selectedListId}
+                    onSelect={() => {
+                      onSelectList(list.id)
+                      setActionsMenuOpen(null)
+                    }}
+                    onRename={() => handleOpenRenameDialog(list)}
+                    onSetDefault={() => handleSetDefaultAndCloseMenu(list)}
+                    onDelete={() => handleOpenDeleteDialog(list)}
+                  />
                 ))}
               </div>
             )}
@@ -385,6 +336,85 @@ export function ShoppingListManager({
           onClick={() => setActionsMenuOpen(null)}
         />
       )}
+    </div>
+  )
+}
+
+// Extracted component for dropdown list items to reduce duplication
+function DropdownListItem({
+  list,
+  isSelected,
+  onSelect,
+  onRename,
+  onSetDefault,
+  onDelete,
+}: {
+  list: ShoppingList
+  isSelected: boolean
+  onSelect: () => void
+  onRename: () => void
+  onSetDefault: () => void
+  onDelete: () => void
+}) {
+  return (
+    <div
+      className={cn(
+        'group flex items-center justify-between rounded-sm px-2 py-1.5 hover:bg-accent',
+        isSelected && 'bg-accent'
+      )}
+    >
+      <button
+        type="button"
+        onClick={onSelect}
+        className="flex flex-1 items-center gap-2 text-sm"
+      >
+        {list.is_default && (
+          <Star className="h-3 w-3 fill-primary text-primary" />
+        )}
+        <span>{list.name}</span>
+        {list.item_count > 0 && (
+          <span className="text-muted-foreground">
+            ({list.item_count - list.checked_count})
+          </span>
+        )}
+      </button>
+      <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            onRename()
+          }}
+          className="rounded p-1 hover:bg-muted"
+          title="Byt namn"
+        >
+          <Pencil className="h-3 w-3" />
+        </button>
+        {!list.is_default && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              onSetDefault()
+            }}
+            className="rounded p-1 hover:bg-muted"
+            title="Ange som standard"
+          >
+            <Star className="h-3 w-3" />
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            onDelete()
+          }}
+          className="rounded p-1 text-destructive hover:bg-muted"
+          title="Ta bort"
+        >
+          <Trash2 className="h-3 w-3" />
+        </button>
+      </div>
     </div>
   )
 }

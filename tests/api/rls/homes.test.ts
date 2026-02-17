@@ -18,6 +18,7 @@ import {
   createTestUser,
   createTestHome,
   resetCreatedResources,
+  leaveAllHomes,
   uniqueId,
 } from "../seed";
 import {
@@ -85,31 +86,15 @@ describe("RLS: homes table", () => {
     resetCreatedResources();
 
     // Ensure users have no home before each test
-    // Leave any existing homes first
-    try {
-      await clientA.rpc("leave_home");
-    } catch {
-      // Ignore if user has no home
-    }
-    try {
-      await clientB.rpc("leave_home");
-    } catch {
-      // Ignore if user has no home
-    }
+    // Leave ALL existing homes (multi-home support)
+    await leaveAllHomes(clientA);
+    await leaveAllHomes(clientB);
   });
 
   afterAll(async () => {
-    // Cleanup: leave homes
-    try {
-      await clientA.rpc("leave_home");
-    } catch {
-      // Ignore cleanup errors
-    }
-    try {
-      await clientB.rpc("leave_home");
-    } catch {
-      // Ignore cleanup errors
-    }
+    // Cleanup: leave all homes
+    await leaveAllHomes(clientA);
+    await leaveAllHomes(clientB);
     resetCreatedResources();
   });
 
@@ -277,7 +262,9 @@ describe("RLS: homes table", () => {
       const originalHomeId = homeIdA;
 
       // Leave the home (which should delete it since A is the only member)
-      const leaveResult = await clientA.rpc("leave_home");
+      const leaveResult = await clientA.rpc("leave_home", {
+        p_home_id: originalHomeId,
+      });
       expectNoError(leaveResult);
 
       // Verify the home no longer exists
@@ -322,8 +309,8 @@ describe("RLS: homes table", () => {
       expectSuccess(selectResult);
       expect(selectResult.data).toHaveLength(1);
 
-      // Cleanup: B leaves
-      await clientB.rpc("leave_home");
+      // Cleanup: B leaves the specific home
+      await clientB.rpc("leave_home", { p_home_id: homeIdA });
     });
   });
 });
@@ -359,23 +346,16 @@ describe("RLS: home_invitations table", () => {
     resetCreatedResources();
 
     // Ensure users have no home before each test
+    // Leave ALL existing homes (multi-home support)
     for (const client of [clientA, clientB, clientC]) {
-      try {
-        await client.rpc("leave_home");
-      } catch {
-        // Ignore if user has no home
-      }
+      await leaveAllHomes(client);
     }
   });
 
   afterAll(async () => {
-    // Cleanup
+    // Cleanup: leave all homes
     for (const client of [clientA, clientB, clientC]) {
-      try {
-        await client.rpc("leave_home");
-      } catch {
-        // Ignore cleanup errors
-      }
+      await leaveAllHomes(client);
     }
     resetCreatedResources();
   });

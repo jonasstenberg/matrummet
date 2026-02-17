@@ -11,15 +11,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { LogOut } from 'lucide-react'
 
 interface HomeLeaveDialogProps {
   homeName: string
   onLeave: () => Promise<void>
-  children?: React.ReactNode
+  isDelete?: boolean
+  children: React.ReactNode
 }
 
-export function HomeLeaveDialog({ homeName, onLeave, children }: HomeLeaveDialogProps) {
+export function HomeLeaveDialog({ homeName, onLeave, isDelete, children }: HomeLeaveDialogProps) {
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -36,23 +36,22 @@ export function HomeLeaveDialog({ homeName, onLeave, children }: HomeLeaveDialog
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {children || (
-          <Button variant="outline" className="text-destructive hover:text-destructive">
-            <LogOut className="h-4 w-4 mr-2" />
-            Lämna hushållet
-          </Button>
-        )}
+        {children}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Lämna hushållet</DialogTitle>
+          <DialogTitle>{isDelete ? 'Ta bort hushållet' : 'Lämna hushållet'}</DialogTitle>
           <DialogDescription>
-            Är du säker på att du vill lämna {homeName}?
+            {isDelete
+              ? `Är du säker på att du vill ta bort ${homeName}?`
+              : `Är du säker på att du vill lämna ${homeName}?`}
           </DialogDescription>
         </DialogHeader>
         <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4">
           <p className="text-sm text-destructive">
-            Du kommer att förlora åtkomst till delade recept och inköpslistor. Denna åtgärd kan inte ångras.
+            {isDelete
+              ? 'Hushållet och alla dess inköpslistor kommer att tas bort permanent. Denna åtgärd kan inte ångras.'
+              : 'Du kommer att förlora åtkomst till delade recept och inköpslistor. Denna åtgärd kan inte ångras.'}
           </p>
         </div>
         <DialogFooter>
@@ -68,7 +67,9 @@ export function HomeLeaveDialog({ homeName, onLeave, children }: HomeLeaveDialog
             onClick={handleLeave}
             disabled={isLoading}
           >
-            {isLoading ? 'Lämnar...' : 'Lämna hushållet'}
+            {isLoading
+              ? (isDelete ? 'Tar bort...' : 'Lämnar...')
+              : (isDelete ? 'Ta bort hushållet' : 'Lämna hushållet')}
           </Button>
         </DialogFooter>
       </DialogContent>

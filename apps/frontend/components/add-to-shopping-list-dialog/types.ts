@@ -3,14 +3,16 @@ import type {
   IngredientGroup,
   Recipe,
   ShoppingList,
+  UserHome,
 } from "@/lib/types";
 
-export type { Ingredient, IngredientGroup, Recipe, ShoppingList };
+export type { Ingredient, IngredientGroup, Recipe, ShoppingList, UserHome };
 
 export interface AddToShoppingListDialogProps {
   recipe: Recipe;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  homes: UserHome[];
 }
 
 export interface RecipeServingsScalerProps {

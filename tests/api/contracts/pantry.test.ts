@@ -28,6 +28,7 @@ import {
   uniqueId,
   ensureUserHasHome,
   refreshRecipeIngredientSummary,
+  leaveAllHomes,
 } from "../seed";
 import {
   expectSuccess,
@@ -95,7 +96,11 @@ describe("Pantry RPCs Contract Tests", () => {
     clientB = await createAuthenticatedClient(TEST_USERS.userB.email);
     anonClient = createAnonymousClient();
 
-    // Ensure users have homes (required for pantry operations)
+    // Leave all existing homes to ensure users are in separate homes
+    await leaveAllHomes(clientA);
+    await leaveAllHomes(clientB);
+
+    // Ensure users have SEPARATE homes (required for pantry isolation tests)
     await ensureUserHasHome(clientA, "Test Home A");
     await ensureUserHasHome(clientB, "Test Home B");
   });

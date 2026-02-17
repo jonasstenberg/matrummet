@@ -8,6 +8,7 @@ export interface User {
   role?: 'user' | 'admin'
   home_id?: string
   home_name?: string
+  homes?: UserHome[]
 }
 
 export interface Category {
@@ -224,6 +225,16 @@ export interface ShoppingList {
   checked_count: number
   date_published: string
   date_modified: string
+  home_id: string | null
+  home_name: string | null
+}
+
+export interface UserHome {
+  home_id: string
+  home_name: string
+  joined_at: string
+  member_count: number
+  role: string
 }
 
 export interface Home {

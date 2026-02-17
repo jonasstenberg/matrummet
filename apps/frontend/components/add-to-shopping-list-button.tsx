@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AddToShoppingListDialog } from "@/components/add-to-shopping-list-dialog";
+import { useAuth } from "@/components/auth-provider";
 import { ShoppingCart } from "@/lib/icons";
 import type { Recipe } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -20,6 +21,7 @@ export function AddToShoppingListButton({
   variant = "outline",
   showLabel = true,
 }: AddToShoppingListButtonProps) {
+  const { homes } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Don't render if there are no ingredients
@@ -43,6 +45,7 @@ export function AddToShoppingListButton({
         recipe={recipe}
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
+        homes={homes}
       />
     </>
   );

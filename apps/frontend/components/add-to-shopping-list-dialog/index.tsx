@@ -19,13 +19,20 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   addRecipeToShoppingList,
   createShoppingList,
   getUserShoppingLists,
 } from "@/lib/actions";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { IngredientChecklist } from "./ingredient-checklist";
 import { RecipeServingsScaler } from "./recipe-servings-scaler";
 import { ShoppingListSelector } from "./shopping-list-selector";
@@ -35,6 +42,7 @@ export function AddToShoppingListDialog({
   recipe,
   open,
   onOpenChange,
+  homes,
 }: AddToShoppingListDialogProps) {
   const router = useRouter();
   const originalServings = recipe.recipe_yield ?? 4;
@@ -45,7 +53,10 @@ export function AddToShoppingListDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [lists, setLists] = useState<ShoppingList[]>([]);
+  const [allLists, setAllLists] = useState<ShoppingList[]>([]);
+  const [selectedHomeId, setSelectedHomeId] = useState<string>(
+    homes[0]?.home_id ?? ""
+  );
   const [selectedListId, setSelectedListId] = useState<string>("");
   const [isLoadingLists, setIsLoadingLists] = useState(false);
   const [isCreatingList, setIsCreatingList] = useState(false);
@@ -53,14 +64,22 @@ export function AddToShoppingListDialog({
 
   const hasInitializedSelection = useRef(false);
 
+  // Filter lists by selected home
+  const lists = useMemo(
+    () => allLists.filter((l) => l.home_id === selectedHomeId),
+    [allLists, selectedHomeId]
+  );
+
   useEffect(() => {
     if (open) {
       setIsLoadingLists(true);
       getUserShoppingLists()
         .then((result) => {
           if (!("error" in result)) {
-            setLists(result);
-            const defaultList = result.find((l) => l.is_default) || result[0];
+            setAllLists(result);
+            // Select default list for the currently selected home
+            const homeLists = result.filter((l) => l.home_id === selectedHomeId);
+            const defaultList = homeLists.find((l) => l.is_default) || homeLists[0];
             if (defaultList) {
               setSelectedListId(defaultList.id);
             }
@@ -70,7 +89,7 @@ export function AddToShoppingListDialog({
 
       hasInitializedSelection.current = false;
     }
-  }, [open]);
+  }, [open, selectedHomeId]);
 
   useEffect(() => {
     if (open && !hasInitializedSelection.current) {
@@ -115,13 +134,22 @@ export function AddToShoppingListDialog({
     }
   }
 
+  // When home selection changes, select that home's default list
+  function handleHomeChange(newHomeId: string) {
+    setSelectedHomeId(newHomeId);
+    const homeLists = allLists.filter((l) => l.home_id === newHomeId);
+    const defaultList = homeLists.find((l) => l.is_default) || homeLists[0];
+    setSelectedListId(defaultList?.id ?? "");
+  }
+
   async function handleCreateList() {
     if (!newListName.trim()) return;
 
     setIsCreatingList(true);
     try {
-      const result = await createShoppingList(newListName.trim());
+      const result = await createShoppingList(newListName.trim(), selectedHomeId || undefined);
       if ("id" in result) {
+        const selectedHome = homes.find((h) => h.home_id === selectedHomeId);
         const newList: ShoppingList = {
           id: result.id,
           name: newListName.trim(),
@@ -130,8 +158,10 @@ export function AddToShoppingListDialog({
           checked_count: 0,
           date_published: new Date().toISOString(),
           date_modified: new Date().toISOString(),
+          home_id: selectedHomeId || null,
+          home_name: selectedHome?.home_name ?? null,
         };
-        setLists((prev) => [newList, ...prev]);
+        setAllLists((prev) => [newList, ...prev]);
         setSelectedListId(result.id);
         setNewListName("");
       } else {
@@ -160,7 +190,7 @@ export function AddToShoppingListDialog({
         servings,
         ingredientIds: ingredientIds.length > 0 ? ingredientIds : undefined,
         listId: selectedListId || undefined,
-      });
+      }, selectedHomeId || undefined);
 
       if ("error" in result) {
         setError(result.error);
@@ -169,7 +199,7 @@ export function AddToShoppingListDialog({
       }
 
       onOpenChange(false);
-      router.push("/inkopslista");
+      router.push(`/hem/${selectedHomeId}/inkopslista`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ett oväntat fel uppstod");
       setIsSubmitting(false);
@@ -188,6 +218,24 @@ export function AddToShoppingListDialog({
 
   const content = (
     <>
+      {homes.length > 1 && (
+        <div className="shrink-0 space-y-2 py-4 rounded-lg bg-muted/30">
+          <label className="text-sm font-medium">Vilket hem lagar du i?</label>
+          <Select value={selectedHomeId} onValueChange={handleHomeChange}>
+            <SelectTrigger className="bg-background">
+              <SelectValue placeholder="Välj hem" />
+            </SelectTrigger>
+            <SelectContent>
+              {homes.map((home) => (
+                <SelectItem key={home.home_id} value={home.home_id}>
+                  {home.home_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       <ShoppingListSelector
         lists={lists}
         selectedListId={selectedListId}

@@ -11,9 +11,10 @@ import type { ShoppingListItem as ShoppingListItemType } from '@/lib/types'
 interface ShoppingListItemProps {
   item: ShoppingListItemType
   pantryMap?: Record<string, string | null>
+  homeId?: string
 }
 
-export function ShoppingListItem({ item, pantryMap }: ShoppingListItemProps) {
+export function ShoppingListItem({ item, pantryMap, homeId }: ShoppingListItemProps) {
   const [optimisticChecked, setOptimisticChecked] = useOptimistic(item.is_checked)
   const [isPending, startTransition] = useTransition()
   const [pantryExpanded, setPantryExpanded] = useState(false)
@@ -22,13 +23,13 @@ export function ShoppingListItem({ item, pantryMap }: ShoppingListItemProps) {
   function handleToggle() {
     startTransition(async () => {
       setOptimisticChecked(!optimisticChecked)
-      await toggleShoppingListItem(item.id)
+      await toggleShoppingListItem(item.id, homeId)
     })
   }
 
   function handleAddToPantry(expiresAt?: string) {
     if (!item.food_id) return
-    addToPantry([item.food_id], expiresAt).catch((err) => {
+    addToPantry([item.food_id], expiresAt, homeId).catch((err) => {
       console.error('Failed to add to pantry:', err)
     })
     setPantryExpanded(false)

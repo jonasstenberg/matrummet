@@ -1,29 +1,10 @@
 'use server'
 
-import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
-import { HomeInfo, HomeInvitation } from '@/lib/types'
-import { verifyToken, signPostgrestToken } from '@/lib/auth'
+import { HomeInfo, HomeInvitation, UserHome } from '@/lib/types'
+import { getPostgrestToken, postgrestHeaders } from '@/lib/action-utils'
 
 const POSTGREST_URL = process.env.POSTGREST_URL || 'http://localhost:4444'
-
-async function getPostgrestToken(): Promise<string | null> {
-  const cookieStore = await cookies()
-  const authToken = cookieStore.get('auth-token')?.value
-
-  if (!authToken) {
-    return null
-  }
-
-  // Verify the frontend token and extract the email
-  const payload = await verifyToken(authToken)
-  if (!payload?.email) {
-    return null
-  }
-
-  // Create a PostgREST-specific token with role: 'anon'
-  return signPostgrestToken(payload.email)
-}
 
 export async function createHome(
   name: string
@@ -47,17 +28,6 @@ export async function createHome(
     if (!response.ok) {
       const errorText = await response.text()
       console.error('Failed to create home:', errorText)
-
-      // Check for specific error codes
-      try {
-        const errorJson = JSON.parse(errorText)
-        if (errorJson.message === 'user-already-has-home') {
-          return { error: 'Du är redan medlem i ett hushåll' }
-        }
-      } catch {
-        // If we can't parse the error, fall through to generic message
-      }
-
       return { error: 'Kunde inte skapa hushållet. Försök igen.' }
     }
 
@@ -73,7 +43,8 @@ export async function createHome(
 }
 
 export async function updateHomeName(
-  name: string
+  name: string,
+  homeId?: string
 ): Promise<{ success: true } | { error: string }> {
   try {
     const token = await getPostgrestToken()
@@ -84,10 +55,7 @@ export async function updateHomeName(
 
     const response = await fetch(`${POSTGREST_URL}/rpc/update_home_name`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await postgrestHeaders(token, homeId),
       body: JSON.stringify({ p_name: name }),
     })
 
@@ -116,7 +84,9 @@ export async function updateHomeName(
   }
 }
 
-export async function leaveHome(): Promise<{ success: true } | { error: string }> {
+export async function leaveHome(
+  homeId?: string
+): Promise<{ success: true } | { error: string }> {
   try {
     const token = await getPostgrestToken()
 
@@ -124,13 +94,15 @@ export async function leaveHome(): Promise<{ success: true } | { error: string }
       return { error: 'Du måste vara inloggad för att lämna hushållet' }
     }
 
+    const body: Record<string, string> = {}
+    if (homeId) {
+      body.p_home_id = homeId
+    }
+
     const response = await fetch(`${POSTGREST_URL}/rpc/leave_home`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({}),
+      headers: await postgrestHeaders(token, homeId),
+      body: JSON.stringify(body),
     })
 
     if (!response.ok) {
@@ -159,7 +131,8 @@ export async function leaveHome(): Promise<{ success: true } | { error: string }
 }
 
 export async function generateJoinCode(
-  expiresHours?: number
+  expiresHours?: number,
+  homeId?: string
 ): Promise<{ code: string; expires_at: string } | { error: string }> {
   try {
     const token = await getPostgrestToken()
@@ -175,10 +148,7 @@ export async function generateJoinCode(
 
     const response = await fetch(`${POSTGREST_URL}/rpc/generate_join_code`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await postgrestHeaders(token, homeId),
       body: JSON.stringify(payload),
     })
 
@@ -213,7 +183,9 @@ export async function generateJoinCode(
   }
 }
 
-export async function disableJoinCode(): Promise<{ success: true } | { error: string }> {
+export async function disableJoinCode(
+  homeId?: string
+): Promise<{ success: true } | { error: string }> {
   try {
     const token = await getPostgrestToken()
 
@@ -223,10 +195,7 @@ export async function disableJoinCode(): Promise<{ success: true } | { error: st
 
     const response = await fetch(`${POSTGREST_URL}/rpc/disable_join_code`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await postgrestHeaders(token, homeId),
       body: JSON.stringify({}),
     })
 
@@ -280,9 +249,6 @@ export async function joinHomeByCode(
 
       try {
         const errorJson = JSON.parse(errorText)
-        if (errorJson.message === 'user-already-has-home') {
-          return { error: 'Du är redan medlem i ett hushåll' }
-        }
         if (errorJson.message === 'invalid-join-code' || errorJson.message === 'join-code-expired') {
           return { error: 'Ogiltig eller utgången inbjudningskod' }
         }
@@ -305,7 +271,8 @@ export async function joinHomeByCode(
 }
 
 export async function inviteToHome(
-  email: string
+  email: string,
+  homeId?: string
 ): Promise<{ id: string } | { error: string }> {
   try {
     const token = await getPostgrestToken()
@@ -316,10 +283,7 @@ export async function inviteToHome(
 
     const response = await fetch(`${POSTGREST_URL}/rpc/invite_to_home`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await postgrestHeaders(token, homeId),
       body: JSON.stringify({ p_email: email }),
     })
 
@@ -386,9 +350,6 @@ export async function acceptInvitation(
         const errorJson = JSON.parse(errorText)
         if (errorJson.message === 'invalid-invitation-token' || errorJson.message === 'invitation-expired') {
           return { error: 'Ogiltig eller utgången inbjudan' }
-        }
-        if (errorJson.message === 'user-already-has-home') {
-          return { error: 'Du är redan medlem i ett hushåll' }
         }
         if (errorJson.message === 'invitation-not-for-user') {
           return { error: 'Inbjudan är inte avsedd för denna e-postadress' }
@@ -458,7 +419,9 @@ export async function declineInvitation(
   }
 }
 
-export async function getHomeInfo(): Promise<HomeInfo | null> {
+export async function getHomeInfo(
+  homeId?: string
+): Promise<HomeInfo | null> {
   try {
     const token = await getPostgrestToken()
 
@@ -468,11 +431,8 @@ export async function getHomeInfo(): Promise<HomeInfo | null> {
 
     const response = await fetch(`${POSTGREST_URL}/rpc/get_home_info`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({}),
+      headers: await postgrestHeaders(token),
+      body: JSON.stringify({ p_home_id: homeId ?? null }),
     })
 
     if (!response.ok) {
@@ -536,7 +496,8 @@ export async function getPendingInvitations(): Promise<HomeInvitation[]> {
 }
 
 export async function removeMember(
-  email: string
+  email: string,
+  homeId?: string
 ): Promise<{ success: true } | { error: string }> {
   try {
     const token = await getPostgrestToken()
@@ -547,10 +508,7 @@ export async function removeMember(
 
     const response = await fetch(`${POSTGREST_URL}/rpc/remove_home_member`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await postgrestHeaders(token, homeId),
       body: JSON.stringify({ p_member_email: email }),
     })
 
@@ -586,7 +544,8 @@ export async function removeMember(
 }
 
 export async function cancelInvitation(
-  invitationId: string
+  invitationId: string,
+  homeId?: string
 ): Promise<{ success: true } | { error: string }> {
   try {
     const token = await getPostgrestToken()
@@ -597,10 +556,7 @@ export async function cancelInvitation(
 
     const response = await fetch(`${POSTGREST_URL}/rpc/cancel_invitation`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await postgrestHeaders(token, homeId),
       body: JSON.stringify({ p_invitation_id: invitationId }),
     })
 
@@ -629,5 +585,34 @@ export async function cancelInvitation(
   } catch (error) {
     console.error('Error cancelling invitation:', error)
     return { error: 'Ett oväntat fel uppstod. Försök igen.' }
+  }
+}
+
+export async function getUserHomes(): Promise<UserHome[] | { error: string }> {
+  try {
+    const token = await getPostgrestToken()
+
+    if (!token) {
+      return { error: 'Du måste vara inloggad' }
+    }
+
+    const response = await fetch(`${POSTGREST_URL}/rpc/get_user_homes`, {
+      method: 'POST',
+      headers: await postgrestHeaders(token),
+      body: JSON.stringify({}),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Failed to get user homes:', errorText)
+      return { error: 'Kunde inte hämta hushåll' }
+    }
+
+    const result = await response.json()
+
+    return result as UserHome[]
+  } catch (error) {
+    console.error('Error getting user homes:', error)
+    return { error: 'Ett oväntat fel uppstod' }
   }
 }

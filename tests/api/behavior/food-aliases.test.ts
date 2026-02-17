@@ -23,6 +23,7 @@ import {
   createTestUser,
   createTestHome,
   cleanupTestData,
+  leaveAllHomes,
   getOrCreateFood,
   addToPantry,
   resetCreatedResources,
@@ -57,7 +58,8 @@ describe("Food Alias Behavior", () => {
     clientA = await createAuthenticatedClient(TEST_USERS.userA.email);
     adminClient = await createAdminClient(TEST_USERS.admin.email);
 
-    // Create a home for user A (required for pantry)
+    // Multi-home: leave all existing homes first, then create a fresh one
+    await leaveAllHomes(clientA);
     await createTestHome(clientA, "Test Home for Aliases");
 
     // Create food items via regular user (pending status)

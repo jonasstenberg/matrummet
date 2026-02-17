@@ -11,6 +11,8 @@ interface ShoppingListPageClientProps {
   items: ShoppingListItem[]
   initialSelectedListId: string | null
   pantryMap: Record<string, string | null>
+  homeId: string
+  homeName?: string
 }
 
 export function ShoppingListPageClient({
@@ -18,41 +20,44 @@ export function ShoppingListPageClient({
   items,
   initialSelectedListId,
   pantryMap,
+  homeId,
+  homeName,
 }: ShoppingListPageClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
   const selectedListId = searchParams.get('list') || initialSelectedListId
-  const selectedList = lists.find((l) => l.id === selectedListId)
 
   const handleSelectList = useCallback(
     (listId: string) => {
-      router.push(`/inkopslista?list=${listId}`)
+      router.push(`/hem/${homeId}/inkopslista?list=${listId}`)
     },
-    [router]
+    [router, homeId]
   )
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      {/* Page Header */}
       <header>
         <h1 className="font-heading text-4xl font-bold tracking-tight text-foreground">
           Inköpslista
         </h1>
+        {homeName && (
+          <p className="text-sm text-muted-foreground mt-1">{homeName}</p>
+        )}
       </header>
 
-      {/* Shopping list manager */}
       <ShoppingListManager
         lists={lists}
         selectedListId={selectedListId}
         onSelectList={handleSelectList}
+        homeId={homeId}
       />
 
-      {/* Shopping list content */}
       <ShoppingListComponent
-        items={selectedList ? items : []}
+        items={selectedListId ? items : []}
         listId={selectedListId || undefined}
         pantryMap={pantryMap}
+        homeId={homeId}
       />
     </div>
   )

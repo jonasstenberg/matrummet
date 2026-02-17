@@ -1,38 +1,9 @@
 'use server'
 
-import { cookies } from 'next/headers'
-import { verifyToken, signPostgrestToken } from '@/lib/auth'
 import type { RecipeMatch, PantryItem, SubstitutionResponse, CommonPantryItem } from './ingredient-search-types'
+import { getPostgrestToken, getCurrentUserEmail, postgrestHeaders } from '@/lib/action-utils'
 
 const POSTGREST_URL = process.env.POSTGREST_URL || 'http://localhost:4444'
-
-async function getPostgrestToken(): Promise<string | null> {
-  const cookieStore = await cookies()
-  const authToken = cookieStore.get('auth-token')?.value
-
-  if (!authToken) {
-    return null
-  }
-
-  const payload = await verifyToken(authToken)
-  if (!payload?.email) {
-    return null
-  }
-
-  return signPostgrestToken(payload.email)
-}
-
-async function getUserEmail(): Promise<string | null> {
-  const cookieStore = await cookies()
-  const authToken = cookieStore.get('auth-token')?.value
-
-  if (!authToken) {
-    return null
-  }
-
-  const payload = await verifyToken(authToken)
-  return payload?.email ?? null
-}
 
 export async function findRecipesByIngredients(
   foodIds: string[],
@@ -40,7 +11,8 @@ export async function findRecipesByIngredients(
     minMatchPercentage?: number
     onlyOwnRecipes?: boolean
     limit?: number
-  }
+  },
+  homeId?: string
 ): Promise<RecipeMatch[] | { error: string }> {
   try {
     if (foodIds.length === 0) {
@@ -48,7 +20,7 @@ export async function findRecipesByIngredients(
     }
 
     const token = await getPostgrestToken()
-    const userEmail = options?.onlyOwnRecipes ? await getUserEmail() : null
+    const userEmail = options?.onlyOwnRecipes ? await getCurrentUserEmail() : null
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -56,6 +28,9 @@ export async function findRecipesByIngredients(
 
     if (token) {
       headers.Authorization = `Bearer ${token}`
+      if (homeId) {
+        headers['X-Active-Home-Id'] = homeId
+      }
     }
 
     const response = await fetch(`${POSTGREST_URL}/rpc/find_recipes_by_ingredients`, {
@@ -83,7 +58,9 @@ export async function findRecipesByIngredients(
   }
 }
 
-export async function getUserPantry(): Promise<PantryItem[] | { error: string }> {
+export async function getUserPantry(
+  homeId?: string
+): Promise<PantryItem[] | { error: string }> {
   try {
     const token = await getPostgrestToken()
 
@@ -93,10 +70,7 @@ export async function getUserPantry(): Promise<PantryItem[] | { error: string }>
 
     const response = await fetch(`${POSTGREST_URL}/rpc/get_user_pantry`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await postgrestHeaders(token, homeId),
       body: JSON.stringify({}),
     })
 
@@ -116,7 +90,8 @@ export async function getUserPantry(): Promise<PantryItem[] | { error: string }>
 
 export async function addToPantry(
   foodIds: string[],
-  expiresAt?: string | null
+  expiresAt?: string | null,
+  homeId?: string
 ): Promise<{ success: boolean } | { error: string }> {
   try {
     const token = await getPostgrestToken()
@@ -129,6 +104,8 @@ export async function addToPantry(
       return { error: 'Inga ingredienser att spara' }
     }
 
+    const headers = await postgrestHeaders(token, homeId)
+
     // Add each food to pantry
     for (const foodId of foodIds) {
       const body: Record<string, string> = { p_food_id: foodId }
@@ -138,10 +115,7 @@ export async function addToPantry(
 
       const response = await fetch(`${POSTGREST_URL}/rpc/add_to_pantry`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers,
         body: JSON.stringify(body),
       })
 
@@ -160,7 +134,8 @@ export async function addToPantry(
 
 export async function updatePantryItemExpiry(
   foodId: string,
-  expiresAt: string | null
+  expiresAt: string | null,
+  homeId?: string
 ): Promise<{ success: boolean } | { error: string }> {
   try {
     const token = await getPostgrestToken()
@@ -171,10 +146,7 @@ export async function updatePantryItemExpiry(
 
     const response = await fetch(`${POSTGREST_URL}/rpc/add_to_pantry`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await postgrestHeaders(token, homeId),
       body: JSON.stringify({
         p_food_id: foodId,
         p_expires_at: expiresAt,
@@ -194,7 +166,8 @@ export async function updatePantryItemExpiry(
 }
 
 export async function removeFromPantry(
-  foodId: string
+  foodId: string,
+  homeId?: string
 ): Promise<{ success: boolean } | { error: string }> {
   try {
     const token = await getPostgrestToken()
@@ -205,10 +178,7 @@ export async function removeFromPantry(
 
     const response = await fetch(`${POSTGREST_URL}/rpc/remove_from_pantry`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await postgrestHeaders(token, homeId),
       body: JSON.stringify({
         p_food_id: foodId,
       }),
@@ -227,7 +197,8 @@ export async function removeFromPantry(
 }
 
 export async function deductFromPantry(
-  deductions: Array<{ food_id: string; amount: number }>
+  deductions: Array<{ food_id: string; amount: number }>,
+  homeId?: string
 ): Promise<{ success: boolean; count: number } | { error: string }> {
   try {
     const token = await getPostgrestToken()
@@ -242,10 +213,7 @@ export async function deductFromPantry(
 
     const response = await fetch(`${POSTGREST_URL}/rpc/deduct_from_pantry`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await postgrestHeaders(token, homeId),
       body: JSON.stringify({
         p_deductions: deductions,
       }),
@@ -340,15 +308,21 @@ export async function searchFoodsWithIds(
   }
 }
 
-export async function getCommonPantryItems(): Promise<CommonPantryItem[]> {
+export async function getCommonPantryItems(
+  homeId?: string
+): Promise<CommonPantryItem[]> {
   try {
+    const token = await getPostgrestToken()
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     }
 
-    const token = await getPostgrestToken()
     if (token) {
       headers.Authorization = `Bearer ${token}`
+      if (homeId) {
+        headers['X-Active-Home-Id'] = homeId
+      }
     }
 
     const response = await fetch(`${POSTGREST_URL}/rpc/get_common_pantry_items`, {

@@ -19,6 +19,7 @@ export interface UseShoppingListDialogsOptions {
   lists: ShoppingList[]
   selectedListId: string | null
   onSelectList: (listId: string) => void
+  homeId?: string
 }
 
 export interface UseShoppingListDialogsReturn {
@@ -55,7 +56,7 @@ export interface UseShoppingListDialogsReturn {
 export function useShoppingListDialogs(
   options: UseShoppingListDialogsOptions
 ): UseShoppingListDialogsReturn {
-  const { lists, selectedListId, onSelectList } = options
+  const { lists, selectedListId, onSelectList, homeId } = options
   const router = useRouter()
 
   const [error, setError] = useState<string | null>(null)
@@ -107,7 +108,7 @@ export function useShoppingListDialogs(
     setDialog({ ...dialog, isSubmitting: true, error: null })
 
     try {
-      const result = await createShoppingList(dialog.name.trim())
+      const result = await createShoppingList(dialog.name.trim(), homeId)
 
       if ('error' in result) {
         setDialog({ ...dialog, isSubmitting: false, error: result.error })
@@ -120,7 +121,7 @@ export function useShoppingListDialogs(
     } catch {
       setDialog({ ...dialog, isSubmitting: false, error: 'Ett oväntat fel uppstod' })
     }
-  }, [dialog, onSelectList, router])
+  }, [dialog, onSelectList, router, homeId])
 
   const handleRename = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -139,7 +140,7 @@ export function useShoppingListDialogs(
     setDialog({ ...dialog, isSubmitting: true, error: null })
 
     try {
-      const result = await renameShoppingList(dialog.list.id, dialog.name.trim())
+      const result = await renameShoppingList(dialog.list.id, dialog.name.trim(), homeId)
 
       if ('error' in result) {
         setDialog({ ...dialog, isSubmitting: false, error: result.error })
@@ -151,7 +152,7 @@ export function useShoppingListDialogs(
     } catch {
       setDialog({ ...dialog, isSubmitting: false, error: 'Ett oväntat fel uppstod' })
     }
-  }, [dialog, router])
+  }, [dialog, router, homeId])
 
   const handleDelete = useCallback(async () => {
     if (dialog.type !== 'delete') return
@@ -159,7 +160,7 @@ export function useShoppingListDialogs(
     setDialog({ ...dialog, isSubmitting: true, error: null })
 
     try {
-      const result = await deleteShoppingList(dialog.list.id)
+      const result = await deleteShoppingList(dialog.list.id, homeId)
 
       if ('error' in result) {
         setDialog({ ...dialog, isSubmitting: false, error: result.error })
@@ -180,13 +181,13 @@ export function useShoppingListDialogs(
     } catch {
       setDialog({ ...dialog, isSubmitting: false, error: 'Ett oväntat fel uppstod' })
     }
-  }, [dialog, selectedListId, lists, onSelectList, router])
+  }, [dialog, selectedListId, lists, onSelectList, router, homeId])
 
   const handleSetDefault = useCallback(async (list: ShoppingList) => {
     if (list.is_default) return
 
     try {
-      const result = await setDefaultShoppingList(list.id)
+      const result = await setDefaultShoppingList(list.id, homeId)
 
       if ('error' in result) {
         setError(result.error)
@@ -197,7 +198,7 @@ export function useShoppingListDialogs(
     } catch {
       setError('Ett oväntat fel uppstod')
     }
-  }, [router])
+  }, [router, homeId])
 
   return {
     dialog,

@@ -18,6 +18,7 @@ import {
   createTestShoppingList,
   createTestHome,
   cleanupTestData,
+  leaveAllHomes,
   getOrCreateFood,
 } from "../seed";
 import { expectSuccess } from "../helpers";
@@ -37,7 +38,8 @@ describe("Pantry Auto-Add Behavior", () => {
     await createTestUser(TEST_USERS.userA);
     clientA = await createAuthenticatedClient(TEST_USERS.userA.email);
 
-    // Create a home for the user (required for pantry and shopping lists)
+    // Multi-home: leave all existing homes first, then create a fresh one
+    await leaveAllHomes(clientA);
     homeId = await createTestHome(clientA, "Test Home for Pantry");
 
     // Get or create food items for testing

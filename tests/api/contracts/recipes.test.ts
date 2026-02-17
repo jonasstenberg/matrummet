@@ -23,6 +23,7 @@ import {
   cleanupTestData,
   uniqueId,
   SAMPLE_RECIPES,
+  leaveAllHomes,
 } from "../seed";
 import {
   expectSuccess,
@@ -129,8 +130,8 @@ describe("Recipe RPC Contract Tests", () => {
 
     // Set up household sharing so users can see each other's recipes
     // (required since public recipes have been removed)
-    await clientA.rpc("leave_home"); // Clean up any existing home
-    await clientB.rpc("leave_home");
+    await leaveAllHomes(clientA); // Clean up any existing homes
+    await leaveAllHomes(clientB);
 
     // User B creates a home
     const homeResult = await clientB.rpc<string>("create_home", {
@@ -161,8 +162,8 @@ describe("Recipe RPC Contract Tests", () => {
 
   afterAll(async () => {
     // Clean up household sharing to avoid affecting other test files
-    await clientA.rpc("leave_home");
-    await clientB.rpc("leave_home");
+    await leaveAllHomes(clientA);
+    await leaveAllHomes(clientB);
     await cleanupTestData(TEST_USERS.userA.email);
     await cleanupTestData(TEST_USERS.userB.email);
   });

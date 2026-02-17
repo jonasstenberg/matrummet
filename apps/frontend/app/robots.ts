@@ -11,6 +11,7 @@ export default function robots(): MetadataRoute.Robots {
         '/admin/',
         '/installningar/',
         '/hushall/',
+        '/hem/',
         '/mina-recept/',
         '/gillade-recept/',
         '/mitt-skafferi/',

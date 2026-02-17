@@ -17,6 +17,7 @@ import {
   createTestUser,
   createTestHome,
   cleanupTestData,
+  leaveAllHomes,
   getOrCreateFood,
   addToPantry,
   refreshRecipeIngredientSummary,
@@ -46,7 +47,8 @@ describe("Recipe Matching Behavior", () => {
     clientA = await createAuthenticatedClient(TEST_USERS.userA.email);
     clientB = await createAuthenticatedClient(TEST_USERS.userB.email);
 
-    // Create a home for user A (required for pantry)
+    // Multi-home: leave all existing homes first, then create a fresh one
+    await leaveAllHomes(clientA);
     await createTestHome(clientA, "Test Home for Matching");
 
     // Get or create all food items needed for testing

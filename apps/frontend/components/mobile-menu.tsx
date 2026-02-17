@@ -42,7 +42,7 @@ function MobileNavItem({ href, icon: Icon, children, isActive, onClick }: {
 }
 
 export function MobileMenu() {
-  const { user, logout } = useAuth();
+  const { user, homes, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -50,6 +50,7 @@ export function MobileMenu() {
   if (!user) return null;
 
   const isAdminActive = pathname.startsWith('/admin');
+
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -76,30 +77,63 @@ export function MobileMenu() {
 
             <Separator className="my-2" />
 
-            {/* Main nav items */}
-            <MobileNavItem
-              href="/mitt-skafferi"
-              icon={UtensilsCrossed}
-              isActive={pathname === '/mitt-skafferi'}
-              onClick={() => setOpen(false)}
-            >
-              Mitt skafferi
-            </MobileNavItem>
-            <MobileNavItem
-              href="/inkopslista"
-              icon={ShoppingCart}
-              isActive={pathname === '/inkopslista'}
-              onClick={() => setOpen(false)}
-            >
-              Inköpslista
-            </MobileNavItem>
+            {/* Per-home pantry + shopping list */}
+            {homes.length > 0 ? (
+              homes.map((home) => (
+                <div key={home.home_id}>
+                  {homes.length > 1 && (
+                    <div className="px-3 py-1 text-xs font-medium text-muted-foreground/70">
+                      {home.home_name}
+                    </div>
+                  )}
+                  <MobileNavItem
+                    href={`/hem/${home.home_id}/skafferi`}
+                    icon={UtensilsCrossed}
+                    isActive={pathname === `/hem/${home.home_id}/skafferi`}
+                    onClick={() => setOpen(false)}
+                  >
+                    Skafferi
+                  </MobileNavItem>
+                  <MobileNavItem
+                    href={`/hem/${home.home_id}/inkopslista`}
+                    icon={ShoppingCart}
+                    isActive={pathname.startsWith(`/hem/${home.home_id}/inkopslista`)}
+                    onClick={() => setOpen(false)}
+                  >
+                    Inköpslista
+                  </MobileNavItem>
+                </div>
+              ))
+            ) : (
+              <>
+                <MobileNavItem
+                  href="/mitt-skafferi"
+                  icon={UtensilsCrossed}
+                  isActive={pathname === '/mitt-skafferi'}
+                  onClick={() => setOpen(false)}
+                >
+                  Skafferi
+                </MobileNavItem>
+                <MobileNavItem
+                  href="/inkopslista"
+                  icon={ShoppingCart}
+                  isActive={pathname === '/inkopslista'}
+                  onClick={() => setOpen(false)}
+                >
+                  Inköpslista
+                </MobileNavItem>
+              </>
+            )}
+
+            <Separator className="my-2" />
+
             <MobileNavItem
               href="/hushall"
               icon={Home}
               isActive={pathname === '/hushall'}
               onClick={() => setOpen(false)}
             >
-              Hushåll
+              Hantera hushåll
             </MobileNavItem>
             <MobileNavItem
               href="/smarta-importer"

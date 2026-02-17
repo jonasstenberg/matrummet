@@ -11,6 +11,7 @@ import { PantryList } from './pantry-list'
 interface MyPantryProps {
   initialPantry?: PantryItem[]
   commonPantryItems?: CommonPantryItem[]
+  homeId?: string
 }
 
 type CategoryKey = 'basic' | 'seasoning' | 'herb' | 'spice'
@@ -24,7 +25,7 @@ const categoryLabels: Record<CategoryKey, string> = {
 
 const categoryOrder: CategoryKey[] = ['basic', 'seasoning', 'herb', 'spice']
 
-export function MyPantry({ initialPantry = [], commonPantryItems = [] }: MyPantryProps) {
+export function MyPantry({ initialPantry = [], commonPantryItems = [], homeId }: MyPantryProps) {
   const [pantryItems, setPantryItems] = useState<PantryItem[]>(initialPantry)
   const [isLoading, setIsLoading] = useState(false)
   const [commonCollapsed, setCommonCollapsed] = useState(false)
@@ -60,7 +61,7 @@ export function MyPantry({ initialPantry = [], commonPantryItems = [] }: MyPantr
 
       setIsLoading(true)
 
-      addToPantry([ingredient.id], expiresAt).catch((err) => {
+      addToPantry([ingredient.id], expiresAt, homeId).catch((err) => {
         console.error('Failed to save to pantry:', err)
       })
 
@@ -77,18 +78,18 @@ export function MyPantry({ initialPantry = [], commonPantryItems = [] }: MyPantr
       setPantryItems((prev) => [newItem, ...prev])
       setIsLoading(false)
     },
-    [existingFoodIds]
+    [existingFoodIds, homeId]
   )
 
   const handleRemoveItem = useCallback(async (foodId: string) => {
-    removeFromPantry(foodId).catch((err) => {
+    removeFromPantry(foodId, homeId).catch((err) => {
       console.error('Failed to remove from pantry:', err)
     })
     setPantryItems((prev) => prev.filter((item) => item.food_id !== foodId))
-  }, [])
+  }, [homeId])
 
   const handleUpdateExpiry = useCallback((foodId: string, expiresAt: string | null) => {
-    updatePantryItemExpiry(foodId, expiresAt).catch((err) => {
+    updatePantryItemExpiry(foodId, expiresAt, homeId).catch((err) => {
       console.error('Failed to update expiry:', err)
     })
     setPantryItems((prev) =>
@@ -102,7 +103,7 @@ export function MyPantry({ initialPantry = [], commonPantryItems = [] }: MyPantr
           : item
       )
     )
-  }, [])
+  }, [homeId])
 
   return (
     <div className="space-y-4">

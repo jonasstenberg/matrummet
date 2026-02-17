@@ -29,6 +29,7 @@ import {
   resetCreatedResources,
   uniqueId,
   ensureUserHasHome,
+  leaveAllHomes,
 } from "../seed";
 import {
   expectSuccess,
@@ -57,9 +58,9 @@ describe("Shopping List RPCs", () => {
     clientB = await createAuthenticatedClient(TEST_USERS.userB.email);
     anonClient = createAnonymousClient();
 
-    // Leave any existing homes to ensure users are in separate homes
-    await clientA.rpc("leave_home");
-    await clientB.rpc("leave_home");
+    // Leave all existing homes to ensure users are in separate homes
+    await leaveAllHomes(clientA);
+    await leaveAllHomes(clientB);
 
     // Ensure users have SEPARATE homes (required for shopping list isolation tests)
     await ensureUserHasHome(clientA, "Test Home A");
@@ -1161,15 +1162,19 @@ describe("Shopping List RPCs", () => {
       expect(previousDefault?.is_default).toBe(false);
     });
 
-    it("should only have one default list at a time", async () => {
+    it("should only have one default list at a time per scope", async () => {
       await clientA.rpc("set_default_shopping_list", { p_list_id: list2Id });
 
       const lists = await clientA.rpc<ShoppingList[]>("get_user_shopping_lists");
       expectSuccess(lists);
 
-      const defaultLists = lists.data!.filter((l) => l.is_default);
-      expect(defaultLists.length).toBe(1);
-      expect(defaultLists[0].id).toBe(list2Id);
+      // Check that there's only one default within the home scope
+      // (personal lists may have their own default)
+      const list2 = lists.data!.find((l) => l.id === list2Id);
+      const homeId = list2?.home_id;
+      const homeDefaultLists = lists.data!.filter((l) => l.is_default && l.home_id === homeId);
+      expect(homeDefaultLists.length).toBe(1);
+      expect(homeDefaultLists[0].id).toBe(list2Id);
     });
 
     it("should be idempotent (setting same default twice)", async () => {

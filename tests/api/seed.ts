@@ -198,19 +198,21 @@ export async function createTestCategory(
 /**
  * Create a test shopping list
  *
- * Automatically ensures the user has a home, since shopping lists require a home.
+ * Automatically ensures the user has a home and passes the home_id
+ * to create_shopping_list so the list is home-scoped (not personal).
  */
 export async function createTestShoppingList(
   client: PostgrestClient,
   name?: string
 ): Promise<string> {
-  // Ensure user has a home (shopping lists require a home)
-  await ensureUserHasHome(client);
+  // Ensure user has a home and get the home_id
+  const homeId = await ensureUserHasHome(client);
 
   const listName = name ?? `Test List ${Date.now()}`;
 
   const result = await client.rpc<string>("create_shopping_list", {
     p_name: listName,
+    p_home_id: homeId,
   });
 
   if (result.error) {
@@ -250,15 +252,9 @@ export async function addShoppingListItem(
   }
 
   const { home_id, user_email } = listResult.data as {
-    home_id: string;
+    home_id: string | null;
     user_email: string;
   };
-
-  if (!home_id) {
-    throw new Error(
-      `Shopping list ${shoppingListId} has no home_id - user may not have a home`
-    );
-  }
 
   const result = await client
     .from("shopping_list_items")
@@ -315,8 +311,7 @@ export async function ensureUserHasHome(
 /**
  * Create a test home
  *
- * If the user already has a home, this will leave the current home first
- * and then create a new one. This ensures test isolation.
+ * Multi-home: users can now have multiple homes, so no need to leave first.
  */
 export async function createTestHome(
   client: PostgrestClient,
@@ -324,18 +319,9 @@ export async function createTestHome(
 ): Promise<string> {
   const homeName = name ?? `Test Home ${Date.now()}`;
 
-  // First attempt to create home
-  let result = await client.rpc<string>("create_home", {
+  const result = await client.rpc<string>("create_home", {
     p_name: homeName,
   });
-
-  // If user already has a home, leave it first and try again
-  if (result.error?.message?.includes("user-already-has-home")) {
-    await client.rpc("leave_home");
-    result = await client.rpc<string>("create_home", {
-      p_name: homeName,
-    });
-  }
 
   if (result.error) {
     throw new Error(`Failed to create home: ${result.error.message}`);
@@ -344,6 +330,19 @@ export async function createTestHome(
   const homeId = result.data!;
   createdResources.homes.push(homeId);
   return homeId;
+}
+
+/**
+ * Leave ALL homes for a user (for test cleanup/isolation)
+ */
+export async function leaveAllHomes(client: PostgrestClient): Promise<void> {
+  const result = await client.rpc<Array<{ home_id: string }>>("get_user_homes");
+  if (result.error || !result.data) return;
+
+  const homes = Array.isArray(result.data) ? result.data : [];
+  for (const home of homes) {
+    await client.rpc("leave_home", { p_home_id: home.home_id });
+  }
 }
 
 /**
