@@ -1,19 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { BookmarkPlus, LogIn } from "@/lib/icons";
+import { BookmarkPlus, Check, LogIn } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { RecipeDetail } from "@/components/recipe-detail";
 import { useAuth } from "@/components/auth-provider";
 import { copySharedRecipe } from "@/lib/recipe-actions";
@@ -55,15 +45,15 @@ function sharedToRecipe(shared: SharedRecipe): Recipe {
 }
 
 export function SharedRecipeView({ recipe, token }: SharedRecipeViewProps) {
-  const router = useRouter();
   const { user } = useAuth();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [savedRecipeId, setSavedRecipeId] = useState<string | null>(null);
 
   const isLoggedIn = !!user;
 
   function handleSaveRecipe() {
+    if (savedRecipeId || isPending) return;
     setError(null);
 
     startTransition(async () => {
@@ -74,48 +64,34 @@ export function SharedRecipeView({ recipe, token }: SharedRecipeViewProps) {
         return;
       }
 
-      // Success - redirect to the saved recipe
-      router.push(`/recept/${result.newRecipeId}`);
+      setSavedRecipeId(result.newRecipeId);
     });
   }
 
-  // Action button for saving the recipe
   const saveButton = isLoggedIn ? (
-    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-      <DialogTrigger asChild>
-        <Button className="h-10 rounded-full bg-white/90 shadow-md backdrop-blur-sm hover:bg-white text-foreground">
+    <Button
+      onClick={handleSaveRecipe}
+      disabled={isPending || !!savedRecipeId}
+      className={`h-10 rounded-full shadow-md backdrop-blur-sm ${
+        savedRecipeId
+          ? "bg-green-600 text-white hover:bg-green-600"
+          : "bg-white/90 hover:bg-white text-foreground"
+      }`}
+    >
+      {savedRecipeId ? (
+        <>
+          <Check className="mr-2 h-4 w-4" />
+          Sparat!
+        </>
+      ) : isPending ? (
+        "Sparar..."
+      ) : (
+        <>
           <BookmarkPlus className="mr-2 h-4 w-4" />
           Spara
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Spara recept</DialogTitle>
-          <DialogDescription>
-            Receptet sparas i din samling där du kan redigera det när du vill.
-          </DialogDescription>
-        </DialogHeader>
-
-        {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => setIsDialogOpen(false)}
-            disabled={isPending}
-          >
-            Avbryt
-          </Button>
-          <Button onClick={handleSaveRecipe} disabled={isPending}>
-            {isPending ? "Sparar..." : "Spara till mina recept"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      )}
+    </Button>
   ) : (
     <Button
       asChild
@@ -132,9 +108,35 @@ export function SharedRecipeView({ recipe, token }: SharedRecipeViewProps) {
 
   return (
     <div className="space-y-6">
+      {/* Success banner */}
+      {savedRecipeId && (
+        <div className="rounded-xl bg-muted px-4 py-3 flex items-center justify-between">
+          <p className="text-sm text-foreground/60">
+            Receptet har sparats i din samling
+          </p>
+          <Link
+            href={`/recept/${savedRecipeId}`}
+            className="text-sm font-medium text-foreground hover:text-foreground/70 transition-colors"
+          >
+            Visa recept &rarr;
+          </Link>
+        </div>
+      )}
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
       {/* Attribution banner */}
-      <div className="rounded-lg bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
-        Delat av <span className="font-medium">{recipe.shared_by_name}</span>
+      <div className="rounded-xl bg-muted px-4 py-3">
+        <p className="text-sm text-foreground/60">
+          Delat av{" "}
+          <span className="font-medium text-foreground">
+            {recipe.shared_by_name}
+          </span>
+        </p>
       </div>
 
       {/* Actions */}
