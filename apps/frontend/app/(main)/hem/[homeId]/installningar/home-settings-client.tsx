@@ -33,7 +33,7 @@ export function HomeSettingsClient({ home: initialHome, userEmail }: HomeSetting
   const isLastMember = home.member_count <= 1
 
   async function handleUpdateName(name: string) {
-    const result = await updateHomeName(name)
+    const result = await updateHomeName(name, homeId)
     if ('error' in result) throw new Error(result.error)
     setHome((prev) => ({ ...prev, name }))
   }
@@ -46,7 +46,7 @@ export function HomeSettingsClient({ home: initialHome, userEmail }: HomeSetting
   }
 
   async function handleRemoveMember(email: string) {
-    const result = await removeMember(email)
+    const result = await removeMember(email, homeId)
     if ('error' in result) throw new Error(result.error)
     setHome((prev) => ({
       ...prev,
@@ -56,7 +56,7 @@ export function HomeSettingsClient({ home: initialHome, userEmail }: HomeSetting
   }
 
   async function handleRefreshCode() {
-    const result = await generateJoinCode()
+    const result = await generateJoinCode(undefined, homeId)
     if ('error' in result) throw new Error(result.error)
     setHome((prev) => ({
       ...prev,
@@ -66,7 +66,7 @@ export function HomeSettingsClient({ home: initialHome, userEmail }: HomeSetting
   }
 
   async function handleDisableCode() {
-    const result = await disableJoinCode()
+    const result = await disableJoinCode(homeId)
     if ('error' in result) throw new Error(result.error)
     setHome((prev) => ({
       ...prev,
@@ -76,7 +76,7 @@ export function HomeSettingsClient({ home: initialHome, userEmail }: HomeSetting
   }
 
   async function handleSendInvite(email: string) {
-    const result = await inviteToHome(email)
+    const result = await inviteToHome(email, homeId)
     if ('error' in result) throw new Error(result.error)
   }
 

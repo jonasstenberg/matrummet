@@ -20,6 +20,7 @@
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from "vitest";
 import {
   createAuthenticatedClient,
+  createClient,
   setupTestHooks,
   TEST_USERS,
   type PostgrestClient,
@@ -1010,6 +1011,142 @@ describe("Home RPCs Contract Tests", () => {
       // Verify User B has their own home
       const homeInfo = await clientB.rpc<HomeInfo>("get_home_info");
       expect(homeInfo.data!.name).toBe("User B Home");
+    });
+  });
+
+  // ===========================================================================
+  // Multi-Home: X-Active-Home-Id header tests
+  // ===========================================================================
+  describe("Multi-Home: operations target correct home via X-Active-Home-Id", () => {
+    it("generate_join_code targets correct home when user has multiple homes", async () => {
+      // User A creates two homes
+      const home1Id = await createTestHome(clientA, `First Home ${uniqueId()}`);
+      const home2Id = await createTestHome(clientA, `Second Home ${uniqueId()}`);
+
+      // Generate join code for Home 2 specifically (via X-Active-Home-Id header)
+      const tokenA = clientA.getToken()!;
+      const clientAHome2 = createClient({
+        jwt: tokenA,
+        headers: { "X-Active-Home-Id": home2Id },
+      });
+
+      const codeResult = await clientAHome2.rpc<string>("generate_join_code", {
+        p_expires_hours: 24,
+      });
+      expectSuccess(codeResult);
+
+      // User B joins using that code
+      const joinResult = await clientB.rpc<string>("join_home_by_code", {
+        p_code: codeResult.data,
+      });
+      expectSuccess(joinResult);
+
+      // Verify User B joined Home 2 (not Home 1)
+      expect(joinResult.data).toBe(home2Id);
+      expect(joinResult.data).not.toBe(home1Id);
+    });
+
+    it("invite_to_home targets correct home when user has multiple homes", async () => {
+      // User A creates two homes
+      const home1Id = await createTestHome(clientA, `First Home ${uniqueId()}`);
+      const home2Id = await createTestHome(clientA, `Second Home ${uniqueId()}`);
+
+      // Invite User B to Home 2 specifically (via X-Active-Home-Id header)
+      const tokenA = clientA.getToken()!;
+      const clientAHome2 = createClient({
+        jwt: tokenA,
+        headers: { "X-Active-Home-Id": home2Id },
+      });
+
+      const inviteResult = await clientAHome2.rpc<string>("invite_to_home", {
+        p_email: TEST_USERS.userB.email,
+      });
+      expectSuccess(inviteResult);
+
+      // User B gets pending invitations
+      const invitations = await clientB.rpc<
+        Array<{ token: string; home_id: string; home_name: string }>
+      >("get_pending_invitations");
+      expectSuccess(invitations);
+      expect(invitations.data!.length).toBe(1);
+
+      // Verify invitation is for Home 2 (not Home 1)
+      expect(invitations.data![0].home_id).toBe(home2Id);
+      expect(invitations.data![0].home_id).not.toBe(home1Id);
+
+      // User B accepts
+      const acceptResult = await clientB.rpc<string>("accept_invitation", {
+        p_token: invitations.data![0].token,
+      });
+      expectSuccess(acceptResult);
+
+      // Verify User B joined Home 2
+      expect(acceptResult.data).toBe(home2Id);
+    });
+
+    it("update_home_name targets correct home when user has multiple homes", async () => {
+      // User A creates two homes
+      await createTestHome(clientA, `First Home ${uniqueId()}`);
+      const home2Id = await createTestHome(clientA, `Second Home ${uniqueId()}`);
+
+      // Update Home 2's name specifically
+      const tokenA = clientA.getToken()!;
+      const clientAHome2 = createClient({
+        jwt: tokenA,
+        headers: { "X-Active-Home-Id": home2Id },
+      });
+
+      const newName = `Renamed Home ${uniqueId()}`;
+      const result = await clientAHome2.rpc("update_home_name", {
+        p_name: newName,
+      });
+      expectNoError(result);
+
+      // Verify Home 2 was renamed
+      const homeInfo = await clientAHome2.rpc<HomeInfo>("get_home_info", {
+        p_home_id: home2Id,
+      });
+      expectSuccess(homeInfo);
+      expect(homeInfo.data!.name).toBe(newName);
+    });
+
+    it("disable_join_code targets correct home when user has multiple homes", async () => {
+      // User A creates two homes
+      const home1Id = await createTestHome(clientA, `First Home ${uniqueId()}`);
+      const home2Id = await createTestHome(clientA, `Second Home ${uniqueId()}`);
+
+      const tokenA = clientA.getToken()!;
+
+      // Generate join codes for both homes
+      const clientAHome1 = createClient({
+        jwt: tokenA,
+        headers: { "X-Active-Home-Id": home1Id },
+      });
+      const clientAHome2 = createClient({
+        jwt: tokenA,
+        headers: { "X-Active-Home-Id": home2Id },
+      });
+
+      await clientAHome1.rpc("generate_join_code");
+      await clientAHome2.rpc("generate_join_code");
+
+      // Disable join code for Home 2 only
+      const result = await clientAHome2.rpc("disable_join_code");
+      expectNoError(result);
+
+      // Verify Home 1 still has a join code
+      const home1Info = await clientAHome1.rpc<HomeInfo>("get_home_info", {
+        p_home_id: home1Id,
+      });
+      expectSuccess(home1Info);
+      expect(home1Info.data!.join_code).not.toBeNull();
+
+      // Verify Home 2's join code is disabled
+      const home2Info = await clientAHome2.rpc<HomeInfo>("get_home_info", {
+        p_home_id: home2Id,
+      });
+      expectSuccess(home2Info);
+      expect(home2Info.data!.join_code).toBeNull();
     });
   });
 });
