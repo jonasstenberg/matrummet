@@ -94,11 +94,19 @@ interface InstructionGroup {
   sort_order: number;
 }
 
+interface MatchedIngredient {
+  id: string;
+  name: string;
+  quantity: string | null;
+  measurement: string | null;
+}
+
 interface Instruction {
   id: string;
   step: string;
   group_id: string | null;
   sort_order: number;
+  matched_ingredients: MatchedIngredient[];
 }
 
 // Extended recipe type for liked recipes with liked_at
@@ -1478,7 +1486,53 @@ describe("Recipe RPC Contract Tests", () => {
         expect(typeof instruction.step).toBe("string");
         expect(instruction.group_id === null || typeof instruction.group_id === "string").toBe(true);
         expect(typeof instruction.sort_order).toBe("number");
+        expect(Array.isArray(instruction.matched_ingredients)).toBe(true);
       }
+    });
+
+    it("instructions include matched_ingredients with correct shape", async () => {
+      // Create a recipe where ingredient names appear in instruction text
+      // so compute_instruction_ingredient_matches will link them
+      const matchRecipeId = await createTestRecipe(clientA, {
+        name: `Matched Ingredients Test ${uniqueId()}`,
+        ingredients: [
+          { name: "Lök", measurement: "st", quantity: "1" },
+          { name: "Vitlök", measurement: "klyftor", quantity: "2" },
+          { name: "Smör", measurement: "msk", quantity: "1" },
+        ],
+        instructions: [
+          { step: "Hacka lök och vitlök." },
+          { step: "Stek i smör." },
+        ],
+      });
+
+      const result = await clientA
+        .from("user_recipes")
+        .select("instructions")
+        .eq("id", matchRecipeId)
+        .single();
+
+      expectSuccess(result);
+      const data = result.data as { instructions: Instruction[] };
+
+      // First instruction mentions "lök" and "vitlök"
+      const step1 = data.instructions.find((i) => i.step.includes("lök"));
+      expect(step1).toBeDefined();
+      expect(step1!.matched_ingredients.length).toBeGreaterThan(0);
+
+      // Verify matched ingredient shape
+      for (const mi of step1!.matched_ingredients) {
+        expect(typeof mi.id).toBe("string");
+        expect(typeof mi.name).toBe("string");
+        expect(mi.quantity === null || typeof mi.quantity === "string").toBe(true);
+        expect(mi.measurement === null || typeof mi.measurement === "string").toBe(true);
+      }
+
+      // Second instruction mentions "smör"
+      const step2 = data.instructions.find((i) => i.step.includes("smör"));
+      expect(step2).toBeDefined();
+      expect(step2!.matched_ingredients.length).toBeGreaterThan(0);
+      expect(step2!.matched_ingredients.some((mi) => mi.name === "Smör")).toBe(true);
     });
 
     it("ingredient_groups have correct shape when present", async () => {
