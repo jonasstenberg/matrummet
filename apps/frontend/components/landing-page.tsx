@@ -44,7 +44,7 @@ export function LandingPage({ recipes = [] }: LandingPageProps) {
           </div>
 
           <p className="mt-4 text-sm text-neutral-500">
-            Ingen reklam. 3 AI-importer ingår.
+            Ingen reklam. 10 AI-importer ingår.
           </p>
         </div>
       </section>
@@ -147,7 +147,7 @@ export function LandingPage({ recipes = [] }: LandingPageProps) {
             Priser
           </h2>
           <p className="mt-4 text-neutral-600">
-            Appen är gratis att använda. Du får 3 AI-importer när du skapar konto.
+            Appen är gratis att använda. Du får 10 AI-importer när du skapar konto.
           </p>
 
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-8">

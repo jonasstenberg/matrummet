@@ -63,14 +63,14 @@ describe("Credits RPC Contract Tests", () => {
     });
 
     it("should return credits for user (including signup bonus)", async () => {
-      // UserB has at least 3 credits from signup bonus (may have more from other tests)
+      // UserB has at least 10 credits from signup bonus (may have more from other tests)
       const result = await clientB.rpc<number>("get_user_credits");
 
       expectSuccess(result, "get_user_credits should succeed for user");
 
-      // New users get 3 free AI generation credits as signup bonus
+      // New users get 10 free AI generation credits as signup bonus
       // User may have accumulated more credits from other tests
-      expect(result.data).toBeGreaterThanOrEqual(3);
+      expect(result.data).toBeGreaterThanOrEqual(10);
     });
 
     it("should be denied for anonymous users", async () => {
