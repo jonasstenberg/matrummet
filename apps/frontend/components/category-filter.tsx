@@ -153,15 +153,18 @@ export function CategoryFilter({
                       type="button"
                       onClick={() => toggleCategory(category)}
                       className={cn(
-                        'inline-flex items-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-medium transition-all duration-150 active:scale-95',
+                        'inline-flex items-center gap-1.5 rounded-full border-2 px-4 py-2.5 text-sm font-medium transition-all duration-150 active:scale-95',
                         isActive(category)
-                          ? 'bg-foreground text-background shadow-sm'
-                          : 'bg-card text-foreground/80 shadow-sm shadow-black/[0.04]'
+                          ? 'border-foreground bg-card text-foreground shadow-sm'
+                          : 'border-transparent bg-card text-foreground/80 shadow-sm shadow-black/[0.04]'
                       )}
                     >
-                      {isActive(category) && (
-                        <Check className="h-3.5 w-3.5" />
-                      )}
+                      <Check
+                        className={cn(
+                          'h-3.5 w-3.5 transition-opacity duration-150',
+                          isActive(category) ? 'opacity-100' : 'opacity-0'
+                        )}
+                      />
                       {category}
                     </button>
                   ))}
