@@ -326,7 +326,7 @@ export async function grantUserCredits(email: string, amount: number): Promise<A
         p_user_email: email,
         p_amount: amount,
         p_transaction_type: 'admin_grant',
-        p_description: `Adminbeviljad: ${amount} smarta importer`,
+        p_description: `Adminbeviljad: ${amount} AI-poäng`,
       }),
     })
 

@@ -78,7 +78,7 @@ export async function deductAiCredit(
 
     if (!response.ok) {
       return {
-        error: 'Du har inga smarta importer kvar. Köp fler i menyn.',
+        error: 'Du har inga AI-poäng kvar. Köp fler i menyn.',
       }
     }
 

@@ -191,7 +191,7 @@ export function UnifiedImportForm({ onImport }: UnifiedImportFormProps) {
     if (!response.ok) {
       const errorData = await response.json()
       if (response.status === 402 || errorData.code === "INSUFFICIENT_CREDITS") {
-        throw new Error("Du har inga smarta importer kvar. Köp fler i menyn.")
+        throw new Error("Du har inga AI-poäng kvar. Köp fler i menyn.")
       }
       throw new Error(errorData.error || "Tolkning misslyckades")
     }
@@ -271,7 +271,7 @@ export function UnifiedImportForm({ onImport }: UnifiedImportFormProps) {
         return {
           icon: <Sparkles className="h-3.5 w-3.5" />,
           text: "AI tolkar receptet från länken",
-          secondary: `Kostar 1 smart import (${credits ?? "?"} kvar)`,
+          secondary: `Kostar 1 AI-poäng (${credits ?? "?"} kvar)`,
         }
       }
       return {
@@ -285,7 +285,7 @@ export function UnifiedImportForm({ onImport }: UnifiedImportFormProps) {
       return {
         icon: <Sparkles className="h-3.5 w-3.5" />,
         text: "Bild och text tolkas med AI",
-        secondary: `Kostar 1 smart import (${credits ?? "?"} kvar)`,
+        secondary: `Kostar 1 AI-poäng (${credits ?? "?"} kvar)`,
       }
     }
 
@@ -293,7 +293,7 @@ export function UnifiedImportForm({ onImport }: UnifiedImportFormProps) {
       return {
         icon: <Sparkles className="h-3.5 w-3.5" />,
         text: "Bilden tolkas med AI",
-        secondary: `Kostar 1 smart import (${credits ?? "?"} kvar)`,
+        secondary: `Kostar 1 AI-poäng (${credits ?? "?"} kvar)`,
       }
     }
 
@@ -301,7 +301,7 @@ export function UnifiedImportForm({ onImport }: UnifiedImportFormProps) {
       return {
         icon: <Sparkles className="h-3.5 w-3.5" />,
         text: "Texten tolkas med AI",
-        secondary: `Kostar 1 smart import (${credits ?? "?"} kvar)`,
+        secondary: `Kostar 1 AI-poäng (${credits ?? "?"} kvar)`,
       }
     }
 

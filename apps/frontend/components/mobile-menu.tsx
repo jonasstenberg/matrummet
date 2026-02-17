@@ -11,7 +11,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { isAdmin } from "@/lib/is-admin";
 import { cn } from "@/lib/utils";
-import { Home, LogOut, Menu, PenLine, Settings, ShoppingCart, Sparkles, UtensilsCrossed, UserCog } from "@/lib/icons";
+import { CalendarDays, Home, LogOut, Menu, PenLine, Settings, ShoppingCart, Sparkles, UtensilsCrossed, UserCog } from "@/lib/icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -102,6 +102,14 @@ export function MobileMenu() {
                   >
                     Inköpslista
                   </MobileNavItem>
+                  <MobileNavItem
+                    href={`/hem/${home.home_id}/matplan`}
+                    icon={CalendarDays}
+                    isActive={pathname.startsWith(`/hem/${home.home_id}/matplan`)}
+                    onClick={() => setOpen(false)}
+                  >
+                    Veckoplanerare
+                  </MobileNavItem>
                 </div>
               ))
             ) : (
@@ -122,6 +130,14 @@ export function MobileMenu() {
                 >
                   Inköpslista
                 </MobileNavItem>
+                <MobileNavItem
+                  href="/matplan"
+                  icon={CalendarDays}
+                  isActive={pathname === '/matplan'}
+                  onClick={() => setOpen(false)}
+                >
+                  Matplan
+                </MobileNavItem>
               </>
             )}
 
@@ -136,12 +152,12 @@ export function MobileMenu() {
               Hantera hushåll
             </MobileNavItem>
             <MobileNavItem
-              href="/smarta-importer"
+              href="/ai-poang"
               icon={Sparkles}
-              isActive={pathname === '/smarta-importer'}
+              isActive={pathname === '/ai-poang'}
               onClick={() => setOpen(false)}
             >
-              Smarta importer
+              AI-poäng
             </MobileNavItem>
             {isAdmin(user) && (
               <MobileNavItem

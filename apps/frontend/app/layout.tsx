@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter, Playfair_Display } from 'next/font/google'
 import { SwRegister } from '@/components/sw-register'
+import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -77,6 +78,7 @@ export default function RootLayout({
     <html lang="sv">
       <body className={`${inter.className} ${playfair.variable}`}>
         <SwRegister />
+        <Toaster />
         <div className="flex min-h-screen flex-col">
           {children}
         </div>

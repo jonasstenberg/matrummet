@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Om Matrummet",
   description:
-    "En digital kokbok för att samla och organisera dina recept med svensk fulltextsökning och kategorihantering.",
+    "En digital kokbok för att samla och organisera dina recept med svensk fulltextsökning, inköpslistor och AI-genererade matplaner.",
 };
 
 export default function OmPage() {
@@ -30,7 +30,8 @@ export default function OmPage() {
 
           <p>
             Du kan spara recept med ingredienser, instruktioner och kategorier,
-            söka på svenska, och göra inköpslistor.
+            söka på svenska, göra inköpslistor och generera veckovisa matplaner
+            med hjälp av AI.
           </p>
 
           <p>
@@ -53,7 +54,7 @@ export default function OmPage() {
         </div>
 
         <p className="text-sm text-muted-foreground mt-10">
-          Senast uppdaterad: 7 februari 2026
+          Senast uppdaterad: 17 februari 2026
         </p>
       </article>
     </div>

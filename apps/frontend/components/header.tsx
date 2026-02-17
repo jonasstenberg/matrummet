@@ -14,6 +14,7 @@ import {
 import { UserAvatar } from "@/components/user-avatar";
 import { isAdmin } from "@/lib/is-admin";
 import {
+  CalendarDays,
   ChefHat,
   LogOut,
   Menu,
@@ -71,13 +72,13 @@ export function Header() {
           <div className="hidden md:flex items-center gap-3">
             {user ? (
               <>
-                {/* Smart imports link */}
+                {/* AI credits link */}
                 <Link
-                  href="/smarta-importer"
+                  href="/ai-poang"
                   className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted/50"
                 >
                   <Sparkles className="h-4 w-4" />
-                  Smarta importer
+                  AI-poäng
                   {credits !== null && (
                     <Badge
                       className="min-w-[1.25rem] h-5 px-1 text-[10px] justify-center"
@@ -156,6 +157,15 @@ export function Header() {
                               Inköpslista
                             </Link>
                           </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link
+                              href={`/hem/${home.home_id}/matplan`}
+                              className="flex items-center gap-2"
+                            >
+                              <CalendarDays className="h-4 w-4" />
+                              Veckoplanerare
+                            </Link>
+                          </DropdownMenuItem>
                         </div>
                       ))
                     ) : (
@@ -170,6 +180,12 @@ export function Header() {
                           <Link href="/inkopslista" className="flex items-center gap-2">
                             <ShoppingCart className="h-4 w-4" />
                             Inköpslista
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/matplan" className="flex items-center gap-2">
+                            <CalendarDays className="h-4 w-4" />
+                            Matplan
                           </Link>
                         </DropdownMenuItem>
                       </>

@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Du har inga smarta importer kvar. Köp fler i menyn.",
+            "Du har inga AI-poäng kvar. Köp fler i menyn.",
           code: "INSUFFICIENT_CREDITS",
         },
         { status: 402 }

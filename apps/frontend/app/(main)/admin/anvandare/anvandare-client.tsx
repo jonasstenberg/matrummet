@@ -206,7 +206,7 @@ export function AnvandareClient({
 
     if (result.success) {
       setSuccess(
-        `${amount} smarta importer beviljades till ${userToGrant.name || userToGrant.email}. Nytt saldo: ${result.data?.balance}`
+        `${amount} AI-poäng beviljades till ${userToGrant.name || userToGrant.email}. Nytt saldo: ${result.data?.balance}`
       )
       setCreditDialogOpen(false)
       setUserToGrant(null)
@@ -451,7 +451,7 @@ export function AnvandareClient({
                           size="sm"
                           variant="ghost"
                           onClick={() => openCreditDialog(user)}
-                          aria-label="Bevilja smarta importer"
+                          aria-label="Bevilja AI-poäng"
                         >
                           <Sparkles className="h-4 w-4" />
                         </Button>
@@ -610,9 +610,9 @@ export function AnvandareClient({
       <Dialog open={creditDialogOpen} onOpenChange={setCreditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Bevilja smarta importer</DialogTitle>
+            <DialogTitle>Bevilja AI-poäng</DialogTitle>
             <DialogDescription>
-              Ge smarta importer till {userToGrant?.name || userToGrant?.email}
+              Ge AI-poäng till {userToGrant?.name || userToGrant?.email}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">

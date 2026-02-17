@@ -16,8 +16,8 @@ import { cn } from "@/lib/utils";
 import type { CreditTransaction } from "@/lib/credits-actions";
 
 const CREDIT_PACKS = [
-  { id: "pack_10", credits: 10, price: 29, label: "10 smarta importer" },
-  { id: "pack_25", credits: 25, price: 59, label: "25 smarta importer" },
+  { id: "pack_10", credits: 10, price: 29, label: "10 AI-poäng" },
+  { id: "pack_25", credits: 25, price: 59, label: "25 AI-poäng" },
 ];
 
 function transactionTypeLabel(type: string): string {
@@ -29,7 +29,9 @@ function transactionTypeLabel(type: string): string {
     case "admin_grant":
       return "Beviljat";
     case "ai_generation":
-      return "Smart import";
+      return "AI-import";
+    case "meal_plan":
+      return "Veckoplanerare";
     case "refund":
       return "Återbetalning";
     default:
@@ -120,7 +122,7 @@ export function CreditsDashboard({
       {showSuccess && (
         <div className="flex items-center gap-3 rounded-2xl bg-green-500/10 px-5 py-3.5 text-sm text-green-700 dark:text-green-400">
           <CheckCircle className="h-4 w-4 shrink-0" />
-          <span>Köpet genomfördes! Dina smarta importer har lagts till.</span>
+          <span>Köpet genomfördes! Dina AI-poäng har lagts till.</span>
         </div>
       )}
 

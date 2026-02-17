@@ -53,6 +53,11 @@ const nextConfig: NextConfig = {
         destination: '/hushall/medlemmar',
         permanent: true,
       },
+      {
+        source: '/smarta-importer',
+        destination: '/ai-poang',
+        permanent: true,
+      },
     ]
   },
 }

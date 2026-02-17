@@ -132,13 +132,16 @@ export interface PostgrestQueryBuilder {
 export function createClient(options?: {
   jwt?: string | null;
   email?: string;
+  headers?: Record<string, string>;
 }): PostgrestClient {
   const token: string | null = options?.jwt ?? null;
+  const customHeaders = options?.headers ?? {};
 
   const getHeaders = (): Record<string, string> => {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       Accept: "application/json",
+      ...customHeaders,
     };
 
     if (token) {
@@ -318,7 +321,7 @@ export function createClient(options?: {
           method,
           headers,
         };
-        if (body && method !== "GET" && method !== "HEAD") {
+        if (body && method !== "GET") {
           fetchOptions.body = JSON.stringify(body);
         }
         const response = await fetch(url, fetchOptions);

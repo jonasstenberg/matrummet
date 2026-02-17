@@ -17,7 +17,7 @@ export default function IntegritetspolicyPage() {
             <ul className="list-disc pl-6 space-y-2">
               <li>Din e-postadress, för inloggning</li>
               <li>Ditt lösenord, hashat med bcrypt (kan inte läsas i klartext)</li>
-              <li>Recepten du skapar, med ingredienser, instruktioner och kategorier</li>
+              <li>Recepten du skapar, med ingredienser, instruktioner och kategorier, samt matplaner</li>
               <li>Ett Stripe-kund-ID för betalningar (kortuppgifter lagras hos Stripe, inte här)</li>
             </ul>
           </section>
@@ -41,13 +41,13 @@ export default function IntegritetspolicyPage() {
           <section>
             <h2 className="text-xl font-semibold text-foreground mb-3">AI och Mistral</h2>
             <p className="mb-3">
-              Smart import skickar det du matar in (text, webbadresser eller bilder)
-              till Mistral AI för att läsa av och strukturera receptet.
+              AI-funktionerna (import och matplanering) skickar det du matar in (text, webbadresser eller bilder)
+              till Mistral AI för att tolka och strukturera innehållet.
               Mistral är ett franskt företag — datan behandlas inom EU och sparas inte efter att
               du fått ditt svar.
             </p>
             <p>
-              Smart import är valfritt. Skapar, redigerar eller söker du recept för hand
+              AI-funktionerna är valfria. Skapar, redigerar eller söker du recept för hand
               skickas ingenting till tredje part.
             </p>
           </section>

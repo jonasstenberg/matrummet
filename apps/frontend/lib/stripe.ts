@@ -29,14 +29,14 @@ export const CREDIT_PACKS: CreditPack[] = [
     credits: 10,
     price: 2900,
     currency: "sek",
-    label: "10 genereringar – 29 kr",
+    label: "10 AI-poäng – 29 kr",
   },
   {
     id: "pack_25",
     credits: 25,
     price: 5900,
     currency: "sek",
-    label: "25 genereringar – 59 kr",
+    label: "25 AI-poäng – 59 kr",
   },
 ];
 

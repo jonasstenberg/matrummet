@@ -48,8 +48,8 @@ export default function VillkorPage() {
           <section>
             <h2 className="text-xl font-semibold text-foreground mb-3">AI-funktioner</h2>
             <p className="mb-3">
-              Smart import skickar din text eller bild till Mistral AI som tolkar
-              innehållet. Skicka inte känslig information via den funktionen.
+              AI-funktionerna (import och matplanering) skickar din text eller bild till Mistral AI som tolkar
+              innehållet. Skicka inte känslig information via dessa funktioner.
             </p>
             <p>
               AI kan göra fel. Dubbelkolla ingredienser, mängder och tillagningstider

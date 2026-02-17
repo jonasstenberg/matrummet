@@ -76,8 +76,8 @@ export async function POST(request: NextRequest) {
         price_data: {
           currency: pack.currency,
           product_data: {
-            name: `${pack.credits} AI-genereringar`,
-            description: `Köp ${pack.credits} AI-genereringar för receptskapande`,
+            name: `${pack.credits} AI-poäng`,
+            description: `Köp ${pack.credits} AI-poäng för import och matplanering`,
           },
           unit_amount: pack.price,
         },
@@ -89,8 +89,8 @@ export async function POST(request: NextRequest) {
       pack_id: pack.id,
       credits: String(pack.credits),
     },
-    success_url: `${appUrl}/smarta-importer?status=success`,
-    cancel_url: `${appUrl}/smarta-importer?status=cancelled`,
+    success_url: `${appUrl}/ai-poang?status=success`,
+    cancel_url: `${appUrl}/ai-poang?status=cancelled`,
   });
 
   return NextResponse.json({ url: checkoutSession.url });

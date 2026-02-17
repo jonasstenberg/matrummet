@@ -8,6 +8,7 @@ import {
   createAuthenticatedClient,
   createAdminClient,
   createAnonymousClient,
+  createClient,
   TEST_USERS,
   type PostgrestClient,
 } from "./setup";
@@ -21,6 +22,7 @@ interface CreatedResources {
   homes: string[];
   apiKeys: string[];
   foods: string[];
+  mealPlans: string[];
 }
 
 let createdResources: CreatedResources = {
@@ -31,6 +33,7 @@ let createdResources: CreatedResources = {
   homes: [],
   apiKeys: [],
   foods: [],
+  mealPlans: [],
 };
 
 /**
@@ -45,6 +48,7 @@ export function resetCreatedResources(): void {
     homes: [],
     apiKeys: [],
     foods: [],
+    mealPlans: [],
   };
 }
 
@@ -309,6 +313,106 @@ export async function ensureUserHasHome(
 }
 
 /**
+ * Create a test meal plan
+ *
+ * Creates a meal plan via save_meal_plan RPC. The RPC uses get_current_user_home_id()
+ * which reads from the X-Active-Home-Id header, so we need to ensure the user has a home
+ * and create a client with that header set.
+ *
+ * @param client - The authenticated client (not used directly, but kept for consistency)
+ * @param options - Optional configuration for the meal plan
+ * @returns The meal plan UUID
+ */
+export async function createTestMealPlan(
+  client: PostgrestClient,
+  options?: {
+    weekStart?: string;
+    preferences?: Record<string, unknown>;
+    entries?: Array<{
+      day_of_week: number;
+      meal_type: string;
+      recipe_id?: string | null;
+      suggested_name?: string | null;
+      suggested_description?: string | null;
+      servings?: number;
+      sort_order?: number;
+    }>;
+    recipeId?: string;
+  }
+): Promise<string> {
+  // Ensure user has a home first
+  const homeId = await ensureUserHasHome(client);
+
+  // Get the user's token to create a new client with the home header
+  const token = client.getToken();
+  if (!token) {
+    throw new Error("Client has no JWT token");
+  }
+
+  // Create a client with the X-Active-Home-Id header
+  const homeClient = createClient({
+    jwt: token,
+    headers: {
+      "X-Active-Home-Id": homeId,
+    },
+  });
+
+  // Prepare defaults
+  const weekStart = options?.weekStart ?? "2026-03-02";
+  const preferences = options?.preferences ?? {
+    dietary: [],
+    meal_types: ["middag"],
+    servings: 4,
+  };
+
+  // Prepare entries
+  let entries = options?.entries;
+  if (!entries) {
+    // Default to a single middag entry
+    if (options?.recipeId) {
+      entries = [
+        {
+          day_of_week: 1,
+          meal_type: "middag",
+          recipe_id: options.recipeId,
+          suggested_name: null,
+          suggested_description: null,
+          servings: 4,
+          sort_order: 0,
+        },
+      ];
+    } else {
+      entries = [
+        {
+          day_of_week: 1,
+          meal_type: "middag",
+          recipe_id: null,
+          suggested_name: "Testrecept",
+          suggested_description: "Testbeskrivning",
+          servings: 4,
+          sort_order: 0,
+        },
+      ];
+    }
+  }
+
+  // Call save_meal_plan RPC
+  const result = await homeClient.rpc<string>("save_meal_plan", {
+    p_week_start: weekStart,
+    p_preferences: preferences,
+    p_entries: entries,
+  });
+
+  if (result.error) {
+    throw new Error(`Failed to create meal plan: ${result.error.message}`);
+  }
+
+  const planId = result.data!;
+  createdResources.mealPlans.push(planId);
+  return planId;
+}
+
+/**
  * Create a test home
  *
  * Multi-home: users can now have multiple homes, so no need to leave first.
@@ -467,6 +571,14 @@ export async function cleanupTestData(userEmail: string): Promise<void> {
   for (const keyId of createdResources.apiKeys) {
     try {
       await client.rpc("revoke_api_key", { p_key_id: keyId });
+    } catch {
+      // Ignore cleanup errors
+    }
+  }
+
+  for (const planId of createdResources.mealPlans) {
+    try {
+      await client.from("meal_plans").delete().eq("id", planId);
     } catch {
       // Ignore cleanup errors
     }

@@ -19,6 +19,7 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
+const EMPTY_HOMES: UserHome[] = []
 
 export function useAuth() {
   const context = useContext(AuthContext)
@@ -34,7 +35,7 @@ interface AuthProviderProps {
   initialHomes?: UserHome[]
 }
 
-export function AuthProvider({ children, initialUser, initialHomes = [] }: AuthProviderProps) {
+export function AuthProvider({ children, initialUser, initialHomes = EMPTY_HOMES }: AuthProviderProps) {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(initialUser)
   const [homes, setHomes] = useState<UserHome[]>(initialHomes)

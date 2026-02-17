@@ -7,13 +7,17 @@ import type { CategoryGroup } from "@/lib/types";
 interface CategorySelectorProps {
   selectedCategories: string[];
   onChange: (categories: string[]) => void;
+  groups?: string[];
+  disabled?: boolean;
 }
 
 export function CategorySelector({
   selectedCategories,
   onChange,
+  groups: filterGroups,
+  disabled,
 }: CategorySelectorProps) {
-  const [groups, setGroups] = useState<CategoryGroup[]>([]);
+  const [allGroups, setAllGroups] = useState<CategoryGroup[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -22,7 +26,7 @@ export function CategorySelector({
         const response = await fetch("/api/categories");
         if (!response.ok) throw new Error("Failed to fetch");
         const data: CategoryGroup[] = await response.json();
-        setGroups(data);
+        setAllGroups(data);
       } catch (error) {
         console.error("Failed to fetch categories:", error);
       } finally {
@@ -32,6 +36,10 @@ export function CategorySelector({
 
     fetchCategories();
   }, []);
+
+  const groups = filterGroups
+    ? allGroups.filter((g) => filterGroups.includes(g.name))
+    : allGroups;
 
   function toggleCategory(category: string) {
     if (selectedCategories.includes(category)) {
@@ -58,10 +66,11 @@ export function CategorySelector({
                   <button
                     key={category}
                     type="button"
+                    disabled={disabled}
                     className={
                       isSelected
                         ? "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-colors bg-primary text-primary-foreground"
-                        : "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-colors bg-muted hover:bg-primary hover:text-primary-foreground"
+                        : "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-colors bg-muted hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
                     }
                     onClick={() => toggleCategory(category)}
                   >
