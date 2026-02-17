@@ -10,6 +10,7 @@ export async function getRecipes(options?: {
   categories?: string[];
   search?: string;
   owner?: string;
+  ownerIds?: string[];
   limit?: number;
   offset?: number;
   token?: string;
@@ -75,7 +76,9 @@ export async function getRecipes(options?: {
   if (andConditions.length > 0) {
     params.set("and", `(${andConditions.join(',')})`);
   }
-  if (options?.owner) {
+  if (options?.ownerIds && options.ownerIds.length > 0) {
+    params.set("owner_id", `in.(${options.ownerIds.join(',')})`);
+  } else if (options?.owner) {
     // Filter by is_owner instead of exposing email in query
     params.set("is_owner", "eq.true");
   }
@@ -327,6 +330,7 @@ export async function getRecipesWithCount(options?: {
   categories?: string[];
   search?: string;
   owner?: string;
+  ownerIds?: string[];
   limit?: number;
   offset?: number;
   token?: string;
@@ -366,7 +370,9 @@ export async function getRecipesWithCount(options?: {
   if (andConditions.length > 0) {
     params.set("and", `(${andConditions.join(',')})`);
   }
-  if (options?.owner) {
+  if (options?.ownerIds && options.ownerIds.length > 0) {
+    params.set("owner_id", `in.(${options.ownerIds.join(',')})`);
+  } else if (options?.owner) {
     params.set("is_owner", "eq.true");
   }
   if (options?.limit) {

@@ -1,19 +1,9 @@
 import { useState, useCallback, useRef, useMemo, useEffect } from 'react'
-import { useSearchParams, usePathname, useRouter } from 'next/navigation'
-import type { Recipe } from '@/lib/types'
-
-export const VIEW_TYPES = ['mine', 'all', 'liked'] as const
-export type ViewType = (typeof VIEW_TYPES)[number]
-
-interface UseRecipeFiltersOptions {
-  initialRecipes: Recipe[]
-}
+import { useSearchParams, usePathname } from 'next/navigation'
 
 interface UseRecipeFiltersReturn {
   // URL-derived state
   activeCategories: string[]
-  authorFilter: string | null
-  authorName: string | null
 
   // Pantry filter state
   isFilterActive: boolean
@@ -22,31 +12,16 @@ interface UseRecipeFiltersReturn {
   // Handlers
   handleFilterToggle: (active: boolean) => void
   handleMinMatchChange: (value: number) => void
-  handleAuthorClick: (authorId: string) => void
-  clearAuthorFilter: () => void
 }
 
-export function useRecipeFilters({
-  initialRecipes,
-}: UseRecipeFiltersOptions): UseRecipeFiltersReturn {
+export function useRecipeFilters(): UseRecipeFiltersReturn {
   const searchParams = useSearchParams()
   const pathname = usePathname()
-  const router = useRouter()
 
   // Parse active categories from URL (comma-separated)
   const activeCategories = useMemo(() => {
     return searchParams.get('categories')?.split(',').filter(Boolean) ?? []
   }, [searchParams])
-
-  // Parse author filter from URL
-  const authorFilter = searchParams.get('author')
-
-  // Get author name for display (from any recipe with that owner_id)
-  const authorName = useMemo(() => {
-    if (!authorFilter) return null
-    const recipe = initialRecipes.find((r) => r.owner_id === authorFilter)
-    return recipe?.owner_name ?? null
-  }, [authorFilter, initialRecipes])
 
   // Parse pantry filter state from URL
   const urlPantryActive = searchParams.get('pantry') === 'true'
@@ -117,33 +92,6 @@ export function useRecipeFilters({
     [updateUrlParams]
   )
 
-  // Handle author filter click
-  const handleAuthorClick = useCallback(
-    (authorId: string) => {
-      const params = new URLSearchParams(searchParams.toString())
-      if (params.get('author') === authorId) {
-        params.delete('author') // Toggle off if same author
-      } else {
-        params.set('author', authorId)
-      }
-      const queryString = params.toString()
-      router.push(queryString ? `${pathname}?${queryString}` : pathname, {
-        scroll: false,
-      })
-    },
-    [searchParams, router, pathname]
-  )
-
-  // Clear author filter
-  const clearAuthorFilter = useCallback(() => {
-    const params = new URLSearchParams(searchParams.toString())
-    params.delete('author')
-    const queryString = params.toString()
-    router.push(queryString ? `${pathname}?${queryString}` : pathname, {
-      scroll: false,
-    })
-  }, [searchParams, router, pathname])
-
   // Cleanup debounce on unmount
   useEffect(() => {
     return () => {
@@ -155,13 +103,9 @@ export function useRecipeFilters({
 
   return {
     activeCategories,
-    authorFilter,
-    authorName,
     isFilterActive,
     minMatchPercentage,
     handleFilterToggle,
     handleMinMatchChange,
-    handleAuthorClick,
-    clearAuthorFilter,
   }
 }

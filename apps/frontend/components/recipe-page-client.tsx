@@ -2,13 +2,10 @@
 
 import { useState, useCallback, useMemo, useEffect, useTransition } from 'react'
 import { usePathname } from 'next/navigation'
-import { HomeHeader } from '@/components/home-header'
-import { RecipeViewToggle } from '@/components/recipe-view-toggle'
+import { MemberFilter } from '@/components/member-filter'
 import { RecipeGrid } from '@/components/recipe-grid'
 import { CategoryFilter } from '@/components/category-filter'
 import { IngredientFilterToggle } from '@/components/ingredient-filter-toggle'
-import { Badge } from '@/components/ui/badge'
-import { X } from 'lucide-react'
 import type { Recipe, CategoryGroup } from '@/lib/types'
 import type { PantryItem } from '@/lib/ingredient-search-types'
 import { loadMoreRecipes } from '@/lib/recipe-actions'
@@ -18,7 +15,8 @@ interface RecipePageClientProps {
   initialRecipes: Recipe[]
   initialPantry: PantryItem[]
   groupedCategories: CategoryGroup[]
-  activeView?: 'mine' | 'all' | 'liked'
+  members: Array<{ id: string; name: string; isCurrentUser: boolean }>
+  selectedMemberIds: string[]
   isAuthenticated: boolean
   totalCount?: number
   pageSize?: number
@@ -30,23 +28,19 @@ export function RecipePageClient({
   initialRecipes,
   initialPantry,
   groupedCategories,
-  activeView = 'mine',
+  members,
+  selectedMemberIds,
   isAuthenticated,
   totalCount = 0,
   pageSize = PAGE_SIZE,
 }: RecipePageClientProps) {
-  // Use the extracted filter hook
   const {
     activeCategories,
-    authorFilter,
-    authorName,
     isFilterActive,
     minMatchPercentage,
     handleFilterToggle,
     handleMinMatchChange,
-    handleAuthorClick,
-    clearAuthorFilter,
-  } = useRecipeFilters({ initialRecipes })
+  } = useRecipeFilters()
 
   const pathname = usePathname()
 
@@ -57,6 +51,7 @@ export function RecipePageClient({
   const hasMore = totalCount > 0 && offset < totalCount
 
   const hasPantry = initialPantry.length > 0
+  const showAuthor = selectedMemberIds.length > 1
 
   // Reset pagination when initialRecipes changes (e.g., page navigation)
   useEffect(() => {
@@ -71,7 +66,7 @@ export function RecipePageClient({
         const newRecipes = await loadMoreRecipes({
           offset,
           limit: pageSize,
-          view: activeView,
+          ownerIds: selectedMemberIds.length > 0 ? selectedMemberIds : undefined,
         })
         if (newRecipes.length > 0) {
           setAllRecipes((prev) => [...prev, ...newRecipes])
@@ -87,7 +82,7 @@ export function RecipePageClient({
         console.error('Failed to load more recipes:', error)
       }
     })
-  }, [offset, pageSize, activeView, pathname])
+  }, [offset, pageSize, selectedMemberIds, pathname])
 
   // Prepare recipes for display
   const displayRecipes = useMemo(() => {
@@ -104,7 +99,6 @@ export function RecipePageClient({
         return (b.pantry_match_percentage ?? 0) - (a.pantry_match_percentage ?? 0)
       })
     } else {
-      // When filter is inactive: show all loaded recipes
       recipes = allRecipes
     }
 
@@ -116,13 +110,8 @@ export function RecipePageClient({
       )
     }
 
-    // Apply author filter
-    if (authorFilter) {
-      recipes = recipes.filter((r) => r.owner_id === authorFilter)
-    }
-
     return recipes
-  }, [isFilterActive, hasPantry, minMatchPercentage, allRecipes, activeCategories, authorFilter])
+  }, [isFilterActive, hasPantry, minMatchPercentage, allRecipes, activeCategories])
 
   // Results summary text
   const resultsSummary = useMemo(() => {
@@ -142,31 +131,19 @@ export function RecipePageClient({
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <HomeHeader activeView={activeView} />
+      <header>
+        <h1 className="font-heading text-4xl font-bold tracking-tight text-foreground">
+          Recept
+        </h1>
+      </header>
 
-      {/* View Toggle Tabs */}
-      <RecipeViewToggle activeView={activeView} />
+      {/* Member Filter Badges (only useful with multiple members) */}
+      {members.length > 1 && (
+        <MemberFilter members={members} selectedIds={selectedMemberIds} />
+      )}
 
       {/* Category Filter */}
       <CategoryFilter groupedCategories={groupedCategories} />
-
-      {/* Author Filter Badge */}
-      {authorFilter && authorName && (
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Filtrerar efter:</span>
-          <Badge variant="secondary" className="gap-1 pr-1">
-            {authorName}
-            <button
-              type="button"
-              onClick={clearAuthorFilter}
-              className="ml-1 rounded-full p-0.5 hover:bg-muted"
-              aria-label="Ta bort författarfilter"
-            >
-              <X className="h-3 w-3" />
-            </button>
-          </Badge>
-        </div>
-      )}
 
       {/* Ingredient Filter (only for authenticated users with pantry) */}
       {isAuthenticated && (
@@ -189,8 +166,7 @@ export function RecipePageClient({
       <RecipeGrid
         recipes={displayRecipes}
         showPantryMatch={hasPantry}
-        showAuthor={activeView === 'all'}
-        onAuthorClick={handleAuthorClick}
+        showAuthor={showAuthor}
         emptyMessage={
           isFilterActive
             ? 'Inga matchande recept hittades'

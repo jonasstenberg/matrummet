@@ -9,9 +9,9 @@ import {
 import { extractJsonLdRecipe, mapJsonLdToRecipeInput, fetchWithPlaywright } from '@/lib/recipe-import'
 import { downloadImage } from '@/lib/recipe-import/image-downloader'
 import { deleteImageVariants } from './image-processing'
-import { getRecipes, getLikedRecipes } from '@/lib/api'
+import { getRecipes } from '@/lib/api'
 import type { Recipe } from '@/lib/types'
-import { getPostgrestToken, getCurrentUserEmail } from './action-utils'
+import { getPostgrestToken } from './action-utils'
 
 const POSTGREST_URL = process.env.POSTGREST_URL || 'http://localhost:4444'
 
@@ -28,32 +28,17 @@ async function deleteImageFile(filename: string | null): Promise<void> {
 export async function loadMoreRecipes(options: {
   offset: number
   limit: number
-  view: 'mine' | 'all' | 'liked'
+  ownerIds?: string[]
 }): Promise<Recipe[]> {
-  const { offset, limit, view } = options
+  const { offset, limit, ownerIds } = options
 
   const token = await getPostgrestToken()
-  const email = await getCurrentUserEmail()
 
-  if (view === 'liked') {
-    if (!token) {
-      return []
-    }
-    return getLikedRecipes(token, { limit, offset })
-  }
-
-  if (view === 'mine') {
-    if (!token || !email) {
-      return []
-    }
-    return getRecipes({ owner: email, token, limit, offset })
-  }
-
-  // view === 'all'
   if (!token) {
     return []
   }
-  return getRecipes({ token, limit, offset })
+
+  return getRecipes({ ownerIds, token, limit, offset })
 }
 
 // AI Credits

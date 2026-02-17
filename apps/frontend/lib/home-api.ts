@@ -64,6 +64,36 @@ export const getHomeInfo = cache(async (homeId?: string): Promise<HomeInfoResult
   }
 })
 
+/**
+ * Get the current JWT user's UUID. Used as fallback when user has no home.
+ */
+export const getCurrentUserId = cache(async (): Promise<string | null> => {
+  const session = await getSession()
+
+  if (!session) {
+    return null
+  }
+
+  const postgrestToken = await signPostgrestToken(session.email)
+
+  const response = await fetch(`${env.POSTGREST_URL}/rpc/get_current_user_uuid`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${postgrestToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({}),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    return null
+  }
+
+  const result = await response.json()
+  return result as string | null
+})
+
 export const getUserHomes = cache(async (): Promise<UserHome[]> => {
   const session = await getSession()
 

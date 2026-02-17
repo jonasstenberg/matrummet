@@ -247,9 +247,11 @@ export interface Home {
 }
 
 export interface HomeMember {
+  id: string
   email: string
   name: string
   joined_at?: string
+  is_current_user?: boolean
 }
 
 export interface HomeInvitation {
