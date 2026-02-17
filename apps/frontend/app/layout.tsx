@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     description: 'Samla, organisera och dela dina favoritrecept på ett ställe. Svensk recepthantering med smart sökning och inköpslistor.',
     images: [
       {
-        url: '/og-image.svg',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
         alt: 'Matrummet - Din digitala receptsamling',
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Matrummet - Din digitala receptsamling',
     description: 'Samla, organisera och dela dina favoritrecept på ett ställe. Svensk recepthantering med smart sökning och inköpslistor.',
-    images: ['/og-image.svg'],
+    images: ['/og-image.png'],
   },
   manifest: '/manifest.json',
   icons: {

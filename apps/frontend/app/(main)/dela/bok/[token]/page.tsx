@@ -21,9 +21,26 @@ export async function generateMetadata({ params }: BookSharePageProps): Promise<
     }
   }
 
+  const title = `${info.sharer_name}s receptbok`
+  const description = `${info.sharer_name} vill dela sin receptbok med dig (${info.recipe_count} recept)`
+
   return {
-    title: `${info.sharer_name}s receptbok`,
-    description: `${info.sharer_name} vill dela sin receptbok med dig (${info.recipe_count} recept)`,
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Matrummet' }],
+      locale: 'sv_SE',
+      siteName: 'Matrummet',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ['/og-image.png'],
+    },
   }
 }
 

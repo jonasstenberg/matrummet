@@ -27,14 +27,29 @@ export async function generateMetadata({ params }: SharedRecipePageProps): Promi
     ? `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/api/images/${recipe.image.replace(/\.webp$/, '')}/full`
     : undefined
 
+  const description = recipe.description || `Ett delat recept från ${recipe.shared_by_name}`
+
   return {
     title: `${recipe.name} - Delat recept`,
-    description: recipe.description || `Ett delat recept från ${recipe.shared_by_name}`,
+    description,
     openGraph: {
       title: recipe.name,
-      description: recipe.description || `Ett delat recept från ${recipe.shared_by_name}`,
-      images: imageUrl ? [imageUrl] : undefined,
+      description,
+      images: imageUrl
+        ? [{ url: imageUrl, width: 1200, height: 630, alt: recipe.name }]
+        : undefined,
       type: 'article',
+      publishedTime: recipe.date_published ?? undefined,
+      modifiedTime: recipe.date_modified ?? undefined,
+      authors: recipe.shared_by_name ? [recipe.shared_by_name] : undefined,
+      locale: 'sv_SE',
+      siteName: 'Matrummet',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: recipe.name,
+      description,
+      images: imageUrl ? [imageUrl] : undefined,
     },
   }
 }

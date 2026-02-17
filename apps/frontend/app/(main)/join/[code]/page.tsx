@@ -1,6 +1,26 @@
+import type { Metadata } from 'next'
 import { getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { JoinHomeClient } from './join-home-client'
+
+export const metadata: Metadata = {
+  title: 'Gå med i hushåll',
+  description: 'Du har blivit inbjuden att gå med i ett hushåll på Matrummet',
+  openGraph: {
+    title: 'Gå med i hushåll',
+    description: 'Du har blivit inbjuden att gå med i ett hushåll på Matrummet',
+    type: 'website',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Matrummet' }],
+    locale: 'sv_SE',
+    siteName: 'Matrummet',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Gå med i hushåll',
+    description: 'Du har blivit inbjuden att gå med i ett hushåll på Matrummet',
+    images: ['/og-image.png'],
+  },
+}
 
 interface JoinPageProps {
   params: Promise<{ code: string }>
