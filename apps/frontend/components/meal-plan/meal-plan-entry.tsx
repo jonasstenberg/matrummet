@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { RefreshCw, Sparkles, Clock } from '@/lib/icons'
+import { RefreshCw, Sparkles, Clock, UtensilsCrossed } from '@/lib/icons'
 import { getImageUrl } from '@/lib/utils'
 import type { MealPlanEntry } from '@/lib/meal-plan/types'
 import { MEAL_TYPES } from '@/lib/meal-plan/types'
@@ -15,6 +15,7 @@ interface MealPlanEntryCardProps {
 
 export function MealPlanEntryCard({ entry, onSwap, onViewSuggestion }: MealPlanEntryCardProps) {
   const isExistingRecipe = !!entry.recipe_id
+  const isBaseRecipe = !isExistingRecipe && !!entry.suggested_recipe?.source_url
   const name = isExistingRecipe
     ? entry.recipe_name || 'Recept'
     : entry.suggested_name || 'Förslag'
@@ -24,6 +25,7 @@ export function MealPlanEntryCard({ entry, onSwap, onViewSuggestion }: MealPlanE
 
   const mealLabel = MEAL_TYPES.find((m) => m.id === entry.meal_type)?.label || entry.meal_type
 
+  const SuggestionIcon = isBaseRecipe ? UtensilsCrossed : Sparkles
   const thumbnail = isExistingRecipe && entry.recipe_image ? (
     // eslint-disable-next-line @next/next/no-img-element
     <img
@@ -33,7 +35,7 @@ export function MealPlanEntryCard({ entry, onSwap, onViewSuggestion }: MealPlanE
     />
   ) : (
     <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-accent/15 shrink-0">
-      <Sparkles className="h-6 w-6 text-warm/50" />
+      <SuggestionIcon className="h-6 w-6 text-warm/50" />
     </div>
   )
 

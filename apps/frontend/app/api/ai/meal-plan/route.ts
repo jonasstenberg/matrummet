@@ -2,7 +2,7 @@ import { getSession, signPostgrestToken, signSystemPostgrestToken } from "@/lib/
 import { env } from "@/lib/env"
 import { buildMealPlanPrompt } from "@/lib/meal-plan/prompt"
 import { MEAL_PLAN_JSON_SCHEMA, MealPlanResponseSchema } from "@/lib/meal-plan/types"
-import type { MealPlanResponse } from "@/lib/meal-plan/types"
+import type { MealPlanResponse, SuggestedRecipe } from "@/lib/meal-plan/types"
 import { createMistralClient, MISTRAL_MODEL } from "@/lib/ai-client"
 import { NextRequest, NextResponse } from "next/server"
 
@@ -108,6 +108,48 @@ async function fetchPantryItems(
   return items.map((i) => i.food_name)
 }
 
+interface BaseRecipe {
+  id: string
+  name: string
+  description: string
+  source_url: string
+  source_site: string
+  prep_time: number | null
+  cook_time: number | null
+  recipe_yield: number | null
+  recipe_yield_name: string | null
+  diet_type: string
+  categories: string[]
+  ingredients: SuggestedRecipe["ingredient_groups"]
+  instructions: SuggestedRecipe["instruction_groups"]
+}
+
+async function fetchBaseRecipes(
+  postgrestToken: string,
+  dietTypes?: string[],
+  categories?: string[],
+  limit: number = 50,
+): Promise<BaseRecipe[]> {
+  const response = await fetch(`${env.POSTGREST_URL}/rpc/get_base_recipes`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${postgrestToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      p_diet_types: dietTypes && dietTypes.length > 0 ? dietTypes : null,
+      p_categories: categories && categories.length > 0 ? categories : null,
+      p_limit: limit,
+    }),
+  })
+
+  if (!response.ok) {
+    return []
+  }
+
+  return response.json()
+}
+
 async function saveMealPlan(
   postgrestToken: string,
   weekStart: string,
@@ -203,10 +245,11 @@ export async function POST(request: NextRequest) {
     }
     creditDeducted = true
 
-    // Fetch recipes and pantry in parallel
-    const [recipes, pantryItems] = await Promise.all([
+    // Fetch recipes, pantry, and base recipes in parallel
+    const [recipes, pantryItems, baseRecipes] = await Promise.all([
       fetchUserRecipes(postgrestToken, home_id),
       fetchPantryItems(postgrestToken, home_id),
+      fetchBaseRecipes(postgrestToken, undefined, preferences.categories),
     ])
 
     // Filter by category preferences if set
@@ -228,8 +271,10 @@ export async function POST(request: NextRequest) {
       : [1, 2, 3, 4, 5, 6, 7]
     const totalEntries = selectedDays.length * preferences.meal_types.length
     const fromExisting = totalEntries - (preferences.max_suggestions ?? 3)
-    const effectiveMaxSuggestions = fromExisting > filteredRecipes.length
-      ? totalEntries - filteredRecipes.length
+    // Count both user recipes and base recipes as available picks
+    const availableRecipes = filteredRecipes.length + baseRecipes.length
+    const effectiveMaxSuggestions = fromExisting > availableRecipes
+      ? totalEntries - availableRecipes
       : preferences.max_suggestions ?? 3
 
     const prompt = buildMealPlanPrompt(
@@ -238,6 +283,7 @@ export async function POST(request: NextRequest) {
       pantryItems.length > 0 ? pantryItems : undefined,
       effectiveMaxSuggestions,
       preferences.days,
+      baseRecipes,
     )
 
     const client = createMistralClient()
@@ -286,10 +332,47 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Build lookup for base recipes
+    const baseRecipeMap = new Map(baseRecipes.map((r) => [r.id, r]))
+
     // Validate returned recipe_ids against the sent set
     const validRecipeIds = new Set(recipes.map((r) => r.id))
     parsed.entries = parsed.entries.map((entry) => {
-      if (entry.recipe_id && !validRecipeIds.has(entry.recipe_id)) {
+      if (!entry.recipe_id) return entry
+
+      // Check for base recipe references (BASE:uuid)
+      if (entry.recipe_id.startsWith("BASE:")) {
+        const baseId = entry.recipe_id.slice(5)
+        const base = baseRecipeMap.get(baseId)
+        if (base) {
+          return {
+            ...entry,
+            recipe_id: null,
+            suggested_name: base.name,
+            suggested_description: base.description || null,
+            suggested_recipe: {
+              recipe_name: base.name,
+              description: base.description,
+              recipe_yield: base.recipe_yield,
+              prep_time: base.prep_time,
+              cook_time: base.cook_time,
+              categories: base.categories,
+              ingredient_groups: base.ingredients,
+              instruction_groups: base.instructions,
+              source_url: base.source_url,
+              source_site: base.source_site,
+            },
+          }
+        }
+        // Base recipe not found — treat as unknown
+        return {
+          ...entry,
+          suggested_name: entry.suggested_name || "Okänt basrecept",
+          recipe_id: null,
+        }
+      }
+
+      if (!validRecipeIds.has(entry.recipe_id)) {
         // Unknown recipe ID — treat as suggestion
         return {
           ...entry,

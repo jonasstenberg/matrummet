@@ -7,6 +7,15 @@ interface CompactRecipe {
   recipe_yield: number | null
 }
 
+interface CompactBaseRecipe {
+  id: string
+  name: string
+  categories: string[]
+  prep_time: number | null
+  cook_time: number | null
+  recipe_yield: number | null
+}
+
 const DAY_NAMES_SV = ["måndag", "tisdag", "onsdag", "torsdag", "fredag", "lördag", "söndag"]
 
 export function buildMealPlanPrompt(
@@ -15,17 +24,24 @@ export function buildMealPlanPrompt(
   pantryItems?: string[],
   maxSuggestions: number = 3,
   days?: number[],
+  baseRecipes?: CompactBaseRecipe[],
 ): string {
+  const formatRecipe = (r: CompactRecipe | CompactBaseRecipe, prefix: string) => {
+    const totalTime = (r.prep_time || 0) + (r.cook_time || 0)
+    const cats = r.categories.length > 0 ? r.categories.join(", ") : ""
+    const timeStr = totalTime > 0 ? `${totalTime}min` : ""
+    const yieldStr = r.recipe_yield ? `${r.recipe_yield}p` : ""
+    const meta = [cats, timeStr, yieldStr].filter(Boolean).join(" ")
+    return `[${prefix}${r.id}] ${r.name}${meta ? ` (${meta})` : ""}`
+  }
+
   const recipeList = recipes
-    .map((r) => {
-      const totalTime = (r.prep_time || 0) + (r.cook_time || 0)
-      const cats = r.categories.length > 0 ? r.categories.join(", ") : ""
-      const timeStr = totalTime > 0 ? `${totalTime}min` : ""
-      const yieldStr = r.recipe_yield ? `${r.recipe_yield}p` : ""
-      const meta = [cats, timeStr, yieldStr].filter(Boolean).join(" ")
-      return `[${r.id}] ${r.name}${meta ? ` (${meta})` : ""}`
-    })
+    .map((r) => formatRecipe(r, ""))
     .join("\n")
+
+  const baseRecipeList = baseRecipes && baseRecipes.length > 0
+    ? baseRecipes.map((r) => formatRecipe(r, "BASE:")).join("\n")
+    : ""
 
   const categoryStr = preferences.categories.length > 0
     ? `Kategoripreferenser: ${preferences.categories.join(", ")}. Prioritera recept och förslag som matchar dessa kategorier.`
@@ -53,13 +69,18 @@ export function buildMealPlanPrompt(
 
   const totalEntries = selectedDays.length * preferences.meal_types.length
 
+  const hasBase = baseRecipeList.length > 0
+  const baseNote = hasBase
+    ? " Du kan även välja basrecept (markerade med BASE:uuid) — behandla dem som befintliga recept (ange recipe_id = BASE:uuid)."
+    : ""
+
   let recipeSourceRule: string
   if (maxSuggestions === 0) {
-    recipeSourceRule = "- Välj ENBART recept från listan nedan (ange recipe_id för varje entry). Inga nya förslag — suggested_name och suggested_description ska alltid vara null."
+    recipeSourceRule = `- Välj ENBART recept från listan nedan (ange recipe_id för varje entry). Inga nya förslag — suggested_name och suggested_description ska alltid vara null.${baseNote}`
   } else if (maxSuggestions >= totalEntries) {
     recipeSourceRule = `- ALLA ${totalEntries} entries ska vara nya receptförslag (recipe_id = null, fyll i suggested_name och suggested_description). Använd INGA befintliga recept från listan.${suggestedRecipeRule}`
   } else {
-    recipeSourceRule = `- Du ska skapa exakt ${totalEntries} entries totalt: exakt ${maxSuggestions} ska vara nya receptförslag (recipe_id = null) och exakt ${totalEntries - maxSuggestions} ska vara befintliga recept från listan (med recipe_id).${suggestedRecipeRule}`
+    recipeSourceRule = `- Du ska skapa exakt ${totalEntries} entries totalt: exakt ${maxSuggestions} ska vara nya receptförslag (recipe_id = null) och exakt ${totalEntries - maxSuggestions} ska vara befintliga recept från listan (med recipe_id).${baseNote}${suggestedRecipeRule}`
   }
 
   return `Du är en erfaren kock och matkreatör med djup kunskap om internationella kök och svenska mattraditioner. Du tar inspiration från välkända, högt betygsatta recept och anpassar dem med professionella tekniker och smakkombinationer. Skapa en veckoplan (${dayScope}) utifrån användarens receptsamling.
@@ -74,7 +95,10 @@ ${recipeSourceRule}${dayRule}
 - Enklare rätter på vardagar, mer ambitiösa på helgen.${pantryStr}
 
 ANVÄNDARENS RECEPT:
-${recipeList}
+${recipeList}${hasBase ? `
+
+BASRECEPT (kurerade recept från kända sajter):
+${baseRecipeList}` : ""}
 
 Svara med en JSON-struktur. Varje entry ska ha:
 - day_of_week: 1=måndag..7=söndag

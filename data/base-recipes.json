@@ -1,0 +1,487 @@
+[
+  {
+    "name": "Korvstroganoff med ris",
+    "description": "Korvstroganoff är en lättlagad och välsmakande korvgryta med bland annat falukorv, lök, grädde och tomatpuré som passar bra som vardagsmiddag. Servera korvstroganoffen med kokt ris.",
+    "author": "ICA Köket",
+    "source_url": "https://www.ica.se/recept/korvstroganoff-med-ris-533512/",
+    "source_site": "ica",
+    "prep_time": null,
+    "cook_time": 30,
+    "recipe_yield": 4,
+    "recipe_yield_name": "portioner",
+    "diet_type": "meat",
+    "categories": [],
+    "ingredients": [
+      {
+        "group_name": "",
+        "ingredients": [
+          {
+            "name": "port ris eller annat gryn",
+            "measurement": "",
+            "quantity": "4"
+          },
+          {
+            "name": "falukorv eller kycklingstekkorv",
+            "measurement": "g",
+            "quantity": "550"
+          },
+          {
+            "name": "gul lök",
+            "measurement": "",
+            "quantity": "1"
+          },
+          {
+            "name": "olja",
+            "measurement": "msk",
+            "quantity": "1"
+          },
+          {
+            "name": "tomatpuré",
+            "measurement": "msk",
+            "quantity": "3"
+          },
+          {
+            "name": "1/2 dl matlagningsgrädde",
+            "measurement": "",
+            "quantity": "2"
+          },
+          {
+            "name": "mjölk",
+            "measurement": "dl",
+            "quantity": "1"
+          },
+          {
+            "name": "japansk soja",
+            "measurement": "msk",
+            "quantity": "1"
+          },
+          {
+            "name": "dijonsenap",
+            "measurement": "tsk",
+            "quantity": "1"
+          },
+          {
+            "name": "peppar",
+            "measurement": "",
+            "quantity": ""
+          },
+          {
+            "name": "salt",
+            "measurement": "",
+            "quantity": ""
+          },
+          {
+            "name": "grovskuren vitkål med persilja",
+            "measurement": "",
+            "quantity": ""
+          }
+        ]
+      }
+    ],
+    "instructions": [
+      {
+        "group_name": "",
+        "instructions": [
+          {
+            "step": "Koka riset enligt anvisningen på förpackningen."
+          },
+          {
+            "step": "Skär korven i stavar. Skala och hacka löken."
+          },
+          {
+            "step": "Stek korv och lök i oljan i en stekpanna ca 5 minuter. Tillsätt tomatpuré och fräs någon minut."
+          },
+          {
+            "step": "Rör ner grädde, mjölk, soja och dijonsenap. Låt sjuda ca 5 minuter."
+          },
+          {
+            "step": "Smaka av med peppar och ev salt."
+          },
+          {
+            "step": "Till servering: Servera korvstroganoffen med ris och gärna vitkålssallad eller en sallad med tomat och gurka."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Krämig kycklinggryta med soltorkade tomater",
+    "description": "En supegod och enkel kycklinggryta som går fort att tillaga. Stek kycklingen tills den har en perfekt innertemperatur, tillsätt crème fraiche, buljong och soltorkade tomater för att få den mustiga och goda smaken. Servera kycklinggrytan med ris och sockerärtor. Världens godaste kycklinggryta!",
+    "author": "ICA Köket",
+    "source_url": "https://www.ica.se/recept/kramig-kycklinggryta-med-soltorkade-tomater-723346/",
+    "source_site": "ica",
+    "prep_time": null,
+    "cook_time": 30,
+    "recipe_yield": 4,
+    "recipe_yield_name": "portioner",
+    "diet_type": "meat",
+    "categories": [],
+    "ingredients": [
+      {
+        "group_name": "",
+        "ingredients": [
+          {
+            "name": "port ris eller couscous",
+            "measurement": "",
+            "quantity": "4"
+          },
+          {
+            "name": "- ca 700 g kycklingfilé eller kycklinginnerfilé",
+            "measurement": "",
+            "quantity": "600"
+          },
+          {
+            "name": "olja",
+            "measurement": "msk",
+            "quantity": "1"
+          },
+          {
+            "name": "salt",
+            "measurement": "",
+            "quantity": ""
+          },
+          {
+            "name": "peppar",
+            "measurement": "",
+            "quantity": ""
+          },
+          {
+            "name": "vitlöksklyfta",
+            "measurement": "",
+            "quantity": "1"
+          },
+          {
+            "name": "crème fraiche (fetaost och soltorkad tomat)",
+            "measurement": "dl",
+            "quantity": "2"
+          },
+          {
+            "name": "1/2 dl kycklingbuljong (vatten och tärning eller fond)",
+            "measurement": "",
+            "quantity": "2"
+          },
+          {
+            "name": "soltorkade tomater (à 200 g)",
+            "measurement": "förp",
+            "quantity": "1"
+          },
+          {
+            "name": "gröna ärtor eller 150 g sockerärtor (för 4 port)",
+            "measurement": "g",
+            "quantity": "250"
+          }
+        ]
+      }
+    ],
+    "instructions": [
+      {
+        "group_name": "",
+        "instructions": [
+          {
+            "step": "Tina kycklingen om fryst används."
+          },
+          {
+            "step": "Koka riset enligt anvisning på förpackningen."
+          },
+          {
+            "step": "Strimla kycklingen och stek den i oljan i en stekpanna och krydda med salt och peppar. Sänk värmen, pressa i vitlöken och häll i crème fraiche och buljong."
+          },
+          {
+            "step": "Strimla tomaterna och rör ner i grytan och sjud ca 5 minuter."
+          },
+          {
+            "step": "Koka ärtorna i saltat vatten enligt anvisningen på förpackningen eller sockerärtorna i ca 2 minuter."
+          },
+          {
+            "step": "Servera grytan med ris och ärtor."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Kikärtsgryta ",
+    "description": "En vegetarisk kikärtsgryta med smak av saffran och citron. Vi har även aubergine och tomat i denna lättlagade gryta som passar till både vardag och fest. Toppad med flagad rostad mandel, granatäpple och färsk mynta serverar vi kikärtsgrytan med fluffig couscous.",
+    "author": "Karolina Sparring",
+    "source_url": "https://www.arla.se/recept/kikartsgryta/",
+    "source_site": "arla",
+    "prep_time": 0,
+    "cook_time": 0,
+    "recipe_yield": 4,
+    "recipe_yield_name": "port",
+    "diet_type": "vegetarian",
+    "categories": [],
+    "ingredients": [
+      {
+        "group_name": "",
+        "ingredients": [
+          {
+            "name": "gula lökar",
+            "measurement": "",
+            "quantity": "2"
+          },
+          {
+            "name": "vitlöksklyftor",
+            "measurement": "",
+            "quantity": "3"
+          },
+          {
+            "name": "aubergine",
+            "measurement": "",
+            "quantity": "1"
+          },
+          {
+            "name": "kikärter à 400 g",
+            "measurement": "burk",
+            "quantity": "1"
+          },
+          {
+            "name": "pkt saffran",
+            "measurement": "",
+            "quantity": "1"
+          },
+          {
+            "name": "kokhett vatten",
+            "measurement": "msk",
+            "quantity": "1"
+          },
+          {
+            "name": "Arla Köket® Smör- & rapsolja",
+            "measurement": "msk",
+            "quantity": "2"
+          },
+          {
+            "name": "tomatpuré",
+            "measurement": "msk",
+            "quantity": "2"
+          },
+          {
+            "name": "malen spiskummin",
+            "measurement": "tsk",
+            "quantity": "2"
+          },
+          {
+            "name": "malen kanel",
+            "measurement": "tsk",
+            "quantity": "1"
+          },
+          {
+            "name": "chili flakes",
+            "measurement": "tsk",
+            "quantity": "1"
+          },
+          {
+            "name": "konserverade körsbärstomater à 400 g",
+            "measurement": "burk",
+            "quantity": "1"
+          },
+          {
+            "name": "vatten",
+            "measurement": "dl",
+            "quantity": "2"
+          },
+          {
+            "name": "flytande honung",
+            "measurement": "msk",
+            "quantity": "1"
+          },
+          {
+            "name": "tärning grönsaksbuljong",
+            "measurement": "",
+            "quantity": "1"
+          },
+          {
+            "name": "Arla Köket® Crème fraiche",
+            "measurement": "dl",
+            "quantity": "2"
+          },
+          {
+            "name": "citron",
+            "measurement": "",
+            "quantity": "1"
+          },
+          {
+            "name": "salt och svartpeppar",
+            "measurement": "",
+            "quantity": ""
+          },
+          {
+            "name": "couscous",
+            "measurement": "dl",
+            "quantity": "4"
+          },
+          {
+            "name": "granatäpple",
+            "measurement": "",
+            "quantity": "1"
+          },
+          {
+            "name": "kruka färsk mynta",
+            "measurement": "",
+            "quantity": "1"
+          },
+          {
+            "name": "½ dl mandelspån",
+            "measurement": "",
+            "quantity": ""
+          }
+        ]
+      }
+    ],
+    "instructions": [
+      {
+        "group_name": "Första instruktionen",
+        "instructions": [
+          {
+            "step": "Skala och skiva löken. Skala och finhacka vitlöken. Skär aubergine i cm-stora bitar. Häll av och skölj kikärterna."
+          },
+          {
+            "step": "Blanda saffran med hett vatten i ett liten glas. Ställ åt sidan."
+          },
+          {
+            "step": "Hetta upp smör-&rapsolja i en stekgryta. Fräs lök, vitlök och aubergine ca 10 min på medelvärme. Tillsätt tomatpuré, spiskummin, kanel och chili flakes. Fräs ytterligare ca 3 min."
+          },
+          {
+            "step": "Tillsätt kikärter, tomater, vatten, honung och smulad buljongtärning. Sjud ca 10 min."
+          },
+          {
+            "step": "Ta från värmen och rör ner saffran och crème fraiche. Smaka av med citronsaft, salt och nymald svartpeppar."
+          },
+          {
+            "step": "Tillaga couscous enligt anvisning på förpackningen."
+          },
+          {
+            "step": "Plocka kärnorna ur granatäpplet och grovhacka myntan. Rosta mandeln i torr stekpanna."
+          },
+          {
+            "step": "Strö mandel, granatäppelkärnor och mynta över kikärtsgrytan. Servera med couscous."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Kycklingwok med kokosmjölk ",
+    "description": "Krämig och het kycklingwok med kokosmjölk, krispiga gröna bönor och fluffigt ris är en värmande rätt att servera till kvällens middag. Kycklingwok med kokosmjölk är också god att förbereda till veckans alla matlådor. Toppa med thaibasilika eller koriander.",
+    "author": "Constance Loeper",
+    "source_url": "https://www.arla.se/recept/kycklingwok-med-kokosmjolk/",
+    "source_site": "arla",
+    "prep_time": 0,
+    "cook_time": 0,
+    "recipe_yield": 4,
+    "recipe_yield_name": "port",
+    "diet_type": "meat",
+    "categories": [],
+    "ingredients": [
+      {
+        "group_name": "",
+        "ingredients": [
+          {
+            "name": "½ dl jasminris",
+            "measurement": "",
+            "quantity": "3"
+          },
+          {
+            "name": "gul lök",
+            "measurement": "",
+            "quantity": "1"
+          },
+          {
+            "name": "röd paprika, gärna spetspaprika",
+            "measurement": "g",
+            "quantity": "200"
+          },
+          {
+            "name": "färsk haricots verts",
+            "measurement": "g",
+            "quantity": "150"
+          },
+          {
+            "name": "kycklinglårfilé",
+            "measurement": "g",
+            "quantity": "450"
+          },
+          {
+            "name": "Arla Köket® Smör- & rapsolja",
+            "measurement": "msk",
+            "quantity": "1"
+          },
+          {
+            "name": "röd currypasta",
+            "measurement": "msk",
+            "quantity": "1"
+          },
+          {
+            "name": "kokosmjölk",
+            "measurement": "ml",
+            "quantity": "250"
+          },
+          {
+            "name": "babyspenat",
+            "measurement": "g",
+            "quantity": "65"
+          },
+          {
+            "name": "lime, finrivet skal",
+            "measurement": "",
+            "quantity": "1"
+          },
+          {
+            "name": "limesaft",
+            "measurement": "msk",
+            "quantity": "1"
+          },
+          {
+            "name": "salt",
+            "measurement": "tsk",
+            "quantity": "1"
+          },
+          {
+            "name": "½ tsk nymalen svartpeppar",
+            "measurement": "",
+            "quantity": ""
+          },
+          {
+            "name": "kruka thaibasilika",
+            "measurement": "",
+            "quantity": "1"
+          }
+        ]
+      }
+    ],
+    "instructions": [
+      {
+        "group_name": "Första instruktionen",
+        "instructions": [
+          {
+            "step": "Koka riset enligt anvisning på förpackningen."
+          },
+          {
+            "step": "Skala, halvera och skiva löken."
+          },
+          {
+            "step": "Skölj paprikan och strimla tunt. Skölj och ansa haricot verts."
+          },
+          {
+            "step": "Skär kycklingen i ca 4x4 cm stora bitar."
+          },
+          {
+            "step": "Hetta upp smör- & rapsolja i en rymlig stek- eller wokpanna."
+          },
+          {
+            "step": "Stek kycklingen tills den får en fin gyllene färg, ca 5 min. Tillsätt lök, paprika och haricot verts. Stek eller woka på hög värme i ytterligare 5 min."
+          },
+          {
+            "step": "Tillsätt röd currypasta och fräs i 1 min. Häll sedan i kokosmjölken och låt woken sjuda till krämig konsistens."
+          },
+          {
+            "step": "Vänd i babyspenaten på slutet tillsammans med limeskal- och saft, salt och svartpeppar."
+          },
+          {
+            "step": "Servera kycklingwok med kokosmjölk tillsammans med nykokt ris. Toppa med thaibasilika."
+          }
+        ]
+      }
+    ]
+  }
+]

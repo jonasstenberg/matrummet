@@ -26,6 +26,9 @@ export const SuggestedRecipeSchema = z.object({
   categories: z.array(z.string()).optional(),
   ingredient_groups: z.array(SuggestedIngredientGroupSchema),
   instruction_groups: z.array(SuggestedInstructionGroupSchema),
+  // Base recipe attribution (present when sourced from base_recipes pool)
+  source_url: z.string().optional(),
+  source_site: z.string().optional(),
 })
 
 export type SuggestedRecipe = z.infer<typeof SuggestedRecipeSchema>

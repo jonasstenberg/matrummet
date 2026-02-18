@@ -8,7 +8,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
-import { BookmarkPlus, Clock, Loader2, Tag, Sparkles } from '@/lib/icons'
+import { BookmarkPlus, Clock, Loader2, Tag, Sparkles, UtensilsCrossed } from '@/lib/icons'
 import type { MealPlanEntry, SuggestedRecipe } from '@/lib/meal-plan/types'
 import { toast } from 'sonner'
 import { saveEntryAsRecipe } from '@/lib/meal-plan-actions'
@@ -30,6 +30,7 @@ export function MealPlanSuggestionSheet({
   const [error, setError] = useState<string | null>(null)
 
   const recipe = entry?.suggested_recipe
+  const isBaseRecipe = !!recipe?.source_url
   if (!recipe) {
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
@@ -81,8 +82,17 @@ export function MealPlanSuggestionSheet({
         <div className="px-6">
           <SheetHeader className="mb-4">
             <div className="flex items-center justify-center gap-2 mb-1">
-              <Sparkles className="h-4 w-4 text-warm" />
-              <span className="text-xs font-medium text-warm uppercase tracking-wider">AI-förslag</span>
+              {isBaseRecipe ? (
+                <>
+                  <UtensilsCrossed className="h-4 w-4 text-warm" />
+                  <span className="text-xs font-medium text-warm uppercase tracking-wider">Basrecept</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4 text-warm" />
+                  <span className="text-xs font-medium text-warm uppercase tracking-wider">AI-förslag</span>
+                </>
+              )}
             </div>
             <SheetTitle className="text-center">{recipe.recipe_name}</SheetTitle>
             {recipe.description && (
@@ -171,6 +181,16 @@ export function MealPlanSuggestionSheet({
         <div className="px-6 pt-4 border-t border-border/40 space-y-2">
           {error && (
             <p className="text-center text-sm text-destructive mb-2">{error}</p>
+          )}
+          {isBaseRecipe && recipe.source_url && (
+            <a
+              href={recipe.source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block text-center text-xs text-muted-foreground underline-offset-2 hover:underline mb-1"
+            >
+              Källa: {recipe.source_site || new URL(recipe.source_url).hostname}
+            </a>
           )}
           <Button
             onClick={handleSave}
