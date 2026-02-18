@@ -30,6 +30,14 @@ on:
         options:
           - "true"
           - "false"
+      deploy_events_service:
+        description: "Deploy events service"
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
 
 env:
   NODE_VERSION: "22"
@@ -41,6 +49,7 @@ jobs:
       run_migrations: ${{ steps.changes.outputs.run_migrations }}
       deploy_frontend: ${{ steps.changes.outputs.deploy_frontend }}
       deploy_email_service: ${{ steps.changes.outputs.deploy_email_service }}
+      deploy_events_service: ${{ steps.changes.outputs.deploy_events_service }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -131,9 +140,30 @@ jobs:
             fi
           fi
 
+          # Check for events-service changes
+          if [[ "${{ github.event.inputs.deploy_events_service }}" == "false" ]]; then
+            echo "deploy_events_service=false" >> $GITHUB_OUTPUT
+            echo "Skipping events-service deployment as requested"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.deploy_events_service }}" == "true" ]]; then
+            echo "deploy_events_service=true" >> $GITHUB_OUTPUT
+            echo "Manual request to deploy events-service"
+          elif [[ -z "$PARENT_SHA" ]]; then
+            echo "deploy_events_service=true" >> $GITHUB_OUTPUT
+            echo "First commit, deploying events-service"
+          else
+            CHANGED_FILES=$(git diff --name-only $PARENT_SHA $WORKFLOW_SHA 2>/dev/null || git ls-files)
+            if echo "$CHANGED_FILES" | grep -q "^apps/events-service/"; then
+              echo "deploy_events_service=true" >> $GITHUB_OUTPUT
+              echo "Events-service changes detected"
+            else
+              echo "deploy_events_service=false" >> $GITHUB_OUTPUT
+              echo "No events-service changes detected"
+            fi
+          fi
+
   test:
     needs: setup
-    if: needs.setup.outputs.deploy_frontend == 'true' || needs.setup.outputs.deploy_email_service == 'true'
+    if: needs.setup.outputs.deploy_frontend == 'true' || needs.setup.outputs.deploy_email_service == 'true' || needs.setup.outputs.deploy_events_service == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -287,11 +317,11 @@ jobs:
 
   deploy-services:
     needs: [setup, test, api-tests, deploy-migrations]
-    if: always() && (needs.setup.outputs.deploy_frontend == 'true' || needs.setup.outputs.deploy_email_service == 'true') && (needs.test.result == 'success' || needs.test.result == 'skipped') && (needs.api-tests.result == 'success' || needs.api-tests.result == 'skipped') && (needs.deploy-migrations.result == 'success' || needs.deploy-migrations.result == 'skipped')
+    if: always() && (needs.setup.outputs.deploy_frontend == 'true' || needs.setup.outputs.deploy_email_service == 'true' || needs.setup.outputs.deploy_events_service == 'true') && (needs.test.result == 'success' || needs.test.result == 'skipped') && (needs.api-tests.result == 'success' || needs.api-tests.result == 'skipped') && (needs.deploy-migrations.result == 'success' || needs.deploy-migrations.result == 'skipped')
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [frontend, email-service]
+        service: [frontend, email-service, events-service]
       fail-fast: false
     steps:
       - name: Check if service should be deployed
@@ -300,6 +330,8 @@ jobs:
           if [[ "${{ matrix.service }}" == "frontend" && "${{ needs.setup.outputs.deploy_frontend }}" == "true" ]]; then
             echo "deploy=true" >> $GITHUB_OUTPUT
           elif [[ "${{ matrix.service }}" == "email-service" && "${{ needs.setup.outputs.deploy_email_service }}" == "true" ]]; then
+            echo "deploy=true" >> $GITHUB_OUTPUT
+          elif [[ "${{ matrix.service }}" == "events-service" && "${{ needs.setup.outputs.deploy_events_service }}" == "true" ]]; then
             echo "deploy=true" >> $GITHUB_OUTPUT
           else
             echo "deploy=false" >> $GITHUB_OUTPUT
@@ -349,6 +381,14 @@ jobs:
           pnpm deploy --filter @matrummet/email-service --prod --legacy deploy/email-service
           ls -la deploy/email-service/  # Verify deployment package
 
+      - name: Build and prepare events-service deployment
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'events-service'
+        run: |
+          pnpm --filter @matrummet/shared build
+          pnpm --filter @matrummet/events-service build
+          pnpm deploy --filter @matrummet/events-service --prod --legacy deploy/events-service
+          ls -la deploy/events-service/  # Verify deployment package
+
       - name: Prepare frontend deployment package
         if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'frontend'
         run: |
@@ -396,6 +436,15 @@ jobs:
 
           echo "Email-service deployed successfully"
 
+      - name: Deploy events-service to VPS
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'events-service'
+        run: |
+          rsync -avz --delete \
+            deploy/events-service/ \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ vars.DEPLOY_PATH }}/apps/events-service/
+
+          echo "Events-service deployed successfully"
+
       - name: Restart frontend service
         if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'frontend'
         run: |
@@ -405,6 +454,11 @@ jobs:
         if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'email-service'
         run: |
           ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'sudo systemctl restart ${{ vars.SERVICE_EMAIL }}'
+
+      - name: Restart events-service
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'events-service'
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'sudo systemctl restart ${{ vars.SERVICE_EVENTS }}'
 
   notify:
     needs: [setup, test, api-tests, deploy-migrations, deploy-services]
@@ -420,3 +474,4 @@ jobs:
           echo "- Migrations: ${{ needs.setup.outputs.run_migrations == 'true' && (needs.deploy-migrations.result == 'success' && 'Deployed' || 'Failed') || 'Skipped' }}"
           echo "- Frontend: ${{ needs.setup.outputs.deploy_frontend == 'true' && 'Deployed' || 'Skipped' }}"
           echo "- Email-service: ${{ needs.setup.outputs.deploy_email_service == 'true' && 'Deployed' || 'Skipped' }}"
+          echo "- Events-service: ${{ needs.setup.outputs.deploy_events_service == 'true' && 'Deployed' || 'Skipped' }}"
