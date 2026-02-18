@@ -50,6 +50,7 @@ export async function POST(request: NextRequest) {
 
       try {
         const errorData = await postgrestResponse.json()
+        console.error('PostgREST delete_account error:', postgrestResponse.status, JSON.stringify(errorData))
         const dbMessage = errorData?.message || ''
 
         if (dbMessage.includes('not-authenticated')) {
@@ -61,8 +62,8 @@ export async function POST(request: NextRequest) {
         } else if (dbMessage.includes('password-required')) {
           errorMessage = 'Lösenord krävs'
         }
-      } catch {
-        // If parsing fails, use default error message
+      } catch (parseError) {
+        console.error('PostgREST delete_account error (non-JSON):', postgrestResponse.status, parseError)
       }
 
       return NextResponse.json(
