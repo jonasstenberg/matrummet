@@ -1,15 +1,14 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useSearchParams } from 'next/navigation'
+import { useActionState } from 'react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { signupInputSchema, type SignupInputSchema } from '@/lib/schemas'
+import { SubmitButton } from '@/components/ui/submit-button'
+import { signupAction, type SignupState } from '@/lib/auth-actions'
 
 function GoogleIcon() {
   return (
@@ -36,55 +35,20 @@ function GoogleIcon() {
 
 export function SignupForm() {
   const searchParams = useSearchParams()
-  const router = useRouter()
   const returnUrl = searchParams.get('returnUrl') || '/'
 
-  const [serverError, setServerError] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<SignupInputSchema>({
-    resolver: zodResolver(signupInputSchema),
-    mode: 'onBlur',
-  })
-
-  async function onSubmit(data: SignupInputSchema) {
-    setServerError(null)
-    setIsSubmitting(true)
-
-    try {
-      const response = await fetch('/api/auth/registrera', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: data.name,
-          email: data.email,
-          password: data.password,
-        }),
-      })
-
-      if (!response.ok) {
-        const result = await response.json()
-        setServerError(result.error || 'Registrering misslyckades')
-        return
-      }
-
-      router.push(returnUrl)
-    } catch {
-      setServerError('Ett fel uppstod vid registrering')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
+  const [signupState, signupFormAction, isSignupPending] = useActionState<SignupState, FormData>(
+    signupAction,
+    {}
+  )
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" autoComplete="on">
-      {serverError && (
+    <form action={signupFormAction} className="space-y-4" autoComplete="on">
+      <input type="hidden" name="returnUrl" value={returnUrl} />
+
+      {signupState.error && (
         <Alert variant="destructive">
-          <AlertDescription>{serverError}</AlertDescription>
+          <AlertDescription>{signupState.error}</AlertDescription>
         </Alert>
       )}
 
@@ -92,45 +56,39 @@ export function SignupForm() {
         <Label htmlFor="name">Namn</Label>
         <Input
           id="name"
+          name="name"
           type="text"
           autoComplete="name"
           placeholder="Ditt namn"
-          disabled={isSubmitting}
-          {...register('name')}
+          required
+          disabled={isSignupPending}
         />
-        {errors.name && (
-          <p className="text-sm text-destructive">{errors.name.message}</p>
-        )}
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="email">E-post</Label>
         <Input
           id="email"
+          name="email"
           type="email"
           autoComplete="email"
           placeholder="din@epost.se"
-          disabled={isSubmitting}
-          {...register('email')}
+          required
+          disabled={isSignupPending}
         />
-        {errors.email && (
-          <p className="text-sm text-destructive">{errors.email.message}</p>
-        )}
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="password">Lösenord</Label>
         <Input
           id="password"
+          name="password"
           type="password"
           autoComplete="new-password"
           placeholder="••••••••"
-          disabled={isSubmitting}
-          {...register('password')}
+          required
+          disabled={isSignupPending}
         />
-        {errors.password && (
-          <p className="text-sm text-destructive">{errors.password.message}</p>
-        )}
         <p className="text-xs text-muted-foreground">
           Minst 8 tecken, en versal, en gemen och en siffra
         </p>
@@ -140,20 +98,18 @@ export function SignupForm() {
         <Label htmlFor="confirmPassword">Bekräfta lösenord</Label>
         <Input
           id="confirmPassword"
+          name="confirmPassword"
           type="password"
           autoComplete="new-password"
           placeholder="••••••••"
-          disabled={isSubmitting}
-          {...register('confirmPassword')}
+          required
+          disabled={isSignupPending}
         />
-        {errors.confirmPassword && (
-          <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
-        )}
       </div>
 
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? 'Registrerar...' : 'Registrera'}
-      </Button>
+      <SubmitButton className="w-full" loadingText="Registrerar...">
+        Registrera
+      </SubmitButton>
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
@@ -170,7 +126,7 @@ export function SignupForm() {
         type="button"
         variant="outline"
         className="w-full"
-        disabled={isSubmitting}
+        disabled={isSignupPending}
         onClick={() => {
           const googleUrl = returnUrl !== '/'
             ? `/api/auth/google?returnUrl=${encodeURIComponent(returnUrl)}`
