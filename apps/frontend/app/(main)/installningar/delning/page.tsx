@@ -3,6 +3,8 @@ import { ShareBookSection } from '@/components/share-book-section'
 import { BookShareConnectionsList } from '@/components/book-share-connections-list'
 import { getSharedBooks } from '@/lib/book-share-actions'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'Delning',
 }
