@@ -18,7 +18,7 @@ export async function GET() {
 
     // Fetch categories with recipe count and group info
     const response = await fetch(
-      `${env.POSTGREST_URL}/categories?select=id,name,recipe_categories(count),category_groups(name,sort_order)&order=name`
+      `${env.POSTGREST_URL}/categories?select=id,name,group_id,recipe_categories(count),category_groups(name,sort_order)&order=name`
     )
 
     if (!response.ok) {
@@ -28,6 +28,7 @@ export async function GET() {
     const data: Array<{
       id: number
       name: string
+      group_id: string | null
       recipe_categories: Array<{ count: number }>
       category_groups: { name: string; sort_order: number } | null
     }> = await response.json()
@@ -36,6 +37,7 @@ export async function GET() {
     const categoriesWithCount = data.map((cat) => ({
       id: cat.id,
       name: cat.name,
+      group_id: cat.group_id,
       recipe_count: cat.recipe_categories?.[0]?.count ?? 0,
       group_name: cat.category_groups?.name ?? null,
       group_sort_order: cat.category_groups?.sort_order ?? 99,
@@ -51,7 +53,7 @@ export async function GET() {
   }
 }
 
-// POST - Create a new category
+// POST - Create a new category or merge categories
 export async function POST(request: NextRequest) {
   try {
     const session = await getSession()
@@ -65,13 +67,89 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name } = body
+    const token = await signPostgrestToken(session.email, session.role)
+
+    // Handle merge action
+    if (body.action === 'merge') {
+      const { sourceId, targetId } = body
+
+      if (!sourceId || !targetId) {
+        return NextResponse.json({ error: 'sourceId and targetId are required' }, { status: 400 })
+      }
+
+      // Move all recipe_categories from source to target
+      // First, get existing recipe_categories for target to avoid duplicates
+      const existingRes = await fetch(
+        `${env.POSTGREST_URL}/recipe_categories?category_id=eq.${targetId}&select=recipe_id`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+
+      const existingRecipes: Array<{ recipe_id: string }> = existingRes.ok ? await existingRes.json() : []
+      const existingRecipeIds = new Set(existingRecipes.map((r) => r.recipe_id))
+
+      // Get source recipe_categories
+      const sourceRes = await fetch(
+        `${env.POSTGREST_URL}/recipe_categories?category_id=eq.${sourceId}&select=recipe_id`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+
+      const sourceRecipes: Array<{ recipe_id: string }> = sourceRes.ok ? await sourceRes.json() : []
+
+      // Insert non-duplicate associations
+      const toInsert = sourceRecipes.filter((r) => !existingRecipeIds.has(r.recipe_id))
+      if (toInsert.length > 0) {
+        const insertRes = await fetch(`${env.POSTGREST_URL}/recipe_categories`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+            Prefer: 'return=minimal',
+          },
+          body: JSON.stringify(
+            toInsert.map((r) => ({ recipe_id: r.recipe_id, category_id: targetId }))
+          ),
+        })
+
+        if (!insertRes.ok) {
+          throw new Error('Failed to transfer recipe associations')
+        }
+      }
+
+      // Delete source recipe_categories
+      await fetch(`${env.POSTGREST_URL}/recipe_categories?category_id=eq.${sourceId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      // Delete source category
+      const deleteRes = await fetch(`${env.POSTGREST_URL}/categories?id=eq.${sourceId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      if (!deleteRes.ok) {
+        throw new Error('Failed to delete source category')
+      }
+
+      revalidateTag('categories', 'max')
+      return NextResponse.json({ success: true })
+    }
+
+    // Normal create
+    const { name, group_id } = body
 
     if (!name || !name.trim()) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400 })
     }
 
-    const token = await signPostgrestToken(session.email, session.role)
+    const createBody: Record<string, string> = { name: name.trim() }
+    if (group_id) {
+      createBody.group_id = group_id
+    }
 
     const response = await fetch(`${env.POSTGREST_URL}/categories`, {
       method: 'POST',
@@ -80,7 +158,7 @@ export async function POST(request: NextRequest) {
         Authorization: `Bearer ${token}`,
         Prefer: 'return=minimal',
       },
-      body: JSON.stringify({ name: name.trim() }),
+      body: JSON.stringify(createBody),
     })
 
     if (!response.ok) {
@@ -99,7 +177,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PATCH - Update a category
+// PATCH - Update a category (name and/or group_id)
 export async function PATCH(request: NextRequest) {
   try {
     const session = await getSession()
@@ -113,13 +191,26 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { id, name } = body
+    const { id, name, group_id } = body
 
-    if (!id || !name || !name.trim()) {
-      return NextResponse.json(
-        { error: 'ID and name are required' },
-        { status: 400 }
-      )
+    if (!id) {
+      return NextResponse.json({ error: 'ID is required' }, { status: 400 })
+    }
+
+    // Build update payload - at least one field must be provided
+    const updateBody: Record<string, string | null> = {}
+    if (name !== undefined) {
+      if (!name || !name.trim()) {
+        return NextResponse.json({ error: 'Name cannot be empty' }, { status: 400 })
+      }
+      updateBody.name = name.trim()
+    }
+    if (group_id !== undefined) {
+      updateBody.group_id = group_id || null
+    }
+
+    if (Object.keys(updateBody).length === 0) {
+      return NextResponse.json({ error: 'No fields to update' }, { status: 400 })
     }
 
     const token = await signPostgrestToken(session.email, session.role)
@@ -130,7 +221,7 @@ export async function PATCH(request: NextRequest) {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ name: name.trim() }),
+      body: JSON.stringify(updateBody),
     })
 
     if (!response.ok) {

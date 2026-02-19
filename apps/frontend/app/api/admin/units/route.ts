@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSession, signPostgrestToken } from '@/lib/auth'
 import { env } from '@/lib/env'
 
-// GET - List units with pagination and search
+// GET - List units with pagination, search, and filter
 export async function GET(request: NextRequest) {
   try {
     const session = await getSession()
@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1', 10)
     const search = searchParams.get('search') || ''
+    const filter = searchParams.get('filter') || 'all'
     const pageSize = 50
     const offset = (page - 1) * pageSize
 
@@ -44,7 +45,14 @@ export async function GET(request: NextRequest) {
       throw new Error('Failed to fetch units')
     }
 
-    const items = await unitsResponse.json()
+    let items = await unitsResponse.json()
+
+    // Apply client-side filter for unused/missing abbreviation
+    if (filter === 'unused') {
+      items = items.filter((u: { ingredient_count: number }) => u.ingredient_count === 0)
+    } else if (filter === 'missing_abbreviation') {
+      items = items.filter((u: { abbreviation: string }) => !u.abbreviation)
+    }
 
     // Fetch total count
     const countResponse = await fetch(
@@ -70,10 +78,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       items,
-      total,
+      total: filter === 'all' ? total : items.length,
       page,
       pageSize,
-      totalPages,
+      totalPages: filter === 'all' ? totalPages : 1,
     })
   } catch (error) {
     console.error('Get units error:', error)
@@ -84,7 +92,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Create a new unit
+// POST - Create a new unit or merge units
 export async function POST(request: NextRequest) {
   try {
     const session = await getSession()
@@ -98,6 +106,47 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
+    const token = await signPostgrestToken(session.email, session.role)
+
+    // Handle merge action
+    if (body.action === 'merge') {
+      const { sourceId, targetId } = body
+
+      if (!sourceId || !targetId) {
+        return NextResponse.json({ error: 'sourceId and targetId are required' }, { status: 400 })
+      }
+
+      // Update all ingredients from source unit to target unit
+      const updateRes = await fetch(
+        `${env.POSTGREST_URL}/ingredients?unit_id=eq.${sourceId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ unit_id: targetId }),
+        }
+      )
+
+      if (!updateRes.ok) {
+        throw new Error('Failed to transfer ingredients')
+      }
+
+      // Delete source unit
+      const deleteRes = await fetch(`${env.POSTGREST_URL}/units?id=eq.${sourceId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      if (!deleteRes.ok) {
+        throw new Error('Failed to delete source unit')
+      }
+
+      return NextResponse.json({ success: true })
+    }
+
+    // Normal create
     const { name, plural, abbreviation } = body
 
     if (!name || !name.trim()) {
@@ -107,8 +156,6 @@ export async function POST(request: NextRequest) {
     if (!plural || !plural.trim()) {
       return NextResponse.json({ error: 'Plural is required' }, { status: 400 })
     }
-
-    const token = await signPostgrestToken(session.email, session.role)
 
     const response = await fetch(`${env.POSTGREST_URL}/units`, {
       method: 'POST',

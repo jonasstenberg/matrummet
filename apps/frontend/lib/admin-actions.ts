@@ -213,6 +213,62 @@ export async function setCanonicalFood(id: string, canonicalFoodId: string | nul
   }
 }
 
+export async function bulkApproveFoods(ids: string[]): Promise<ActionResult<{ succeeded: number; failed: number }>> {
+  try {
+    const { token } = await requireAdminToken()
+    let succeeded = 0
+    let failed = 0
+
+    await Promise.all(
+      ids.map(async (id) => {
+        const response = await fetch(`${env.POSTGREST_URL}/rpc/approve_food`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ p_food_id: id }),
+        })
+        if (response.ok) succeeded++
+        else failed++
+      })
+    )
+
+    revalidatePath('/admin/matvaror')
+    return { success: true, data: { succeeded, failed } }
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Ett fel uppstod' }
+  }
+}
+
+export async function bulkRejectFoods(ids: string[]): Promise<ActionResult<{ succeeded: number; failed: number }>> {
+  try {
+    const { token } = await requireAdminToken()
+    let succeeded = 0
+    let failed = 0
+
+    await Promise.all(
+      ids.map(async (id) => {
+        const response = await fetch(`${env.POSTGREST_URL}/rpc/reject_food`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ p_food_id: id }),
+        })
+        if (response.ok) succeeded++
+        else failed++
+      })
+    )
+
+    revalidatePath('/admin/matvaror')
+    return { success: true, data: { succeeded, failed } }
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Ett fel uppstod' }
+  }
+}
+
 // ============================================================================
 // User Actions
 // ============================================================================

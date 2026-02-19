@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Pencil, Trash2, Plus, AlertCircle, Check, X, ChefHat, ExternalLink, Loader2, Link2, Search } from '@/lib/icons'
+import { Pencil, Trash2, Plus, AlertCircle, Check, X, ChefHat, ExternalLink, Loader2, Link2, Search, Sparkles } from '@/lib/icons'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import {
@@ -25,7 +25,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination'
-import type { Food, FoodStatus, FoodsPaginatedResponse, SimilarFood, LinkedRecipe } from '@/lib/admin-api'
+import type { Food, FoodStatus, FoodsPaginatedResponse, SimilarFood, LinkedRecipe, AliasFilter } from '@/lib/admin-api'
 import { getSimilarFoods, getLinkedRecipes } from '@/lib/admin-api'
 import {
   approveFood,
@@ -35,6 +35,8 @@ import {
   createFood,
   approveAsAlias,
   setCanonicalFood,
+  bulkApproveFoods,
+  bulkRejectFoods,
 } from '@/lib/admin-actions'
 
 interface MatvarorClientProps {
@@ -42,6 +44,8 @@ interface MatvarorClientProps {
   page: number
   search: string
   statusFilter: FoodStatus | 'all'
+  aliasFilter: AliasFilter
+  pendingCount: number
 }
 
 const STATUS_TABS: Array<{ value: FoodStatus | 'all'; label: string }> = [
@@ -51,11 +55,20 @@ const STATUS_TABS: Array<{ value: FoodStatus | 'all'; label: string }> = [
   { value: 'rejected', label: 'Avvisade' },
 ]
 
+const ALIAS_TABS: Array<{ value: AliasFilter; label: string }> = [
+  { value: 'all', label: 'Alla' },
+  { value: 'is_alias', label: 'Alias' },
+  { value: 'has_aliases', label: 'Har alias' },
+  { value: 'standalone', label: 'Fristående' },
+]
+
 export function MatvarorClient({
   initialData,
   page,
   search,
   statusFilter,
+  aliasFilter,
+  pendingCount,
 }: MatvarorClientProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -65,11 +78,15 @@ export function MatvarorClient({
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
+  // Bulk selection
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+
   // Update local state when initialData changes (e.g., after navigation)
   useEffect(() => {
     setFoods(initialData.items)
     setTotal(initialData.total)
     setTotalPages(initialData.totalPages)
+    setSelectedIds(new Set())
   }, [initialData])
 
   // Debounce for search
@@ -106,7 +123,7 @@ export function MatvarorClient({
   const [aliasSearchLoading, setAliasSearchLoading] = useState(false)
   const aliasSearchTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
 
-  function updateURL(newPage: number, newSearch: string, newStatus?: FoodStatus | 'all') {
+  function updateURL(newPage: number, newSearch: string, newStatus?: FoodStatus | 'all', newAlias?: AliasFilter) {
     const params = new URLSearchParams()
 
     if (newPage > 1) {
@@ -120,6 +137,11 @@ export function MatvarorClient({
     const status = newStatus !== undefined ? newStatus : statusFilter
     if (status !== 'pending') {
       params.set('status', status)
+    }
+
+    const alias = newAlias !== undefined ? newAlias : aliasFilter
+    if (alias !== 'all') {
+      params.set('alias', alias)
     }
 
     const queryString = params.toString()
@@ -353,6 +375,58 @@ export function MatvarorClient({
     }
   }
 
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function toggleSelectAll() {
+    const pendingIds = foods.filter((f) => f.status === 'pending').map((f) => f.id)
+    const allSelected = pendingIds.length > 0 && pendingIds.every((id) => selectedIds.has(id))
+
+    if (allSelected) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(pendingIds))
+    }
+  }
+
+  async function handleBulkApprove() {
+    const ids = Array.from(selectedIds)
+    setError(null)
+    setSuccess(null)
+
+    const result = await bulkApproveFoods(ids)
+
+    if (result.success) {
+      setSuccess(`${result.data?.succeeded} matvaror godkända`)
+      setSelectedIds(new Set())
+      router.refresh()
+    } else {
+      setError(result.error)
+    }
+  }
+
+  async function handleBulkReject() {
+    const ids = Array.from(selectedIds)
+    setError(null)
+    setSuccess(null)
+
+    const result = await bulkRejectFoods(ids)
+
+    if (result.success) {
+      setSuccess(`${result.data?.succeeded} matvaror avvisade`)
+      setSelectedIds(new Set())
+      router.refresh()
+    } else {
+      setError(result.error)
+    }
+  }
+
   // Debounced alias search
   useEffect(() => {
     if (!aliasSearchQuery.trim()) {
@@ -499,20 +573,25 @@ export function MatvarorClient({
         {/* Header with filter tabs and search */}
         <div className="border-b border-border/40 px-5 py-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            {/* Segmented filter */}
+            {/* Segmented status filter */}
             <div className="inline-flex rounded-lg bg-muted/50 p-0.5">
               {STATUS_TABS.map((tab) => (
                 <button
                   key={tab.value}
                   onClick={() => setStatusFilterValue(tab.value)}
                   className={cn(
-                    'rounded-md px-3 py-1.5 text-xs font-medium transition-all',
+                    'relative rounded-md px-3 py-1.5 text-xs font-medium transition-all',
                     statusFilter === tab.value
                       ? 'bg-card text-foreground shadow-sm'
                       : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
                   {tab.label}
+                  {tab.value === 'pending' && pendingCount > 0 && (
+                    <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-semibold text-white">
+                      {pendingCount}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
@@ -534,6 +613,27 @@ export function MatvarorClient({
               </div>
             </div>
           </div>
+
+          {/* Alias filter row */}
+          <div className="mt-3 flex items-center gap-2">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/50">Alias:</span>
+            <div className="inline-flex rounded-lg bg-muted/50 p-0.5">
+              {ALIAS_TABS.map((tab) => (
+                <button
+                  key={tab.value}
+                  onClick={() => updateURL(1, search, undefined, tab.value)}
+                  className={cn(
+                    'rounded-md px-2.5 py-1 text-[11px] font-medium transition-all',
+                    aliasFilter === tab.value
+                      ? 'bg-card text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {isPending ? (
@@ -551,12 +651,38 @@ export function MatvarorClient({
           </div>
         ) : (
           <>
+            {/* Select all header for pending foods */}
+            {foods.some((f) => f.status === 'pending') && (
+              <div className="flex items-center gap-2 border-b border-border/40 px-5 py-2">
+                <input
+                  type="checkbox"
+                  checked={
+                    foods.filter((f) => f.status === 'pending').length > 0 &&
+                    foods.filter((f) => f.status === 'pending').every((f) => selectedIds.has(f.id))
+                  }
+                  onChange={toggleSelectAll}
+                  className="h-3.5 w-3.5 rounded border-border/60 text-primary accent-primary"
+                />
+                <span className="text-[11px] text-muted-foreground/60">Markera alla väntande</span>
+              </div>
+            )}
+
             <div className="divide-y divide-border/40">
               {foods.map((food) => (
                 <div
                   key={food.id}
                   className="flex items-center px-5 py-3 transition-colors hover:bg-muted/30"
                 >
+                  {/* Bulk checkbox for pending foods */}
+                  {food.status === 'pending' && (
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(food.id)}
+                      onChange={() => toggleSelect(food.id)}
+                      className="mr-3 h-3.5 w-3.5 shrink-0 rounded border-border/60 text-primary accent-primary"
+                    />
+                  )}
+
                   {editingId === food.id ? (
                     <div className="flex flex-1 items-center gap-2">
                       <Input
@@ -585,13 +711,24 @@ export function MatvarorClient({
                   ) : (
                     <>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span className="text-[15px] font-medium">{food.name}</span>
                           {getStatusBadge(food.status)}
                           {food.canonical_food_name && (
                             <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-medium text-blue-800">
                               <Link2 className="mr-1 h-2.5 w-2.5" />
                               {food.canonical_food_name}
+                            </span>
+                          )}
+                          {/* AI suggestion hint */}
+                          {food.status === 'pending' && food.ai_decision && (
+                            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                              <Sparkles className="h-3 w-3 text-rose-400" />
+                              {food.ai_decision === 'merge' && food.ai_suggested_merge_name
+                                ? `Länka till '${food.ai_suggested_merge_name}' (${Math.round((food.ai_confidence ?? 0) * 100)}%)`
+                                : food.ai_decision === 'approve'
+                                  ? `Godkänn (${Math.round((food.ai_confidence ?? 0) * 100)}%)`
+                                  : `Avvisa (${Math.round((food.ai_confidence ?? 0) * 100)}%)`}
                             </span>
                           )}
                         </div>
@@ -615,24 +752,35 @@ export function MatvarorClient({
                           )}
                         </div>
                       </div>
-                      <div className="flex shrink-0 gap-1">
+                      <div className="flex shrink-0 items-center gap-1">
+                        {/* Approve button: shown for pending + rejected foods */}
+                        {(food.status === 'pending' || food.status === 'rejected') && (
+                          <button
+                            onClick={() => handleApprove(food)}
+                            className="rounded-lg p-2 text-emerald-500 transition-colors hover:bg-emerald-50 hover:text-emerald-700"
+                            aria-label="Godkänn matvara"
+                          >
+                            <Check className="h-4 w-4" />
+                          </button>
+                        )}
+                        {/* Reject button: only for pending */}
                         {food.status === 'pending' && (
-                          <>
-                            <button
-                              onClick={() => handleApprove(food)}
-                              className="rounded-lg p-2 text-emerald-500 transition-colors hover:bg-emerald-50 hover:text-emerald-700"
-                              aria-label="Godkänn matvara"
-                            >
-                              <Check className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => handleReject(food.id)}
-                              className="rounded-lg p-2 text-red-400 transition-colors hover:bg-red-50 hover:text-red-600"
-                              aria-label="Avvisa matvara"
-                            >
-                              <X className="h-4 w-4" />
-                            </button>
-                          </>
+                          <button
+                            onClick={() => handleReject(food.id)}
+                            className="rounded-lg p-2 text-red-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                            aria-label="Avvisa matvara"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        )}
+                        {/* AI merge confirm button */}
+                        {food.status === 'pending' && food.ai_suggested_merge_id && (
+                          <button
+                            onClick={() => handleApproveAsAlias(food, food.ai_suggested_merge_id!)}
+                            className="rounded-lg px-2 py-1 text-[11px] font-medium text-blue-600 transition-colors hover:bg-blue-50"
+                          >
+                            Bekräfta
+                          </button>
                         )}
                         <button
                           onClick={() => startEdit(food)}
@@ -856,6 +1004,18 @@ export function MatvarorClient({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Bulk action bar */}
+      {selectedIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-2xl bg-card px-5 py-3 shadow-(--shadow-card-hover)">
+          <span className="text-sm font-medium">{selectedIds.size} valda</span>
+          <Button size="sm" onClick={handleBulkApprove}>Godkänn</Button>
+          <Button size="sm" variant="destructive" onClick={handleBulkReject}>Avvisa</Button>
+          <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
+            <X className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      )}
 
       {/* Alias management dialog */}
       <Dialog open={aliasDialogOpen} onOpenChange={setAliasDialogOpen}>

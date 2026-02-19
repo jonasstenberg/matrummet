@@ -22,6 +22,7 @@ export interface CategoryWithCount {
   id: string
   name: string
   recipe_count: number
+  group_id?: string | null
   group_name?: string
 }
 

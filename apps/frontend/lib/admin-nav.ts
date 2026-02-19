@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react'
-import { Users, Tag, UtensilsCrossed, Ruler, Wand2, Sparkles } from '@/lib/icons'
+import { Home, Users, Tag, UtensilsCrossed, Ruler, Wand2, Sparkles } from '@/lib/icons'
 
 export interface AdminNavItem {
   href: string
@@ -8,6 +8,7 @@ export interface AdminNavItem {
 }
 
 export const adminNavItems: AdminNavItem[] = [
+  { href: '/admin', label: 'Översikt', icon: Home },
   { href: '/admin/anvandare', label: 'Användare', icon: Users },
   { href: '/admin/kategorier', label: 'Kategorier', icon: Tag },
   { href: '/admin/matvaror', label: 'Matvaror', icon: UtensilsCrossed },

@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { UnitsPaginatedResponse } from '@/lib/admin-api'
+import Link from 'next/link'
+import { UnitsPaginatedResponse, LinkedRecipe } from '@/lib/admin-api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -14,7 +15,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Pencil, Trash2, Plus, AlertCircle, Search } from '@/lib/icons'
+import { Pencil, Trash2, Plus, AlertCircle, Search, GitMerge, ExternalLink } from '@/lib/icons'
+import { cn } from '@/lib/utils'
 import {
   Pagination,
   PaginationContent,
@@ -33,6 +35,14 @@ interface Unit {
   ingredient_count: number
 }
 
+type FilterTab = 'all' | 'unused' | 'missing_abbreviation'
+
+const FILTER_TABS: Array<{ value: FilterTab; label: string }> = [
+  { value: 'all', label: 'Alla' },
+  { value: 'unused', label: 'Oanvända' },
+  { value: 'missing_abbreviation', label: 'Utan förkortning' },
+]
+
 interface EnheterClientProps {
   initialData: UnitsPaginatedResponse
   page: number
@@ -50,6 +60,9 @@ export function EnheterClient({ initialData, page: currentPage, search: searchQu
   // Search debounce
   const searchTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
 
+  // Filter
+  const [activeFilter, setActiveFilter] = useState<FilterTab>('all')
+
   // Edit state
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
@@ -65,6 +78,39 @@ export function EnheterClient({ initialData, page: currentPage, search: searchQu
   const [newUnitPlural, setNewUnitPlural] = useState('')
   const [newUnitAbbreviation, setNewUnitAbbreviation] = useState('')
   const [isAdding, setIsAdding] = useState(false)
+
+  // Linked recipes dialog
+  const [recipesDialogOpen, setRecipesDialogOpen] = useState(false)
+  const [recipesDialogTitle, setRecipesDialogTitle] = useState('')
+  const [linkedRecipes, setLinkedRecipes] = useState<LinkedRecipe[]>([])
+  const [loadingRecipes, setLoadingRecipes] = useState(false)
+
+  // Merge dialog
+  const [mergeDialogOpen, setMergeDialogOpen] = useState(false)
+  const [mergeSource, setMergeSource] = useState<Unit | null>(null)
+  const [mergeTargetId, setMergeTargetId] = useState('')
+  const [mergeSearch, setMergeSearch] = useState('')
+  const [isMerging, setIsMerging] = useState(false)
+
+  // Filtered units for display
+  const filteredUnits = useMemo(() => {
+    if (activeFilter === 'unused') {
+      return units.filter(u => u.ingredient_count === 0)
+    }
+    if (activeFilter === 'missing_abbreviation') {
+      return units.filter(u => !u.abbreviation)
+    }
+    return units
+  }, [units, activeFilter])
+
+  // Merge target options
+  const mergeTargetOptions = useMemo(() => {
+    if (!mergeSource) return []
+    return units
+      .filter(u => u.id !== mergeSource.id)
+      .filter(u => !mergeSearch || u.name.toLowerCase().includes(mergeSearch.toLowerCase()))
+      .sort((a, b) => a.name.localeCompare(b.name, 'sv'))
+  }, [units, mergeSource, mergeSearch])
 
   async function loadUnits() {
     try {
@@ -167,9 +213,7 @@ export function EnheterClient({ initialData, page: currentPage, search: searchQu
 
       const response = await fetch('/api/admin/units', {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, name: name.trim(), plural: plural.trim(), abbreviation: abbreviation.trim() }),
       })
 
@@ -198,9 +242,7 @@ export function EnheterClient({ initialData, page: currentPage, search: searchQu
 
       const response = await fetch(
         `/api/admin/units?id=${unitToDelete.id}`,
-        {
-          method: 'DELETE',
-        }
+        { method: 'DELETE' }
       )
 
       if (!response.ok) {
@@ -232,9 +274,7 @@ export function EnheterClient({ initialData, page: currentPage, search: searchQu
 
       const response = await fetch('/api/admin/units', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: newUnitName.trim(),
           plural: newUnitPlural.trim(),
@@ -259,6 +299,60 @@ export function EnheterClient({ initialData, page: currentPage, search: searchQu
     }
   }
 
+  async function handleShowRecipes(unit: Unit) {
+    setRecipesDialogTitle(unit.name)
+    setRecipesDialogOpen(true)
+    setLoadingRecipes(true)
+    setLinkedRecipes([])
+
+    try {
+      const { getLinkedRecipesByUnit } = await import('@/lib/admin-api')
+      const recipes = await getLinkedRecipesByUnit(unit.id)
+      setLinkedRecipes(recipes)
+    } catch {
+      setLinkedRecipes([])
+    } finally {
+      setLoadingRecipes(false)
+    }
+  }
+
+  async function handleMerge() {
+    if (!mergeSource || !mergeTargetId) return
+
+    try {
+      setError(null)
+      setSuccess(null)
+      setIsMerging(true)
+
+      const response = await fetch('/api/admin/units', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'merge',
+          sourceId: mergeSource.id,
+          targetId: mergeTargetId,
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Kunde inte slå ihop enheter')
+      }
+
+      const targetName = units.find(u => u.id === mergeTargetId)?.name
+      setSuccess(`"${mergeSource.name}" har slagits ihop med "${targetName}"`)
+      setMergeDialogOpen(false)
+      setMergeSource(null)
+      setMergeTargetId('')
+      setMergeSearch('')
+      await loadUnits()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ett fel uppstod')
+    } finally {
+      setIsMerging(false)
+    }
+  }
+
   function startEdit(unit: Unit) {
     setEditingId(unit.id)
     setEditName(unit.name)
@@ -279,6 +373,13 @@ export function EnheterClient({ initialData, page: currentPage, search: searchQu
   function confirmDelete(unit: Unit) {
     setUnitToDelete(unit)
     setDeleteDialogOpen(true)
+  }
+
+  function startMerge(unit: Unit) {
+    setMergeSource(unit)
+    setMergeTargetId('')
+    setMergeSearch('')
+    setMergeDialogOpen(true)
   }
 
   return (
@@ -360,32 +461,52 @@ export function EnheterClient({ initialData, page: currentPage, search: searchQu
 
       {/* Units list */}
       <div className="overflow-hidden rounded-2xl bg-card shadow-(--shadow-card)">
-        {/* List header with search */}
-        <div className="flex items-center justify-between border-b border-border/40 px-5 py-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
-            Alla enheter
-          </p>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/50" />
-            <input
-              type="search"
-              placeholder="Sök enheter..."
-              defaultValue={searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="h-8 w-52 rounded-lg border-0 bg-muted/50 pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
-            />
+        {/* List header with filter tabs and search */}
+        <div className="border-b border-border/40 px-5 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            {/* Segmented filter */}
+            <div className="inline-flex rounded-lg bg-muted/50 p-0.5">
+              {FILTER_TABS.map((tab) => (
+                <button
+                  key={tab.value}
+                  onClick={() => setActiveFilter(tab.value)}
+                  className={cn(
+                    'rounded-md px-3 py-1.5 text-xs font-medium transition-all',
+                    activeFilter === tab.value
+                      ? 'bg-card text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/50" />
+              <input
+                type="search"
+                placeholder="Sök enheter..."
+                defaultValue={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="h-8 w-52 rounded-lg border-0 bg-muted/50 pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
           </div>
         </div>
 
-        {units.length === 0 ? (
+        {filteredUnits.length === 0 ? (
           <div className="px-5 py-12 text-center">
             <p className="text-sm text-muted-foreground">
-              {searchQuery ? 'Inga enheter hittades' : 'Inga enheter ännu'}
+              {searchQuery
+                ? 'Inga enheter hittades'
+                : activeFilter !== 'all'
+                  ? 'Inga enheter matchar filtret'
+                  : 'Inga enheter ännu'}
             </p>
           </div>
         ) : (
           <div className="divide-y divide-border/40">
-            {units.map((unit) => (
+            {filteredUnits.map((unit) => (
               <div
                 key={unit.id}
                 className="flex items-center px-5 py-3 transition-colors hover:bg-muted/30"
@@ -458,12 +579,29 @@ export function EnheterClient({ initialData, page: currentPage, search: searchQu
                           </span>
                         )}
                       </div>
-                      <p className="mt-0.5 text-xs text-muted-foreground/60">
+                      <button
+                        onClick={() => handleShowRecipes(unit)}
+                        className={cn(
+                          'mt-0.5 text-xs',
+                          unit.ingredient_count > 0
+                            ? 'text-primary/70 hover:text-primary hover:underline'
+                            : 'text-muted-foreground/60 cursor-default'
+                        )}
+                        disabled={unit.ingredient_count === 0}
+                      >
                         {unit.ingredient_count}{' '}
                         {unit.ingredient_count === 1 ? 'ingrediens' : 'ingredienser'}
-                      </p>
+                      </button>
                     </div>
                     <div className="flex shrink-0 gap-1">
+                      <button
+                        onClick={() => startMerge(unit)}
+                        className="rounded-lg p-2 text-muted-foreground/40 transition-colors hover:bg-muted/50 hover:text-foreground"
+                        aria-label="Slå ihop enhet"
+                        title="Slå ihop med annan enhet"
+                      >
+                        <GitMerge className="h-3.5 w-3.5" />
+                      </button>
                       <button
                         onClick={() => startEdit(unit)}
                         className="rounded-lg p-2 text-muted-foreground/40 transition-colors hover:bg-muted/50 hover:text-foreground"
@@ -487,7 +625,7 @@ export function EnheterClient({ initialData, page: currentPage, search: searchQu
         )}
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {totalPages > 1 && activeFilter === 'all' && (
           <div className="border-t border-border/40 px-5 py-3">
             <Pagination>
               <PaginationContent>
@@ -549,7 +687,7 @@ export function EnheterClient({ initialData, page: currentPage, search: searchQu
         )}
       </div>
 
-      {/* Delete confirmation dialog */}
+      {/* Delete confirmation dialog (enhanced) */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -559,8 +697,9 @@ export function EnheterClient({ initialData, page: currentPage, search: searchQu
               {unitToDelete?.name}&quot;?
               {unitToDelete && unitToDelete.ingredient_count > 0 && (
                 <span className="mt-2 block font-semibold text-destructive">
-                  Varning: Denna enhet används av {unitToDelete.ingredient_count}{' '}
-                  {unitToDelete.ingredient_count === 1 ? 'ingrediens' : 'ingredienser'}.
+                  Varning: {unitToDelete.ingredient_count}{' '}
+                  {unitToDelete.ingredient_count === 1 ? 'ingrediens' : 'ingredienser'} kommer
+                  att förlora sin enhet.
                 </span>
               )}
             </DialogDescription>
@@ -571,6 +710,95 @@ export function EnheterClient({ initialData, page: currentPage, search: searchQu
             </Button>
             <Button variant="destructive" onClick={handleDelete}>
               Ta bort
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Linked recipes dialog */}
+      <Dialog open={recipesDialogOpen} onOpenChange={setRecipesDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Recept med enheten &quot;{recipesDialogTitle}&quot;</DialogTitle>
+          </DialogHeader>
+          {loadingRecipes ? (
+            <p className="py-4 text-center text-sm text-muted-foreground">Laddar...</p>
+          ) : linkedRecipes.length === 0 ? (
+            <p className="py-4 text-center text-sm text-muted-foreground">Inga recept hittades</p>
+          ) : (
+            <div className="max-h-80 divide-y divide-border/40 overflow-y-auto">
+              {linkedRecipes.map((recipe) => (
+                <Link
+                  key={recipe.id}
+                  href={`/recept/${recipe.id}`}
+                  className="flex items-center justify-between px-1 py-2.5 text-sm hover:text-primary"
+                  target="_blank"
+                >
+                  <span>{recipe.name}</span>
+                  <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground/40" />
+                </Link>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Merge dialog */}
+      <Dialog open={mergeDialogOpen} onOpenChange={setMergeDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Slå ihop enhet</DialogTitle>
+            <DialogDescription>
+              Alla ingredienser med enheten &quot;{mergeSource?.name}&quot; kommer att uppdateras
+              till den valda enheten. Sedan tas &quot;{mergeSource?.name}&quot; bort.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              placeholder="Sök målenhet..."
+              value={mergeSearch}
+              onChange={(e) => setMergeSearch(e.target.value)}
+            />
+            <div className="max-h-60 divide-y divide-border/40 overflow-y-auto rounded-lg border">
+              {mergeTargetOptions.length === 0 ? (
+                <p className="px-3 py-4 text-center text-sm text-muted-foreground">
+                  Inga enheter hittades
+                </p>
+              ) : (
+                mergeTargetOptions.map((u) => (
+                  <button
+                    key={u.id}
+                    onClick={() => setMergeTargetId(u.id)}
+                    className={cn(
+                      'flex w-full items-center justify-between px-3 py-2.5 text-left text-sm transition-colors',
+                      mergeTargetId === u.id
+                        ? 'bg-primary/10 text-primary'
+                        : 'hover:bg-muted/50'
+                    )}
+                  >
+                    <span>
+                      {u.name}
+                      {u.abbreviation && (
+                        <span className="ml-1.5 text-xs text-muted-foreground">({u.abbreviation})</span>
+                      )}
+                    </span>
+                    <span className="text-xs text-muted-foreground/60">
+                      {u.ingredient_count} ingredienser
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setMergeDialogOpen(false)}>
+              Avbryt
+            </Button>
+            <Button
+              onClick={handleMerge}
+              disabled={!mergeTargetId || isMerging}
+            >
+              {isMerging ? 'Slår ihop...' : 'Slå ihop'}
             </Button>
           </DialogFooter>
         </DialogContent>

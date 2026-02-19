@@ -134,10 +134,9 @@ export async function GET(request: NextRequest) {
     const total = recipesToRestructure.length
     const totalPages = Math.ceil(total / PAGE_SIZE)
     const offset = (page - 1) * PAGE_SIZE
-    const paginatedRecipes = recipesToRestructure.slice(offset, offset + PAGE_SIZE)
 
-    // Prepare response with summary info
-    const items = paginatedRecipes.map(r => {
+    // Prepare items with summary info
+    const allItems = recipesToRestructure.map(r => {
       const groups = extractGroupNames(r)
       const hashPrefixedCount = r.ingredients?.filter(i => i.name.startsWith("#")).length || 0
       const instructionCount = r.instructions?.length || 0
@@ -154,8 +153,17 @@ export async function GET(request: NextRequest) {
       }
     })
 
+    // Sort by priority: Legacy #-format first, then no instructions, then rest
+    allItems.sort((a, b) => {
+      if (a.hasLegacyFormat !== b.hasLegacyFormat) return a.hasLegacyFormat ? -1 : 1
+      if (a.hasInstructions !== b.hasInstructions) return a.hasInstructions ? 1 : -1
+      return a.name.localeCompare(b.name, "sv")
+    })
+
+    const paginatedItems = allItems.slice(offset, offset + PAGE_SIZE)
+
     return NextResponse.json({
-      items,
+      items: paginatedItems,
       total,
       page,
       pageSize: PAGE_SIZE,

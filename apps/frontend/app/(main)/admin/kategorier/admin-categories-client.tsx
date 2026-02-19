@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { CategoryWithCount } from '@/lib/api'
+import { CategoryWithCount } from '@/lib/types'
+import { CategoryGroupOption, LinkedRecipe } from '@/lib/admin-api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -13,14 +14,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Pencil, Trash2, Plus, AlertCircle, Search } from '@/lib/icons'
+import { Pencil, Trash2, Plus, AlertCircle, Search, GitMerge, ExternalLink } from '@/lib/icons'
+import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 interface AdminCategoriesClientProps {
   initialCategories: CategoryWithCount[]
+  groups: CategoryGroupOption[]
 }
 
-export function AdminCategoriesClient({ initialCategories }: AdminCategoriesClientProps) {
+export function AdminCategoriesClient({ initialCategories, groups }: AdminCategoriesClientProps) {
   const router = useRouter()
   const [categories, setCategories] = useState<CategoryWithCount[]>(initialCategories)
   const [error, setError] = useState<string | null>(null)
@@ -36,14 +40,28 @@ export function AdminCategoriesClient({ initialCategories }: AdminCategoriesClie
 
   // New category
   const [newCategoryName, setNewCategoryName] = useState('')
+  const [newCategoryGroupId, setNewCategoryGroupId] = useState('')
   const [isAdding, setIsAdding] = useState(false)
 
   // Search filter
   const [searchQuery, setSearchQuery] = useState('')
 
+  // Linked recipes dialog
+  const [recipesDialogOpen, setRecipesDialogOpen] = useState(false)
+  const [recipesDialogTitle, setRecipesDialogTitle] = useState('')
+  const [linkedRecipes, setLinkedRecipes] = useState<LinkedRecipe[]>([])
+  const [loadingRecipes, setLoadingRecipes] = useState(false)
+
+  // Merge dialog
+  const [mergeDialogOpen, setMergeDialogOpen] = useState(false)
+  const [mergeSource, setMergeSource] = useState<CategoryWithCount | null>(null)
+  const [mergeTargetId, setMergeTargetId] = useState('')
+  const [mergeSearch, setMergeSearch] = useState('')
+  const [isMerging, setIsMerging] = useState(false)
+
   // Group categories by group_name
   const groupedCategories = useMemo(() => {
-    const groups = new Map<string, { sort_order: number; items: CategoryWithCount[] }>()
+    const groupMap = new Map<string, { sort_order: number; items: CategoryWithCount[] }>()
 
     const filtered = searchQuery
       ? categories.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -53,13 +71,13 @@ export function AdminCategoriesClient({ initialCategories }: AdminCategoriesClie
       const groupName = cat.group_name ?? 'Utan grupp'
       const sortOrder = (cat as CategoryWithCount & { group_sort_order?: number }).group_sort_order ?? 99
 
-      if (!groups.has(groupName)) {
-        groups.set(groupName, { sort_order: sortOrder, items: [] })
+      if (!groupMap.has(groupName)) {
+        groupMap.set(groupName, { sort_order: sortOrder, items: [] })
       }
-      groups.get(groupName)!.items.push(cat)
+      groupMap.get(groupName)!.items.push(cat)
     }
 
-    return Array.from(groups.entries())
+    return Array.from(groupMap.entries())
       .sort((a, b) => a[1].sort_order - b[1].sort_order)
       .map(([name, { items }]) => ({
         name,
@@ -69,9 +87,18 @@ export function AdminCategoriesClient({ initialCategories }: AdminCategoriesClie
 
   const totalCategories = categories.length
   const totalGroups = useMemo(() => {
-    const groups = new Set(categories.map(c => c.group_name ?? 'Utan grupp'))
-    return groups.size
+    const groupSet = new Set(categories.map(c => c.group_name ?? 'Utan grupp'))
+    return groupSet.size
   }, [categories])
+
+  // Merge target options (filtered, excluding source)
+  const mergeTargetOptions = useMemo(() => {
+    if (!mergeSource) return []
+    return categories
+      .filter(c => c.id !== mergeSource.id)
+      .filter(c => !mergeSearch || c.name.toLowerCase().includes(mergeSearch.toLowerCase()))
+      .sort((a, b) => a.name.localeCompare(b.name, 'sv'))
+  }, [categories, mergeSource, mergeSearch])
 
   async function loadCategories() {
     try {
@@ -86,10 +113,7 @@ export function AdminCategoriesClient({ initialCategories }: AdminCategoriesClie
       }
 
       const categoriesWithCount: CategoryWithCount[] = await response.json()
-
-      // Sort by name
       categoriesWithCount.sort((a, b) => a.name.localeCompare(b.name, 'sv'))
-
       setCategories(categoriesWithCount)
       router.refresh()
     } catch (err) {
@@ -109,9 +133,7 @@ export function AdminCategoriesClient({ initialCategories }: AdminCategoriesClie
 
       const response = await fetch('/api/admin/categories', {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, name: newName.trim() }),
       })
 
@@ -138,9 +160,7 @@ export function AdminCategoriesClient({ initialCategories }: AdminCategoriesClie
 
       const response = await fetch(
         `/api/admin/categories?id=${categoryToDelete.id}`,
-        {
-          method: 'DELETE',
-        }
+        { method: 'DELETE' }
       )
 
       if (!response.ok) {
@@ -170,12 +190,15 @@ export function AdminCategoriesClient({ initialCategories }: AdminCategoriesClie
       setSuccess(null)
       setIsAdding(true)
 
+      const body: Record<string, string> = { name: newCategoryName.trim() }
+      if (newCategoryGroupId) {
+        body.group_id = newCategoryGroupId
+      }
+
       const response = await fetch('/api/admin/categories', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name: newCategoryName.trim() }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
       })
 
       if (!response.ok) {
@@ -185,11 +208,89 @@ export function AdminCategoriesClient({ initialCategories }: AdminCategoriesClie
 
       setSuccess('Kategori skapad')
       setNewCategoryName('')
+      setNewCategoryGroupId('')
       await loadCategories()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ett fel uppstod')
     } finally {
       setIsAdding(false)
+    }
+  }
+
+  async function handleChangeGroup(categoryId: string, groupId: string) {
+    try {
+      setError(null)
+      setSuccess(null)
+
+      const response = await fetch('/api/admin/categories', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: categoryId, group_id: groupId || null }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Kunde inte byta grupp')
+      }
+
+      setSuccess('Grupp uppdaterad')
+      await loadCategories()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ett fel uppstod')
+    }
+  }
+
+  async function handleShowRecipes(category: CategoryWithCount) {
+    setRecipesDialogTitle(category.name)
+    setRecipesDialogOpen(true)
+    setLoadingRecipes(true)
+    setLinkedRecipes([])
+
+    try {
+      const { getLinkedRecipesByCategory } = await import('@/lib/admin-api')
+      const recipes = await getLinkedRecipesByCategory(category.id)
+      setLinkedRecipes(recipes)
+    } catch {
+      setLinkedRecipes([])
+    } finally {
+      setLoadingRecipes(false)
+    }
+  }
+
+  async function handleMerge() {
+    if (!mergeSource || !mergeTargetId) return
+
+    try {
+      setError(null)
+      setSuccess(null)
+      setIsMerging(true)
+
+      const response = await fetch('/api/admin/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'merge',
+          sourceId: mergeSource.id,
+          targetId: mergeTargetId,
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Kunde inte slå ihop kategorier')
+      }
+
+      const targetName = categories.find(c => c.id === mergeTargetId)?.name
+      setSuccess(`"${mergeSource.name}" har slagits ihop med "${targetName}"`)
+      setMergeDialogOpen(false)
+      setMergeSource(null)
+      setMergeTargetId('')
+      setMergeSearch('')
+      await loadCategories()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ett fel uppstod')
+    } finally {
+      setIsMerging(false)
     }
   }
 
@@ -209,6 +310,13 @@ export function AdminCategoriesClient({ initialCategories }: AdminCategoriesClie
   function confirmDelete(category: CategoryWithCount) {
     setCategoryToDelete(category)
     setDeleteDialogOpen(true)
+  }
+
+  function startMerge(category: CategoryWithCount) {
+    setMergeSource(category)
+    setMergeTargetId('')
+    setMergeSearch('')
+    setMergeDialogOpen(true)
   }
 
   return (
@@ -247,12 +355,22 @@ export function AdminCategoriesClient({ initialCategories }: AdminCategoriesClie
             value={newCategoryName}
             onChange={(e) => setNewCategoryName(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleAdd()
-              }
+              if (e.key === 'Enter') handleAdd()
             }}
             disabled={isAdding}
+            className="flex-1"
           />
+          <select
+            value={newCategoryGroupId}
+            onChange={(e) => setNewCategoryGroupId(e.target.value)}
+            disabled={isAdding}
+            className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+          >
+            <option value="">Ingen grupp</option>
+            {groups.map((g) => (
+              <option key={g.id} value={g.id}>{g.name}</option>
+            ))}
+          </select>
           <Button onClick={handleAdd} disabled={isAdding || !newCategoryName.trim()}>
             <Plus className="mr-2 h-4 w-4" />
             {isAdding ? 'Skapar...' : 'Lägg till'}
@@ -332,11 +450,40 @@ export function AdminCategoriesClient({ initialCategories }: AdminCategoriesClie
                       <>
                         <div className="flex-1 min-w-0">
                           <span className="text-[15px] font-medium">{category.name}</span>
-                          <span className="ml-2 text-xs text-muted-foreground/60">
+                          <button
+                            onClick={() => handleShowRecipes(category)}
+                            className={cn(
+                              'ml-2 text-xs',
+                              category.recipe_count > 0
+                                ? 'text-primary/70 hover:text-primary hover:underline'
+                                : 'text-muted-foreground/60 cursor-default'
+                            )}
+                            disabled={category.recipe_count === 0}
+                          >
                             {category.recipe_count} recept
-                          </span>
+                          </button>
                         </div>
-                        <div className="flex shrink-0 gap-1">
+                        <div className="flex shrink-0 items-center gap-1">
+                          {/* Move to group dropdown */}
+                          <select
+                            value={category.group_id ?? ''}
+                            onChange={(e) => handleChangeGroup(category.id, e.target.value)}
+                            className="h-7 rounded-md border-0 bg-transparent px-1 text-[11px] text-muted-foreground/60 hover:bg-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            title="Byt grupp"
+                          >
+                            <option value="">Utan grupp</option>
+                            {groups.map((g) => (
+                              <option key={g.id} value={g.id}>{g.name}</option>
+                            ))}
+                          </select>
+                          <button
+                            onClick={() => startMerge(category)}
+                            className="rounded-lg p-2 text-muted-foreground/40 transition-colors hover:bg-muted/50 hover:text-foreground"
+                            aria-label="Slå ihop kategori"
+                            title="Slå ihop med annan kategori"
+                          >
+                            <GitMerge className="h-3.5 w-3.5" />
+                          </button>
                           <button
                             onClick={() => startEdit(category)}
                             className="rounded-lg p-2 text-muted-foreground/40 transition-colors hover:bg-muted/50 hover:text-foreground"
@@ -388,6 +535,90 @@ export function AdminCategoriesClient({ initialCategories }: AdminCategoriesClie
             </Button>
             <Button variant="destructive" onClick={handleDelete}>
               Ta bort
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Linked recipes dialog */}
+      <Dialog open={recipesDialogOpen} onOpenChange={setRecipesDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Recept med &quot;{recipesDialogTitle}&quot;</DialogTitle>
+          </DialogHeader>
+          {loadingRecipes ? (
+            <p className="py-4 text-center text-sm text-muted-foreground">Laddar...</p>
+          ) : linkedRecipes.length === 0 ? (
+            <p className="py-4 text-center text-sm text-muted-foreground">Inga recept hittades</p>
+          ) : (
+            <div className="max-h-80 divide-y divide-border/40 overflow-y-auto">
+              {linkedRecipes.map((recipe) => (
+                <Link
+                  key={recipe.id}
+                  href={`/recept/${recipe.id}`}
+                  className="flex items-center justify-between px-1 py-2.5 text-sm hover:text-primary"
+                  target="_blank"
+                >
+                  <span>{recipe.name}</span>
+                  <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground/40" />
+                </Link>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Merge dialog */}
+      <Dialog open={mergeDialogOpen} onOpenChange={setMergeDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Slå ihop kategori</DialogTitle>
+            <DialogDescription>
+              Alla recept kopplade till &quot;{mergeSource?.name}&quot; kommer att flyttas till den
+              valda kategorin. Sedan tas &quot;{mergeSource?.name}&quot; bort.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              placeholder="Sök målkategori..."
+              value={mergeSearch}
+              onChange={(e) => setMergeSearch(e.target.value)}
+            />
+            <div className="max-h-60 divide-y divide-border/40 overflow-y-auto rounded-lg border">
+              {mergeTargetOptions.length === 0 ? (
+                <p className="px-3 py-4 text-center text-sm text-muted-foreground">
+                  Inga kategorier hittades
+                </p>
+              ) : (
+                mergeTargetOptions.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setMergeTargetId(cat.id)}
+                    className={cn(
+                      'flex w-full items-center justify-between px-3 py-2.5 text-left text-sm transition-colors',
+                      mergeTargetId === cat.id
+                        ? 'bg-primary/10 text-primary'
+                        : 'hover:bg-muted/50'
+                    )}
+                  >
+                    <span>{cat.name}</span>
+                    <span className="text-xs text-muted-foreground/60">
+                      {cat.recipe_count} recept
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setMergeDialogOpen(false)}>
+              Avbryt
+            </Button>
+            <Button
+              onClick={handleMerge}
+              disabled={!mergeTargetId || isMerging}
+            >
+              {isMerging ? 'Slår ihop...' : 'Slå ihop'}
             </Button>
           </DialogFooter>
         </DialogContent>

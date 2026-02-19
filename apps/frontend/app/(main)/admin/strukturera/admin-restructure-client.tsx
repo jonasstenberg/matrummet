@@ -15,7 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { AlertCircle, Wand2, Check, X, ChevronRight, RefreshCw, ExternalLink, Search } from '@/lib/icons'
+import { AlertCircle, Wand2, Check, X, ChevronRight, RefreshCw, ExternalLink, Search, Eye, EyeOff, RotateCcw } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import {
   Pagination,
@@ -118,7 +118,6 @@ export function AdminRestructureClient({ initialData }: AdminRestructureClientPr
   const page = parseInt(searchParams.get('page') || '1', 10)
   const search = searchParams.get('search') || ''
   const [totalPages, setTotalPages] = useState(initialData.totalPages)
-  const [total, setTotal] = useState(initialData.total)
 
   // Debounce for search
   const searchTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
@@ -132,6 +131,48 @@ export function AdminRestructureClient({ initialData }: AdminRestructureClientPr
   const [customInstructions, setCustomInstructions] = useState('')
   const [includeIngredients, setIncludeIngredients] = useState(true)
   const [includeInstructions, setIncludeInstructions] = useState(false)
+
+  // Skip / mark as reviewed
+  const [skippedIds, setSkippedIds] = useState<Set<string>>(() => {
+    if (typeof window === 'undefined') return new Set()
+    try {
+      const stored = localStorage.getItem('admin-restructure-skipped')
+      return stored ? new Set(JSON.parse(stored) as string[]) : new Set()
+    } catch {
+      return new Set()
+    }
+  })
+  const [showSkipped, setShowSkipped] = useState(false)
+
+  // Without instructions filter
+  const [onlyWithoutInstructions, setOnlyWithoutInstructions] = useState(false)
+
+  function persistSkipped(ids: Set<string>) {
+    setSkippedIds(ids)
+    localStorage.setItem('admin-restructure-skipped', JSON.stringify([...ids]))
+  }
+
+  function handleSkip(id: string) {
+    const next = new Set(skippedIds)
+    next.add(id)
+    persistSkipped(next)
+  }
+
+  function handleRestore(id: string) {
+    const next = new Set(skippedIds)
+    next.delete(id)
+    persistSkipped(next)
+  }
+
+  // Filter recipes: skip/restore + without instructions filter
+  const visibleRecipes = recipes.filter(r => {
+    if (onlyWithoutInstructions && r.hasInstructions) return false
+    if (showSkipped) return true
+    return !skippedIds.has(r.id)
+  })
+
+  const skippedCount = recipes.filter(r => skippedIds.has(r.id)).length
+  const remainingCount = recipes.filter(r => !skippedIds.has(r.id) && (!onlyWithoutInstructions || !r.hasInstructions)).length
 
   const loadRecipes = useCallback(async () => {
     try {
@@ -158,7 +199,6 @@ export function AdminRestructureClient({ initialData }: AdminRestructureClientPr
 
       const data: PaginatedResponse = await response.json()
       setRecipes(data.items)
-      setTotal(data.total)
       setTotalPages(data.totalPages)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ett fel uppstod')
@@ -418,19 +458,50 @@ export function AdminRestructureClient({ initialData }: AdminRestructureClientPr
             </p>
             {!loading && (
               <p className="mt-0.5 text-xs text-muted-foreground/50">
-                {total} {total === 1 ? 'recept' : 'recept'}
+                {remainingCount} recept kvar{skippedCount > 0 && ` (${skippedCount} överhoppade)`}
               </p>
             )}
           </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/50" />
-            <input
-              type="search"
-              placeholder="Sök recept..."
-              defaultValue={search}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="h-8 w-52 rounded-lg border-0 bg-muted/50 pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
-            />
+          <div className="flex items-center gap-3">
+            {/* Without instructions filter (only when instructions mode is active and ingredients off) */}
+            {includeInstructions && !includeIngredients && (
+              <button
+                onClick={() => setOnlyWithoutInstructions(!onlyWithoutInstructions)}
+                className={cn(
+                  'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors',
+                  onlyWithoutInstructions
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground/60 hover:text-muted-foreground'
+                )}
+              >
+                Utan instruktioner
+              </button>
+            )}
+            {/* Show/hide skipped toggle */}
+            {skippedCount > 0 && (
+              <button
+                onClick={() => setShowSkipped(!showSkipped)}
+                className={cn(
+                  'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors',
+                  showSkipped
+                    ? 'bg-muted text-foreground'
+                    : 'text-muted-foreground/60 hover:text-muted-foreground'
+                )}
+              >
+                {showSkipped ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                Visa överhoppade ({skippedCount})
+              </button>
+            )}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/50" />
+              <input
+                type="search"
+                placeholder="Sök recept..."
+                defaultValue={search}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="h-8 w-52 rounded-lg border-0 bg-muted/50 pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
           </div>
         </div>
 
@@ -438,7 +509,7 @@ export function AdminRestructureClient({ initialData }: AdminRestructureClientPr
           <div className="px-5 py-12 text-center">
             <p className="text-sm text-muted-foreground">Laddar recept...</p>
           </div>
-        ) : recipes.length === 0 ? (
+        ) : visibleRecipes.length === 0 ? (
           <div className="px-5 py-12 text-center">
             <p className="text-sm text-muted-foreground">
               {search ? 'Inga recept hittades' : 'Inga recept med ingrediensgrupper finns'}
@@ -447,72 +518,114 @@ export function AdminRestructureClient({ initialData }: AdminRestructureClientPr
         ) : (
           <>
             <div className="divide-y divide-border/40">
-              {recipes.map((recipe) => (
-                <div
-                  key={recipe.id}
-                  className="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-muted/30"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={`/recept/${recipe.id}`}
-                        className="text-[15px] font-medium hover:underline"
-                        target="_blank"
-                      >
-                        {recipe.name}
-                      </Link>
-                      <Link
-                        href={`/recept/${recipe.id}`}
-                        target="_blank"
-                        className="text-muted-foreground/40 hover:text-foreground"
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                      </Link>
-                    </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                      {recipe.groupCount > 0 && (
-                        <span className="rounded-md bg-muted/60 px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground">
-                          {recipe.groupCount} {recipe.groupCount === 1 ? 'grupp' : 'grupper'}
-                        </span>
-                      )}
-                      <span className="rounded-md bg-muted/60 px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground">
-                        {recipe.ingredientCount} ingredienser
-                      </span>
-                      <span className={cn(
-                        'rounded-md px-1.5 py-0.5 text-[11px] font-medium',
-                        recipe.hasInstructions
-                          ? 'bg-muted/60 text-muted-foreground'
-                          : 'bg-red-100 text-red-700'
-                      )}>
-                        {recipe.instructionCount} instruktioner
-                      </span>
-                      {recipe.hasLegacyFormat && (
-                        <span className="rounded-md bg-red-100 px-1.5 py-0.5 text-[11px] font-medium text-red-700">
-                          Legacy #-format
-                        </span>
-                      )}
-                    </div>
-                    {recipe.groups.length > 0 && (
-                      <p className="mt-1 text-xs text-muted-foreground/50">
-                        {recipe.groups.join(', ')}
-                      </p>
+              {visibleRecipes.map((recipe) => {
+                const isSkipped = skippedIds.has(recipe.id)
+                return (
+                  <div
+                    key={recipe.id}
+                    className={cn(
+                      'flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-muted/30',
+                      isSkipped && 'opacity-50'
                     )}
-                  </div>
-                  <Button
-                    size="sm"
-                    onClick={() => handlePreview(recipe)}
-                    disabled={!includeIngredients && !includeInstructions}
-                    className="shrink-0"
                   >
-                    <Wand2 className="mr-2 h-3.5 w-3.5" />
-                    {includeIngredients && includeInstructions
-                      ? 'Strukturera'
-                      : includeInstructions
-                      ? 'Instruktioner'
-                      : 'Ingredienser'}
-                  </Button>
-                </div>
-              ))}
+                    {/* Priority dot */}
+                    {recipe.hasLegacyFormat ? (
+                      <span className="h-2 w-2 shrink-0 rounded-full bg-red-500" title="Legacy #-format" />
+                    ) : !recipe.hasInstructions ? (
+                      <span className="h-2 w-2 shrink-0 rounded-full bg-amber-500" title="Inga instruktioner" />
+                    ) : (
+                      <span className="h-2 w-2 shrink-0" />
+                    )}
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/recept/${recipe.id}`}
+                          className={cn(
+                            'text-[15px] font-medium hover:underline',
+                            isSkipped && 'line-through text-muted-foreground'
+                          )}
+                          target="_blank"
+                        >
+                          {recipe.name}
+                        </Link>
+                        <Link
+                          href={`/recept/${recipe.id}`}
+                          target="_blank"
+                          className="text-muted-foreground/40 hover:text-foreground"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </Link>
+                      </div>
+                      <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                        {recipe.groupCount > 0 && (
+                          <span className="rounded-md bg-muted/60 px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+                            {recipe.groupCount} {recipe.groupCount === 1 ? 'grupp' : 'grupper'}
+                          </span>
+                        )}
+                        <span className="rounded-md bg-muted/60 px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+                          {recipe.ingredientCount} ingredienser
+                        </span>
+                        <span className={cn(
+                          'rounded-md px-1.5 py-0.5 text-[11px] font-medium',
+                          recipe.hasInstructions
+                            ? 'bg-muted/60 text-muted-foreground'
+                            : 'bg-red-100 text-red-700'
+                        )}>
+                          {recipe.instructionCount} instruktioner
+                        </span>
+                        {recipe.hasLegacyFormat && (
+                          <span className="rounded-md bg-red-100 px-1.5 py-0.5 text-[11px] font-medium text-red-700">
+                            Legacy #-format
+                          </span>
+                        )}
+                      </div>
+                      {recipe.groups.length > 0 && (
+                        <p className="mt-1 text-xs text-muted-foreground/50">
+                          {recipe.groups.join(', ')}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {isSkipped ? (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleRestore(recipe.id)}
+                          className="text-muted-foreground"
+                        >
+                          <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+                          Återställ
+                        </Button>
+                      ) : (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleSkip(recipe.id)}
+                            className="text-muted-foreground/50 hover:text-muted-foreground"
+                            title="Hoppa över"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => handlePreview(recipe)}
+                            disabled={!includeIngredients && !includeInstructions}
+                          >
+                            <Wand2 className="mr-2 h-3.5 w-3.5" />
+                            {includeIngredients && includeInstructions
+                              ? 'Strukturera'
+                              : includeInstructions
+                              ? 'Instruktioner'
+                              : 'Ingredienser'}
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
 
             {/* Pagination */}
