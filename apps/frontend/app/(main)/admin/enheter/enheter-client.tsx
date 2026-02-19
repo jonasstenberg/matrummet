@@ -14,8 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Card } from '@/components/ui/card'
-import { Pencil, Trash2, Plus, AlertCircle } from '@/lib/icons'
+import { Pencil, Trash2, Plus, AlertCircle, Search } from '@/lib/icons'
 import {
   Pagination,
   PaginationContent,
@@ -100,12 +99,10 @@ export function EnheterClient({ initialData, page: currentPage, search: searchQu
   }
 
   function handleSearchChange(value: string) {
-    // Clear any existing timeout
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current)
     }
 
-    // Debounce the URL update
     searchTimeoutRef.current = setTimeout(() => {
       updateURL(1, value)
     }, 300)
@@ -131,19 +128,16 @@ export function EnheterClient({ initialData, page: currentPage, search: searchQu
     const maxVisiblePages = 5
 
     if (totalPages <= maxVisiblePages) {
-      // Show all pages if total is small
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i)
       }
     } else {
-      // Always show first page
       pages.push(1)
 
       if (currentPage > 3) {
         pages.push('ellipsis')
       }
 
-      // Show pages around current page
       const start = Math.max(2, currentPage - 1)
       const end = Math.min(totalPages - 1, currentPage + 1)
 
@@ -155,7 +149,6 @@ export function EnheterClient({ initialData, page: currentPage, search: searchQu
         pages.push('ellipsis')
       }
 
-      // Always show last page
       pages.push(totalPages)
     }
 
@@ -288,21 +281,14 @@ export function EnheterClient({ initialData, page: currentPage, search: searchQu
     setDeleteDialogOpen(true)
   }
 
-  function formatUnitDisplay(unit: Unit): string {
-    if (unit.abbreviation) {
-      return `${unit.name} (${unit.abbreviation})`
-    }
-    return unit.name
-  }
-
   return (
     <>
       <header>
-        <h1 className="text-4xl font-bold tracking-tight text-foreground">
-          Hantera enheter
+        <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground">
+          Enheter
         </h1>
-        <p className="mt-2 text-lg text-muted-foreground">
-          Skapa, redigera och ta bort enheter för ingredienser.
+        <p className="mt-1 text-[15px] text-muted-foreground">
+          {total} enheter för ingredienser
         </p>
       </header>
 
@@ -321,84 +307,93 @@ export function EnheterClient({ initialData, page: currentPage, search: searchQu
       )}
 
       {/* Add new unit */}
-      <Card className="p-4">
-        <h2 className="mb-4 text-lg font-semibold">Lägg till enhet</h2>
-        <div className="flex gap-2">
-          <Input
-            placeholder="t.ex. matsked"
-            value={newUnitName}
-            onChange={(e) => setNewUnitName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleAdd()
-              }
-            }}
-            disabled={isAdding}
-          />
-          <Input
-            placeholder="t.ex. matskedar"
-            value={newUnitPlural}
-            onChange={(e) => setNewUnitPlural(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleAdd()
-              }
-            }}
-            disabled={isAdding}
-          />
-          <Input
-            placeholder="t.ex. msk"
-            value={newUnitAbbreviation}
-            onChange={(e) => setNewUnitAbbreviation(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleAdd()
-              }
-            }}
-            disabled={isAdding}
-          />
-          <Button onClick={handleAdd} disabled={isAdding || !newUnitName.trim() || !newUnitPlural.trim()}>
-            <Plus className="mr-2 h-4 w-4" />
-            {isAdding ? 'Skapar...' : 'Lägg till'}
-          </Button>
+      <div className="rounded-2xl bg-card p-5 shadow-(--shadow-card)">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
+          Ny enhet
+        </p>
+        <div className="grid grid-cols-[1fr_1fr_auto_auto] gap-2">
+          <div>
+            <label className="mb-1 block text-xs text-muted-foreground">Singular</label>
+            <Input
+              placeholder="t.ex. matsked"
+              value={newUnitName}
+              onChange={(e) => setNewUnitName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleAdd()
+              }}
+              disabled={isAdding}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-muted-foreground">Plural</label>
+            <Input
+              placeholder="t.ex. matskedar"
+              value={newUnitPlural}
+              onChange={(e) => setNewUnitPlural(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleAdd()
+              }}
+              disabled={isAdding}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-muted-foreground">Förkortn.</label>
+            <Input
+              placeholder="t.ex. msk"
+              value={newUnitAbbreviation}
+              onChange={(e) => setNewUnitAbbreviation(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleAdd()
+              }}
+              disabled={isAdding}
+              className="w-24"
+            />
+          </div>
+          <div className="self-end">
+            <Button onClick={handleAdd} disabled={isAdding || !newUnitName.trim() || !newUnitPlural.trim()}>
+              <Plus className="mr-2 h-4 w-4" />
+              {isAdding ? 'Skapar...' : 'Lägg till'}
+            </Button>
+          </div>
         </div>
-      </Card>
-
-      {/* Search */}
-      <Card className="p-4">
-        <Input
-          type="search"
-          placeholder="Sök enheter..."
-          defaultValue={searchQuery}
-          onChange={(e) => handleSearchChange(e.target.value)}
-          className="max-w-md"
-        />
-      </Card>
+      </div>
 
       {/* Units list */}
-      <Card className="p-4">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Enheter</h2>
-          <p className="text-sm text-muted-foreground">
-            {total} {total === 1 ? 'enhet' : 'enheter'}
+      <div className="overflow-hidden rounded-2xl bg-card shadow-(--shadow-card)">
+        {/* List header with search */}
+        <div className="flex items-center justify-between border-b border-border/40 px-5 py-4">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
+            Alla enheter
           </p>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/50" />
+            <input
+              type="search"
+              placeholder="Sök enheter..."
+              defaultValue={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="h-8 w-52 rounded-lg border-0 bg-muted/50 pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
         </div>
 
         {units.length === 0 ? (
-          <p className="text-center text-muted-foreground">
-            {searchQuery ? 'Inga enheter hittades' : 'Inga enheter ännu'}
-          </p>
+          <div className="px-5 py-12 text-center">
+            <p className="text-sm text-muted-foreground">
+              {searchQuery ? 'Inga enheter hittades' : 'Inga enheter ännu'}
+            </p>
+          </div>
         ) : (
-          <div className="space-y-2">
+          <div className="divide-y divide-border/40">
             {units.map((unit) => (
               <div
                 key={unit.id}
-                className="flex items-center justify-between rounded-lg border border-border p-3 hover:bg-accent/50"
+                className="flex items-center px-5 py-3 transition-colors hover:bg-muted/30"
               >
                 {editingId === unit.id ? (
                   <div className="flex flex-1 items-center gap-2">
                     <Input
-                      placeholder="t.ex. matsked"
+                      placeholder="Singular"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
                       onKeyDown={(e) => {
@@ -412,7 +407,7 @@ export function EnheterClient({ initialData, page: currentPage, search: searchQu
                       className="flex-1"
                     />
                     <Input
-                      placeholder="t.ex. matskedar"
+                      placeholder="Plural"
                       value={editPlural}
                       onChange={(e) => setEditPlural(e.target.value)}
                       onKeyDown={(e) => {
@@ -425,7 +420,7 @@ export function EnheterClient({ initialData, page: currentPage, search: searchQu
                       className="flex-1"
                     />
                     <Input
-                      placeholder="t.ex. msk"
+                      placeholder="Förk."
                       value={editAbbreviation}
                       onChange={(e) => setEditAbbreviation(e.target.value)}
                       onKeyDown={(e) => {
@@ -435,7 +430,7 @@ export function EnheterClient({ initialData, page: currentPage, search: searchQu
                           cancelEdit()
                         }
                       }}
-                      className="flex-1"
+                      className="w-20"
                     />
                     <Button
                       size="sm"
@@ -449,35 +444,40 @@ export function EnheterClient({ initialData, page: currentPage, search: searchQu
                   </div>
                 ) : (
                   <>
-                    <div className="flex-1">
-                      <span className="font-medium">{formatUnitDisplay(unit)}</span>
-                      {unit.plural !== unit.name && (
-                        <span className="ml-2 text-sm text-muted-foreground">
-                          (plural: {unit.plural})
-                        </span>
-                      )}
-                      <span className="ml-2 text-sm text-muted-foreground">
-                        ({unit.ingredient_count}{' '}
-                        {unit.ingredient_count === 1 ? 'ingrediens' : 'ingredienser'})
-                      </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-[15px] font-medium">{unit.name}</span>
+                        {unit.plural !== unit.name && (
+                          <span className="text-xs text-muted-foreground/60">
+                            pl. {unit.plural}
+                          </span>
+                        )}
+                        {unit.abbreviation && (
+                          <span className="rounded-md bg-muted/60 px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+                            {unit.abbreviation}
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-0.5 text-xs text-muted-foreground/60">
+                        {unit.ingredient_count}{' '}
+                        {unit.ingredient_count === 1 ? 'ingrediens' : 'ingredienser'}
+                      </p>
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="ghost"
+                    <div className="flex shrink-0 gap-1">
+                      <button
                         onClick={() => startEdit(unit)}
+                        className="rounded-lg p-2 text-muted-foreground/40 transition-colors hover:bg-muted/50 hover:text-foreground"
                         aria-label="Redigera enhet"
                       >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                      <button
                         onClick={() => confirmDelete(unit)}
+                        className="rounded-lg p-2 text-muted-foreground/40 transition-colors hover:bg-destructive/10 hover:text-destructive"
                         aria-label="Ta bort enhet"
                       >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   </>
                 )}
@@ -488,7 +488,7 @@ export function EnheterClient({ initialData, page: currentPage, search: searchQu
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="mt-4 border-t border-border pt-4">
+          <div className="border-t border-border/40 px-5 py-3">
             <Pagination>
               <PaginationContent>
                 <PaginationItem>
@@ -547,7 +547,7 @@ export function EnheterClient({ initialData, page: currentPage, search: searchQu
             </Pagination>
           </div>
         )}
-      </Card>
+      </div>
 
       {/* Delete confirmation dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

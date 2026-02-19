@@ -24,7 +24,7 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="mx-auto max-w-7xl">
       <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-8">
         <aside className="hidden md:block">
           <AdminSidebar />
@@ -32,7 +32,7 @@ export default async function AdminLayout({
         <div className="md:hidden">
           <AdminPillNav />
         </div>
-        <main className="min-w-0 space-y-8">
+        <main className="min-w-0 space-y-6">
           {children}
         </main>
       </div>

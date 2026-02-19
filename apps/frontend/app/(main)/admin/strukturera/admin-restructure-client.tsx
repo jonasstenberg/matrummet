@@ -4,10 +4,8 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import {
   Dialog,
@@ -17,9 +15,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { AlertCircle, Wand2, Check, X, ChevronRight, RefreshCw, ExternalLink } from '@/lib/icons'
+import { AlertCircle, Wand2, Check, X, ChevronRight, RefreshCw, ExternalLink, Search } from '@/lib/icons'
+import { cn } from '@/lib/utils'
 import {
   Pagination,
   PaginationContent,
@@ -145,7 +142,6 @@ export function AdminRestructureClient({ initialData }: AdminRestructureClientPr
       if (search) {
         params.set('search', search)
       }
-      // Show all recipes when only instructions mode, otherwise filter to those needing restructuring
       if (includeInstructions && !includeIngredients) {
         params.set('mode', 'all')
       }
@@ -171,7 +167,6 @@ export function AdminRestructureClient({ initialData }: AdminRestructureClientPr
     }
   }, [page, search, includeIngredients, includeInstructions])
 
-  // Reload recipes when dependencies change (except on initial mount)
   useEffect(() => {
     if (page !== initialData.page || search !== '' || includeIngredients !== true || includeInstructions !== false) {
       loadRecipes()
@@ -305,7 +300,6 @@ export function AdminRestructureClient({ initialData }: AdminRestructureClientPr
     return parts.join(' ')
   }
 
-  // Group current ingredients by their group_id for display
   function groupCurrentIngredients() {
     if (!previewData?.current) return { groups: [], ungrouped: [] }
 
@@ -339,44 +333,65 @@ export function AdminRestructureClient({ initialData }: AdminRestructureClientPr
   return (
     <>
       <header>
-        <h1 className="text-4xl font-bold tracking-tight text-foreground">
+        <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground">
           Strukturera recept
         </h1>
-        <p className="mt-2 text-lg text-muted-foreground">
-          Använd AI för att organisera ingredienser och förbättra/skapa instruktioner.
+        <p className="mt-1 text-[15px] text-muted-foreground">
+          Använd AI för att organisera ingredienser och förbättra instruktioner.
         </p>
       </header>
 
       {/* Mode toggles */}
-      <Card className="p-4">
-        <div className="flex flex-wrap gap-6">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="includeIngredients"
-              checked={includeIngredients}
-              onCheckedChange={(checked) => setIncludeIngredients(checked === true)}
-            />
-            <Label htmlFor="includeIngredients" className="cursor-pointer">
-              Strukturera ingredienser
-            </Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="includeInstructions"
-              checked={includeInstructions}
-              onCheckedChange={(checked) => setIncludeInstructions(checked === true)}
-            />
-            <Label htmlFor="includeInstructions" className="cursor-pointer">
-              Förbättra/skapa instruktioner
-            </Label>
-          </div>
+      <div className="rounded-2xl bg-card p-5 shadow-(--shadow-card)">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
+          Vad vill du göra?
+        </p>
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={() => setIncludeIngredients(!includeIngredients)}
+            className={cn(
+              'flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all',
+              includeIngredients
+                ? 'border-primary/30 bg-primary/5 text-primary'
+                : 'border-border/40 text-muted-foreground hover:border-border hover:text-foreground'
+            )}
+          >
+            <span className={cn(
+              'flex h-5 w-5 items-center justify-center rounded-md border text-[11px]',
+              includeIngredients
+                ? 'border-primary bg-primary text-primary-foreground'
+                : 'border-border/60'
+            )}>
+              {includeIngredients && <Check className="h-3 w-3" />}
+            </span>
+            Strukturera ingredienser
+          </button>
+          <button
+            onClick={() => setIncludeInstructions(!includeInstructions)}
+            className={cn(
+              'flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all',
+              includeInstructions
+                ? 'border-primary/30 bg-primary/5 text-primary'
+                : 'border-border/40 text-muted-foreground hover:border-border hover:text-foreground'
+            )}
+          >
+            <span className={cn(
+              'flex h-5 w-5 items-center justify-center rounded-md border text-[11px]',
+              includeInstructions
+                ? 'border-primary bg-primary text-primary-foreground'
+                : 'border-border/60'
+            )}>
+              {includeInstructions && <Check className="h-3 w-3" />}
+            </span>
+            Förbättra/skapa instruktioner
+          </button>
         </div>
         {!includeIngredients && !includeInstructions && (
-          <p className="mt-2 text-sm text-destructive">
+          <p className="mt-3 text-xs text-destructive">
             Välj minst ett alternativ
           </p>
         )}
-      </Card>
+      </div>
 
       {error && (
         <Alert variant="destructive">
@@ -391,50 +406,57 @@ export function AdminRestructureClient({ initialData }: AdminRestructureClientPr
         </Alert>
       )}
 
-      {/* Search */}
-      <Card className="p-4">
-        <Input
-          type="search"
-          placeholder="Sök recept..."
-          defaultValue={search}
-          onChange={(e) => handleSearchChange(e.target.value)}
-        />
-      </Card>
-
       {/* Recipe list */}
-      <Card className="p-4">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">
-            {includeInstructions && !includeIngredients
-              ? 'Alla recept'
-              : 'Recept med ingrediensgrupper'}
-          </h2>
-          {!loading && (
-            <p className="text-sm text-muted-foreground">
-              {total} {total === 1 ? 'recept' : 'recept'}
+      <div className="overflow-hidden rounded-2xl bg-card shadow-(--shadow-card)">
+        {/* Header with search */}
+        <div className="flex items-center justify-between border-b border-border/40 px-5 py-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
+              {includeInstructions && !includeIngredients
+                ? 'Alla recept'
+                : 'Recept med ingrediensgrupper'}
             </p>
-          )}
+            {!loading && (
+              <p className="mt-0.5 text-xs text-muted-foreground/50">
+                {total} {total === 1 ? 'recept' : 'recept'}
+              </p>
+            )}
+          </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/50" />
+            <input
+              type="search"
+              placeholder="Sök recept..."
+              defaultValue={search}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="h-8 w-52 rounded-lg border-0 bg-muted/50 pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
         </div>
 
         {loading ? (
-          <p className="text-center text-muted-foreground">Laddar recept...</p>
+          <div className="px-5 py-12 text-center">
+            <p className="text-sm text-muted-foreground">Laddar recept...</p>
+          </div>
         ) : recipes.length === 0 ? (
-          <p className="text-center text-muted-foreground">
-            {search ? 'Inga recept hittades' : 'Inga recept med ingrediensgrupper finns'}
-          </p>
+          <div className="px-5 py-12 text-center">
+            <p className="text-sm text-muted-foreground">
+              {search ? 'Inga recept hittades' : 'Inga recept med ingrediensgrupper finns'}
+            </p>
+          </div>
         ) : (
           <>
-            <div className="space-y-2">
+            <div className="divide-y divide-border/40">
               {recipes.map((recipe) => (
                 <div
                   key={recipe.id}
-                  className="flex items-center justify-between rounded-lg border border-border p-3 hover:bg-accent/50"
+                  className="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-muted/30"
                 >
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <Link
                         href={`/recept/${recipe.id}`}
-                        className="font-medium hover:underline"
+                        className="text-[15px] font-medium hover:underline"
                         target="_blank"
                       >
                         {recipe.name}
@@ -442,50 +464,52 @@ export function AdminRestructureClient({ initialData }: AdminRestructureClientPr
                       <Link
                         href={`/recept/${recipe.id}`}
                         target="_blank"
-                        className="text-muted-foreground hover:text-foreground"
+                        className="text-muted-foreground/40 hover:text-foreground"
                       >
                         <ExternalLink className="h-3 w-3" />
                       </Link>
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-1.5">
                       {recipe.groupCount > 0 && (
-                        <Badge variant="secondary">
+                        <span className="rounded-md bg-muted/60 px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground">
                           {recipe.groupCount} {recipe.groupCount === 1 ? 'grupp' : 'grupper'}
-                        </Badge>
-                      )}
-                      <Badge variant="outline">
-                        {recipe.ingredientCount} ingredienser
-                      </Badge>
-                      <Badge variant={recipe.hasInstructions ? 'outline' : 'destructive'}>
-                        {recipe.instructionCount} instruktioner
-                      </Badge>
-                      {recipe.hasLegacyFormat && (
-                        <Badge variant="destructive" className="text-xs">
-                          Legacy #-format
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="mt-1 flex flex-wrap gap-1">
-                      {recipe.groups.map((group, i) => (
-                        <span
-                          key={i}
-                          className="text-xs text-muted-foreground"
-                        >
-                          {group}{i < recipe.groups.length - 1 ? ',' : ''}
                         </span>
-                      ))}
+                      )}
+                      <span className="rounded-md bg-muted/60 px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+                        {recipe.ingredientCount} ingredienser
+                      </span>
+                      <span className={cn(
+                        'rounded-md px-1.5 py-0.5 text-[11px] font-medium',
+                        recipe.hasInstructions
+                          ? 'bg-muted/60 text-muted-foreground'
+                          : 'bg-red-100 text-red-700'
+                      )}>
+                        {recipe.instructionCount} instruktioner
+                      </span>
+                      {recipe.hasLegacyFormat && (
+                        <span className="rounded-md bg-red-100 px-1.5 py-0.5 text-[11px] font-medium text-red-700">
+                          Legacy #-format
+                        </span>
+                      )}
                     </div>
+                    {recipe.groups.length > 0 && (
+                      <p className="mt-1 text-xs text-muted-foreground/50">
+                        {recipe.groups.join(', ')}
+                      </p>
+                    )}
                   </div>
                   <Button
                     size="sm"
                     onClick={() => handlePreview(recipe)}
-                    className="ml-4"
                     disabled={!includeIngredients && !includeInstructions}
+                    className="shrink-0"
                   >
-                    <Wand2 className="mr-2 h-4 w-4" />
+                    <Wand2 className="mr-2 h-3.5 w-3.5" />
                     {includeIngredients && includeInstructions
                       ? 'Strukturera'
                       : includeInstructions
-                      ? 'Förbättra instruktioner'
-                      : 'Strukturera ingredienser'}
+                      ? 'Instruktioner'
+                      : 'Ingredienser'}
                   </Button>
                 </div>
               ))}
@@ -493,7 +517,7 @@ export function AdminRestructureClient({ initialData }: AdminRestructureClientPr
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="mt-4 border-t border-border pt-4">
+              <div className="border-t border-border/40 px-5 py-3">
                 <Pagination>
                   <PaginationContent>
                     <PaginationItem>
@@ -542,7 +566,7 @@ export function AdminRestructureClient({ initialData }: AdminRestructureClientPr
             )}
           </>
         )}
-      </Card>
+      </div>
 
       {/* Preview Dialog */}
       <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
@@ -566,19 +590,19 @@ export function AdminRestructureClient({ initialData }: AdminRestructureClientPr
               {/* Ingredients preview */}
               {previewData.restructured && (
                 <div>
-                  <h4 className="mb-3 text-sm font-medium text-muted-foreground uppercase tracking-wide">Ingredienser</h4>
+                  <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">Ingredienser</h4>
                   <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-4">
                     {/* Current ingredients */}
                     <div className="space-y-2">
-                      <h3 className="font-semibold text-destructive">Nuvarande</h3>
-                      <div className="space-y-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4 max-h-64 overflow-y-auto">
+                      <h3 className="text-sm font-semibold text-destructive">Nuvarande</h3>
+                      <div className="space-y-3 rounded-xl border border-destructive/20 bg-destructive/5 p-4 max-h-64 overflow-y-auto">
                         {(() => {
                           const { groups, ungrouped } = groupCurrentIngredients()
                           return (
                             <>
                               {ungrouped.length > 0 && (
                                 <div>
-                                  <p className="text-xs font-medium text-muted-foreground">Utan grupp</p>
+                                  <p className="text-[11px] font-medium text-muted-foreground/60">Utan grupp</p>
                                   <ul className="mt-1 space-y-0.5">
                                     {ungrouped.map((ing) => (
                                       <li key={ing.id} className="text-sm">
@@ -590,7 +614,7 @@ export function AdminRestructureClient({ initialData }: AdminRestructureClientPr
                               )}
                               {groups.map((group, i) => (
                                 <div key={i}>
-                                  <p className="text-xs font-medium text-muted-foreground">
+                                  <p className="text-[11px] font-medium text-muted-foreground/60">
                                     {group.name}
                                   </p>
                                   <ul className="mt-1 space-y-0.5">
@@ -616,16 +640,16 @@ export function AdminRestructureClient({ initialData }: AdminRestructureClientPr
 
                     {/* Arrow */}
                     <div className="flex items-center justify-center self-center py-8">
-                      <ChevronRight className="h-8 w-8 text-muted-foreground" />
+                      <ChevronRight className="h-8 w-8 text-muted-foreground/30" />
                     </div>
 
                     {/* Proposed ingredients */}
                     <div className="space-y-2">
-                      <h3 className="font-semibold text-green-600">Föreslagen</h3>
-                      <div className="space-y-3 rounded-lg border border-green-300 bg-green-50 p-4 max-h-64 overflow-y-auto">
+                      <h3 className="text-sm font-semibold text-emerald-600">Föreslagen</h3>
+                      <div className="space-y-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 max-h-64 overflow-y-auto">
                         {previewData.restructured.ungrouped_ingredients.length > 0 && (
                           <div>
-                            <p className="text-xs font-medium text-muted-foreground">Utan grupp</p>
+                            <p className="text-[11px] font-medium text-muted-foreground/60">Utan grupp</p>
                             <ul className="mt-1 space-y-0.5">
                               {previewData.restructured.ungrouped_ingredients.map((ing, i) => (
                                 <li key={i} className="text-sm">
@@ -637,7 +661,7 @@ export function AdminRestructureClient({ initialData }: AdminRestructureClientPr
                         )}
                         {previewData.restructured.groups.map((group, i) => (
                           <div key={i}>
-                            <p className="text-xs font-medium text-muted-foreground">
+                            <p className="text-[11px] font-medium text-muted-foreground/60">
                               {group.group_name}
                             </p>
                             <ul className="mt-1 space-y-0.5">
@@ -658,12 +682,12 @@ export function AdminRestructureClient({ initialData }: AdminRestructureClientPr
               {/* Instructions preview */}
               {previewData.improvedInstructions && (
                 <div>
-                  <h4 className="mb-3 text-sm font-medium text-muted-foreground uppercase tracking-wide">Instruktioner</h4>
+                  <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">Instruktioner</h4>
                   <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-4">
                     {/* Current instructions */}
                     <div className="space-y-2">
-                      <h3 className="font-semibold text-destructive">Nuvarande</h3>
-                      <div className="space-y-2 rounded-lg border border-destructive/30 bg-destructive/5 p-4 max-h-64 overflow-y-auto">
+                      <h3 className="text-sm font-semibold text-destructive">Nuvarande</h3>
+                      <div className="space-y-2 rounded-xl border border-destructive/20 bg-destructive/5 p-4 max-h-64 overflow-y-auto">
                         {previewData.current.instructions && previewData.current.instructions.length > 0 ? (
                           <ol className="list-decimal list-inside space-y-1">
                             {previewData.current.instructions.map((instr, i) => (
@@ -678,13 +702,13 @@ export function AdminRestructureClient({ initialData }: AdminRestructureClientPr
 
                     {/* Arrow */}
                     <div className="flex items-center justify-center self-center py-8">
-                      <ChevronRight className="h-8 w-8 text-muted-foreground" />
+                      <ChevronRight className="h-8 w-8 text-muted-foreground/30" />
                     </div>
 
                     {/* Proposed instructions */}
                     <div className="space-y-2">
-                      <h3 className="font-semibold text-green-600">Föreslagen</h3>
-                      <div className="space-y-3 rounded-lg border border-green-300 bg-green-50 p-4 max-h-64 overflow-y-auto">
+                      <h3 className="text-sm font-semibold text-emerald-600">Föreslagen</h3>
+                      <div className="space-y-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 max-h-64 overflow-y-auto">
                         {previewData.improvedInstructions.ungrouped_steps.length > 0 && (
                           <ol className="list-decimal list-inside space-y-1">
                             {previewData.improvedInstructions.ungrouped_steps.map((step, i) => (
@@ -694,7 +718,7 @@ export function AdminRestructureClient({ initialData }: AdminRestructureClientPr
                         )}
                         {previewData.improvedInstructions.groups.map((group, i) => (
                           <div key={i}>
-                            <p className="text-xs font-medium text-muted-foreground">
+                            <p className="text-[11px] font-medium text-muted-foreground/60">
                               {group.group_name}
                             </p>
                             <ol className="mt-1 list-decimal list-inside space-y-1">
@@ -714,10 +738,10 @@ export function AdminRestructureClient({ initialData }: AdminRestructureClientPr
 
           {/* Custom instructions */}
           {previewData && (
-            <div className="space-y-2 border-t pt-4">
-              <label htmlFor="instructions" className="text-sm font-medium">
+            <div className="space-y-2 border-t border-border/40 pt-4">
+              <Label htmlFor="instructions" className="text-sm font-medium">
                 Instruktioner till AI (valfritt)
-              </label>
+              </Label>
               <Textarea
                 id="instructions"
                 placeholder="T.ex. 'Lägg all potatis under Potatispuré' eller 'Timjan och rosmarin hör till lammsteken'"

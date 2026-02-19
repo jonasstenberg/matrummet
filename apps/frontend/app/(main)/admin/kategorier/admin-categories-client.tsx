@@ -13,8 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Card } from '@/components/ui/card'
-import { Pencil, Trash2, Plus, AlertCircle } from '@/lib/icons'
+import { Pencil, Trash2, Plus, AlertCircle, Search } from '@/lib/icons'
 import { useRouter } from 'next/navigation'
 
 interface AdminCategoriesClientProps {
@@ -39,11 +38,18 @@ export function AdminCategoriesClient({ initialCategories }: AdminCategoriesClie
   const [newCategoryName, setNewCategoryName] = useState('')
   const [isAdding, setIsAdding] = useState(false)
 
+  // Search filter
+  const [searchQuery, setSearchQuery] = useState('')
+
   // Group categories by group_name
   const groupedCategories = useMemo(() => {
     const groups = new Map<string, { sort_order: number; items: CategoryWithCount[] }>()
 
-    for (const cat of categories) {
+    const filtered = searchQuery
+      ? categories.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      : categories
+
+    for (const cat of filtered) {
       const groupName = cat.group_name ?? 'Utan grupp'
       const sortOrder = (cat as CategoryWithCount & { group_sort_order?: number }).group_sort_order ?? 99
 
@@ -59,6 +65,12 @@ export function AdminCategoriesClient({ initialCategories }: AdminCategoriesClie
         name,
         items: items.sort((a, b) => a.name.localeCompare(b.name, 'sv')),
       }))
+  }, [categories, searchQuery])
+
+  const totalCategories = categories.length
+  const totalGroups = useMemo(() => {
+    const groups = new Set(categories.map(c => c.group_name ?? 'Utan grupp'))
+    return groups.size
   }, [categories])
 
   async function loadCategories() {
@@ -202,11 +214,11 @@ export function AdminCategoriesClient({ initialCategories }: AdminCategoriesClie
   return (
     <>
       <header>
-        <h1 className="text-4xl font-bold tracking-tight text-foreground">
-          Hantera kategorier
+        <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground">
+          Kategorier
         </h1>
-        <p className="mt-2 text-lg text-muted-foreground">
-          Skapa, redigera och ta bort kategorier för recept.
+        <p className="mt-1 text-[15px] text-muted-foreground">
+          {totalCategories} kategorier i {totalGroups} grupper
         </p>
       </header>
 
@@ -225,8 +237,10 @@ export function AdminCategoriesClient({ initialCategories }: AdminCategoriesClie
       )}
 
       {/* Add new category */}
-      <Card className="p-4">
-        <h2 className="mb-4 text-lg font-semibold">Lägg till kategori</h2>
+      <div className="rounded-2xl bg-card p-5 shadow-(--shadow-card)">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
+          Ny kategori
+        </p>
         <div className="flex gap-2">
           <Input
             placeholder="Kategorinamn"
@@ -244,89 +258,113 @@ export function AdminCategoriesClient({ initialCategories }: AdminCategoriesClie
             {isAdding ? 'Skapar...' : 'Lägg till'}
           </Button>
         </div>
-      </Card>
+      </div>
 
-      {/* Categories list grouped by group */}
-      <Card className="p-4">
-        <h2 className="mb-4 text-lg font-semibold">Kategorier</h2>
+      {/* Categories list */}
+      <div className="overflow-hidden rounded-2xl bg-card shadow-(--shadow-card)">
+        {/* List header with search */}
+        <div className="flex items-center justify-between border-b border-border/40 px-5 py-4">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
+            Alla kategorier
+          </p>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/50" />
+            <input
+              type="search"
+              placeholder="Filtrera..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-8 w-44 rounded-lg border-0 bg-muted/50 pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+        </div>
 
         {categories.length === 0 ? (
-          <p className="text-center text-muted-foreground">Inga kategorier hittades</p>
-        ) : (
-          <div className="space-y-6">
-            {groupedCategories.map((group) => (
-              <div key={group.name}>
-                <h3 className="mb-2 text-sm font-medium uppercase tracking-wide text-muted-foreground">
-                  {group.name}
-                </h3>
-                <div className="space-y-2">
-                  {group.items.map((category) => (
-                    <div
-                      key={category.id}
-                      className="flex items-center justify-between rounded-lg border border-border p-3 hover:bg-accent/50"
-                    >
-                      {editingId === category.id ? (
-                        <div className="flex flex-1 items-center gap-2">
-                          <Input
-                            value={editName}
-                            onChange={(e) => setEditName(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                handleRename(category.id, editName)
-                              } else if (e.key === 'Escape') {
-                                cancelEdit()
-                              }
-                            }}
-                            autoFocus
-                            className="flex-1"
-                          />
-                          <Button
-                            size="sm"
-                            onClick={() => handleRename(category.id, editName)}
-                          >
-                            Spara
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={cancelEdit}>
-                            Avbryt
-                          </Button>
-                        </div>
-                      ) : (
-                        <>
-                          <div className="flex-1">
-                            <span className="font-medium">{category.name}</span>
-                            <span className="ml-2 text-sm text-muted-foreground">
-                              ({category.recipe_count}{' '}
-                              {category.recipe_count === 1 ? 'recept' : 'recept'})
-                            </span>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => startEdit(category)}
-                              aria-label="Redigera kategori"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => confirmDelete(category)}
-                              aria-label="Ta bort kategori"
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
+          <div className="px-5 py-12 text-center">
+            <p className="text-sm text-muted-foreground">Inga kategorier hittades</p>
           </div>
+        ) : groupedCategories.length === 0 ? (
+          <div className="px-5 py-12 text-center">
+            <p className="text-sm text-muted-foreground">Inga kategorier matchar sökningen</p>
+          </div>
+        ) : (
+          groupedCategories.map((group, groupIndex) => (
+            <div key={group.name}>
+              {/* Group header */}
+              <div className="border-b border-border/40 bg-muted/30 px-5 py-2">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+                  {group.name}
+                </p>
+              </div>
+              {/* Group items */}
+              <div className="divide-y divide-border/40">
+                {group.items.map((category) => (
+                  <div
+                    key={category.id}
+                    className="flex items-center px-5 py-3 transition-colors hover:bg-muted/30"
+                  >
+                    {editingId === category.id ? (
+                      <div className="flex flex-1 items-center gap-2">
+                        <Input
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleRename(category.id, editName)
+                            } else if (e.key === 'Escape') {
+                              cancelEdit()
+                            }
+                          }}
+                          autoFocus
+                          className="flex-1"
+                        />
+                        <Button
+                          size="sm"
+                          onClick={() => handleRename(category.id, editName)}
+                        >
+                          Spara
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={cancelEdit}>
+                          Avbryt
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-[15px] font-medium">{category.name}</span>
+                          <span className="ml-2 text-xs text-muted-foreground/60">
+                            {category.recipe_count} recept
+                          </span>
+                        </div>
+                        <div className="flex shrink-0 gap-1">
+                          <button
+                            onClick={() => startEdit(category)}
+                            className="rounded-lg p-2 text-muted-foreground/40 transition-colors hover:bg-muted/50 hover:text-foreground"
+                            aria-label="Redigera kategori"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => confirmDelete(category)}
+                            className="rounded-lg p-2 text-muted-foreground/40 transition-colors hover:bg-destructive/10 hover:text-destructive"
+                            aria-label="Ta bort kategori"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {/* Separator between groups except last */}
+              {groupIndex < groupedCategories.length - 1 && (
+                <div className="border-b border-border/40" />
+              )}
+            </div>
+          ))
         )}
-      </Card>
+      </div>
 
       {/* Delete confirmation dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

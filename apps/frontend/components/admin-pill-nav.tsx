@@ -38,27 +38,29 @@ export function AdminPillNav() {
   }, [checkScroll])
 
   return (
-    <nav aria-label="Administration" className="rounded-lg bg-card p-2 shadow-sm md:bg-transparent md:p-0 md:shadow-none">
+    <nav aria-label="Administration" className="rounded-2xl bg-card p-1.5 shadow-(--shadow-card) md:bg-transparent md:p-0 md:shadow-none">
       <div className="relative">
         <div
           ref={scrollRef}
-          className="flex gap-2 overflow-x-auto scrollbar-none"
+          className="flex gap-1 overflow-x-auto scrollbar-none"
         >
           {adminNavItems.map((item) => {
             const isActive = pathname === item.href
+            const Icon = item.icon
 
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap',
+                  'flex flex-shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors whitespace-nowrap',
                   isActive
-                    ? 'bg-warm text-warm-foreground'
-                    : 'bg-muted text-foreground/70 hover:bg-muted/80 hover:text-foreground'
+                    ? 'bg-muted text-foreground'
+                    : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                 )}
                 aria-current={isActive ? 'page' : undefined}
               >
+                <Icon className="h-3.5 w-3.5" />
                 {item.label}
               </Link>
             )

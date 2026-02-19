@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
-import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -72,7 +71,6 @@ export function AdminAIReviewClient() {
 
       const batch: BatchResult = await response.json()
 
-      // Accumulate results
       const newAccumulated: AccumulatedResults = {
         totalProcessed: accumulated.totalProcessed + batch.totalProcessed,
         normalized: accumulated.normalized + batch.normalized,
@@ -89,9 +87,7 @@ export function AdminAIReviewClient() {
       setCurrentBatch(newAccumulated.batchesCompleted)
       setPhase(batch.phase)
 
-      // If more items exist, continue processing
       if (batch.hasMore && !isAbortedRef.current) {
-        // Small delay between batches to avoid overwhelming the server
         await new Promise((resolve) => setTimeout(resolve, 500))
         return processBatch(newAccumulated)
       }
@@ -127,7 +123,6 @@ export function AdminAIReviewClient() {
       await processBatch(initialAccumulated)
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
-        // Request was cancelled
         return
       }
       setError(err instanceof Error ? err.message : 'Ett fel uppstod')
@@ -144,11 +139,21 @@ export function AdminAIReviewClient() {
     setIsRunning(false)
   }
 
+  const stats = [
+    { label: 'Normaliserade', value: results?.normalized ?? 0, color: 'text-primary' },
+    { label: 'Nya matvaror', value: results?.created ?? 0, color: 'text-emerald-600' },
+    { label: 'Avvisade', value: results?.rejected ?? 0, color: 'text-red-600' },
+    { label: 'Borttagna', value: results?.deleted ?? 0, color: 'text-orange-600' },
+    { label: 'Ingredienser', value: results?.ingredientsUpdated ?? 0, color: 'text-blue-600' },
+  ]
+
   return (
     <>
       <header>
-        <h1 className="text-4xl font-bold tracking-tight text-foreground">AI-granskning</h1>
-        <p className="mt-2 text-lg text-muted-foreground">
+        <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground">
+          AI-granskning
+        </h1>
+        <p className="mt-1 text-[15px] text-muted-foreground">
           Låt AI granska väntande matvaror och länka ingredienser automatiskt.
         </p>
       </header>
@@ -162,14 +167,14 @@ export function AdminAIReviewClient() {
       )}
 
       {/* Trigger section */}
-      <Card className="p-6">
+      <div className="rounded-2xl bg-card p-8 shadow-(--shadow-card)">
         <div className="flex flex-col items-center gap-4 text-center">
-          <div className="rounded-full bg-primary/10 p-4">
-            <Sparkles className="h-8 w-8 text-primary" />
+          <div className="rounded-2xl bg-rose-100 p-4">
+            <Sparkles className="h-8 w-8 text-rose-600" />
           </div>
           <div>
             <h2 className="text-lg font-semibold">Starta AI-granskning</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
               AI:n normaliserar väntande matvaror, skapar nya vid behov, och uppdaterar
               ingredienser. Bearbetningen sker i omgångar om 50 st.
             </p>
@@ -195,11 +200,11 @@ export function AdminAIReviewClient() {
             )}
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Progress section */}
       {isRunning && (
-        <Card className="p-6">
+        <div className="rounded-2xl bg-card p-6 shadow-(--shadow-card)">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <Loader2 className="h-5 w-5 animate-spin text-primary" />
@@ -207,30 +212,30 @@ export function AdminAIReviewClient() {
                 <p className="font-medium">
                   Bearbetar omgång {currentBatch + 1}...
                 </p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   {phase === 'foods' ? 'Granskar väntande matvaror' : 'Länkar föräldralösa ingredienser'}
                 </p>
               </div>
             </div>
 
             {results && results.totalProcessed > 0 && (
-              <div className="rounded-lg bg-muted/50 p-4">
-                <p className="text-sm font-medium">Hittills bearbetat:</p>
+              <div className="rounded-xl bg-muted/40 p-4">
+                <p className="text-xs font-medium text-muted-foreground">Hittills bearbetat</p>
                 <p className="text-2xl font-bold text-primary">{results.totalProcessed}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground/60">
                   {results.batchesCompleted} omgång{results.batchesCompleted !== 1 ? 'ar' : ''} klara
                 </p>
               </div>
             )}
           </div>
-        </Card>
+        </div>
       )}
 
       {/* Results section */}
       {results && !isRunning && (
-        <Card className="p-6">
-          <div className="mb-4 flex items-center gap-2">
-            <CheckCircle2 className="h-5 w-5 text-green-600" />
+        <div className="rounded-2xl bg-card p-6 shadow-(--shadow-card)">
+          <div className="mb-5 flex items-center gap-2">
+            <CheckCircle2 className="h-5 w-5 text-emerald-600" />
             <h2 className="text-lg font-semibold">Resultat</h2>
           </div>
 
@@ -241,30 +246,16 @@ export function AdminAIReviewClient() {
           ) : (
             <>
               {/* Summary stats */}
-              <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-5">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-primary">{results.normalized}</div>
-                  <div className="text-sm text-muted-foreground">Normaliserade</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-green-600">{results.created}</div>
-                  <div className="text-sm text-muted-foreground">Nya matvaror</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-red-600">{results.rejected}</div>
-                  <div className="text-sm text-muted-foreground">Avvisade</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-orange-600">{results.deleted}</div>
-                  <div className="text-sm text-muted-foreground">Borttagna</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600">{results.ingredientsUpdated}</div>
-                  <div className="text-sm text-muted-foreground">Ingredienser</div>
-                </div>
+              <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-5">
+                {stats.map((stat) => (
+                  <div key={stat.label} className="rounded-xl bg-muted/30 p-3 text-center">
+                    <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
+                    <div className="text-[11px] text-muted-foreground">{stat.label}</div>
+                  </div>
+                ))}
               </div>
 
-              <p className="mb-4 text-muted-foreground">
+              <p className="mb-4 text-sm text-muted-foreground">
                 Bearbetade {results.totalProcessed} objekt i {results.batchesCompleted} omgång
                 {results.batchesCompleted !== 1 ? 'ar' : ''}.
                 {results.ingredientsUpdated > 0 &&
@@ -277,9 +268,9 @@ export function AdminAIReviewClient() {
                   <AccordionItem value="details">
                     <AccordionTrigger>Visa detaljer ({results.details.length})</AccordionTrigger>
                     <AccordionContent>
-                      <div className="max-h-96 space-y-2 overflow-y-auto">
+                      <div className="max-h-96 divide-y divide-border/40 overflow-y-auto rounded-xl border border-border/40">
                         {results.details.map((d, i) => (
-                          <div key={i} className="flex items-center justify-between text-sm">
+                          <div key={i} className="flex items-center justify-between px-4 py-2.5 text-sm">
                             <span>
                               &quot;{d.foodName}&quot;
                               {d.normalizedTo && (
@@ -317,7 +308,7 @@ export function AdminAIReviewClient() {
               )}
             </>
           )}
-        </Card>
+        </div>
       )}
     </>
   )

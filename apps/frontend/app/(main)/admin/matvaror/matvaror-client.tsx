@@ -13,10 +13,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Pencil, Trash2, Plus, AlertCircle, Check, X, ChefHat, ExternalLink, Loader2, Link2 } from '@/lib/icons'
+import { Pencil, Trash2, Plus, AlertCircle, Check, X, ChefHat, ExternalLink, Loader2, Link2, Search } from '@/lib/icons'
 import Link from 'next/link'
+import { cn } from '@/lib/utils'
 import {
   Pagination,
   PaginationContent,
@@ -44,6 +43,13 @@ interface MatvarorClientProps {
   search: string
   statusFilter: FoodStatus | 'all'
 }
+
+const STATUS_TABS: Array<{ value: FoodStatus | 'all'; label: string }> = [
+  { value: 'all', label: 'Alla' },
+  { value: 'pending', label: 'Väntar' },
+  { value: 'approved', label: 'Godkända' },
+  { value: 'rejected', label: 'Avvisade' },
+]
 
 export function MatvarorClient({
   initialData,
@@ -190,7 +196,6 @@ export function MatvarorClient({
       setDeleteDialogOpen(false)
       setFoodToDelete(null)
 
-      // If we deleted the last item on this page and it's not page 1, go back a page
       if (foods.length === 1 && page > 1) {
         updateURL(page - 1, search)
       } else {
@@ -207,7 +212,6 @@ export function MatvarorClient({
     setError(null)
     setSuccess(null)
 
-    // Check for similar foods if not skipping
     if (!skipSimilarCheck) {
       const similar = await getSimilarFoods(food.name)
       if (similar.length > 0) {
@@ -368,7 +372,6 @@ export function MatvarorClient({
         const response = await fetch(`/api/admin/foods?${params}`)
         if (response.ok) {
           const data: FoodsPaginatedResponse = await response.json()
-          // Filter out the food itself and foods that are already aliases
           const filtered = data.items.filter(
             (f) => f.id !== aliasDialogFood?.id && !f.canonical_food_id
           )
@@ -420,21 +423,21 @@ export function MatvarorClient({
     switch (status) {
       case 'pending':
         return (
-          <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">
+          <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-800">
             Väntar
-          </Badge>
+          </span>
         )
       case 'approved':
         return (
-          <Badge className="bg-green-100 text-green-900 hover:bg-green-100">
+          <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-800">
             Godkänd
-          </Badge>
+          </span>
         )
       case 'rejected':
         return (
-          <Badge className="bg-red-100 text-red-900 hover:bg-red-100">
+          <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-medium text-red-800">
             Avvisad
-          </Badge>
+          </span>
         )
     }
   }
@@ -442,11 +445,11 @@ export function MatvarorClient({
   return (
     <>
       <header>
-        <h1 className="text-4xl font-bold tracking-tight text-foreground">
-          Hantera matvaror
+        <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground">
+          Matvaror
         </h1>
-        <p className="mt-2 text-lg text-muted-foreground">
-          Granska inlämnade matvaror, skapa nya eller redigera befintliga.
+        <p className="mt-1 text-[15px] text-muted-foreground">
+          Granska, godkänn och hantera matvaror i systemet.
         </p>
       </header>
 
@@ -465,9 +468,11 @@ export function MatvarorClient({
       )}
 
       {/* Add new food */}
-      <Card className="p-4">
-        <h2 className="mb-4 text-lg font-semibold">Lägg till matvara</h2>
-        <p className="mb-3 text-sm text-muted-foreground">
+      <div className="rounded-2xl bg-card p-5 shadow-(--shadow-card)">
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
+          Ny matvara
+        </p>
+        <p className="mb-3 text-xs text-muted-foreground">
           Matvaror som skapas av admin blir automatiskt godkända.
         </p>
         <div className="flex gap-2">
@@ -487,72 +492,70 @@ export function MatvarorClient({
             {isAdding ? 'Skapar...' : 'Lägg till'}
           </Button>
         </div>
-      </Card>
-
-      {/* Status filter tabs */}
-      <Card className="p-4">
-        <div className="flex gap-2">
-          <Button
-            variant={statusFilter === 'all' ? 'default' : 'outline'}
-            onClick={() => setStatusFilterValue('all')}
-          >
-            Alla
-          </Button>
-          <Button
-            variant={statusFilter === 'pending' ? 'default' : 'outline'}
-            onClick={() => setStatusFilterValue('pending')}
-          >
-            Väntar
-          </Button>
-          <Button
-            variant={statusFilter === 'approved' ? 'default' : 'outline'}
-            onClick={() => setStatusFilterValue('approved')}
-          >
-            Godkända
-          </Button>
-          <Button
-            variant={statusFilter === 'rejected' ? 'default' : 'outline'}
-            onClick={() => setStatusFilterValue('rejected')}
-          >
-            Avvisade
-          </Button>
-        </div>
-      </Card>
-
-      {/* Search */}
-      <Card className="p-4">
-        <Input
-          type="search"
-          placeholder="Sök matvaror..."
-          defaultValue={search}
-          onChange={(e) => handleSearchChange(e.target.value)}
-        />
-      </Card>
+      </div>
 
       {/* Foods list */}
-      <Card className="p-4">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Matvaror</h2>
-          <p className="text-sm text-muted-foreground">
-            {total} {total === 1 ? 'matvara' : 'matvaror'}
-          </p>
+      <div className="overflow-hidden rounded-2xl bg-card shadow-(--shadow-card)">
+        {/* Header with filter tabs and search */}
+        <div className="border-b border-border/40 px-5 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            {/* Segmented filter */}
+            <div className="inline-flex rounded-lg bg-muted/50 p-0.5">
+              {STATUS_TABS.map((tab) => (
+                <button
+                  key={tab.value}
+                  onClick={() => setStatusFilterValue(tab.value)}
+                  className={cn(
+                    'rounded-md px-3 py-1.5 text-xs font-medium transition-all',
+                    statusFilter === tab.value
+                      ? 'bg-card text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Search + count */}
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-muted-foreground/60">
+                {total} {total === 1 ? 'matvara' : 'matvaror'}
+              </span>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/50" />
+                <input
+                  type="search"
+                  placeholder="Sök matvaror..."
+                  defaultValue={search}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="h-8 w-52 rounded-lg border-0 bg-muted/50 pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
         {isPending ? (
-          <p className="text-center text-muted-foreground">Laddar matvaror...</p>
+          <div className="flex items-center justify-center px-5 py-12">
+            <Loader2 className="mr-2 h-4 w-4 animate-spin text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">Laddar matvaror...</p>
+          </div>
         ) : foods.length === 0 ? (
-          <p className="text-center text-muted-foreground">
-            {search
-              ? 'Inga matvaror hittades'
-              : 'Inga matvaror finns ännu'}
-          </p>
+          <div className="px-5 py-12 text-center">
+            <p className="text-sm text-muted-foreground">
+              {search
+                ? 'Inga matvaror hittades'
+                : 'Inga matvaror finns ännu'}
+            </p>
+          </div>
         ) : (
           <>
-            <div className="space-y-2">
+            <div className="divide-y divide-border/40">
               {foods.map((food) => (
                 <div
                   key={food.id}
-                  className="flex items-center justify-between rounded-lg border border-border p-3 hover:bg-accent/50"
+                  className="flex items-center px-5 py-3 transition-colors hover:bg-muted/30"
                 >
                   {editingId === food.id ? (
                     <div className="flex flex-1 items-center gap-2">
@@ -581,18 +584,18 @@ export function MatvarorClient({
                     </div>
                   ) : (
                     <>
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">{food.name}</span>
+                          <span className="text-[15px] font-medium">{food.name}</span>
                           {getStatusBadge(food.status)}
                           {food.canonical_food_name && (
-                            <Badge className="bg-blue-100 text-blue-900 hover:bg-blue-100">
-                              <Link2 className="mr-1 h-3 w-3" />
-                              Alias av {food.canonical_food_name}
-                            </Badge>
+                            <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-medium text-blue-800">
+                              <Link2 className="mr-1 h-2.5 w-2.5" />
+                              {food.canonical_food_name}
+                            </span>
                           )}
                         </div>
-                        <div className="mt-1 text-sm text-muted-foreground">
+                        <div className="mt-0.5 text-xs text-muted-foreground/60">
                           {food.ingredient_count > 0 ? (
                             <button
                               onClick={() => showLinkedRecipes(food)}
@@ -603,67 +606,57 @@ export function MatvarorClient({
                               {food.ingredient_count === 1 ? 'recept' : 'recept'}
                             </button>
                           ) : (
-                            <span className="text-muted-foreground/60">
-                              Används inte i något recept
-                            </span>
+                            <span>Används inte</span>
                           )}
                           {food.status === 'pending' && food.created_by && (
                             <span className="ml-2">
-                              &bull; Inlämnad av: {food.created_by}
+                              &bull; {food.created_by}
                             </span>
                           )}
                         </div>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex shrink-0 gap-1">
                         {food.status === 'pending' && (
                           <>
-                            <Button
-                              size="sm"
-                              variant="ghost"
+                            <button
                               onClick={() => handleApprove(food)}
+                              className="rounded-lg p-2 text-emerald-500 transition-colors hover:bg-emerald-50 hover:text-emerald-700"
                               aria-label="Godkänn matvara"
-                              className="text-green-600 hover:bg-green-50 hover:text-green-700"
                             >
                               <Check className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
+                            </button>
+                            <button
                               onClick={() => handleReject(food.id)}
+                              className="rounded-lg p-2 text-red-400 transition-colors hover:bg-red-50 hover:text-red-600"
                               aria-label="Avvisa matvara"
-                              className="text-red-600 hover:bg-red-50 hover:text-red-700"
                             >
                               <X className="h-4 w-4" />
-                            </Button>
+                            </button>
                           </>
                         )}
-                        <Button
-                          size="sm"
-                          variant="ghost"
+                        <button
                           onClick={() => startEdit(food)}
+                          className="rounded-lg p-2 text-muted-foreground/40 transition-colors hover:bg-muted/50 hover:text-foreground"
                           aria-label="Redigera matvara"
                         >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
                         {food.status === 'approved' && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
+                          <button
                             onClick={() => openAliasDialog(food)}
+                            className="rounded-lg p-2 text-blue-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
                             aria-label="Hantera alias"
-                            className="text-blue-600 hover:bg-blue-50 hover:text-blue-700"
                           >
-                            <Link2 className="h-4 w-4" />
-                          </Button>
+                            <Link2 className="h-3.5 w-3.5" />
+                          </button>
                         )}
-                        <Button
-                          size="sm"
-                          variant="ghost"
+                        <button
                           onClick={() => confirmDelete(food)}
+                          className="rounded-lg p-2 text-muted-foreground/40 transition-colors hover:bg-destructive/10 hover:text-destructive"
                           aria-label="Ta bort matvara"
                         >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
                       </div>
                     </>
                   )}
@@ -673,7 +666,7 @@ export function MatvarorClient({
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="mt-4 border-t border-border pt-4">
+              <div className="border-t border-border/40 px-5 py-3">
                 <Pagination>
                   <PaginationContent>
                     <PaginationItem>
@@ -734,7 +727,7 @@ export function MatvarorClient({
             )}
           </>
         )}
-      </Card>
+      </div>
 
       {/* Delete confirmation dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -779,9 +772,9 @@ export function MatvarorClient({
               {similarFoods.map((similar) => (
                 <div
                   key={similar.id}
-                  className="flex items-center justify-between rounded-lg border border-border p-2 text-sm"
+                  className="flex items-center justify-between rounded-xl border border-border/40 p-3 text-sm"
                 >
-                  <span>{similar.name}</span>
+                  <span className="font-medium">{similar.name}</span>
                   {foodToApprove && (
                     <Button
                       size="sm"
@@ -841,20 +834,19 @@ export function MatvarorClient({
                 Inga recept hittades
               </p>
             ) : (
-              <ul className="space-y-2">
+              <div className="divide-y divide-border/40 rounded-xl border border-border/40 overflow-hidden">
                 {linkedRecipes.map((recipe) => (
-                  <li key={recipe.id}>
-                    <Link
-                      href={`/recept/${recipe.id}`}
-                      target="_blank"
-                      className="flex items-center justify-between rounded-lg border border-border p-3 hover:bg-accent/50 transition-colors"
-                    >
-                      <span className="font-medium">{recipe.name}</span>
-                      <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                    </Link>
-                  </li>
+                  <Link
+                    key={recipe.id}
+                    href={`/recept/${recipe.id}`}
+                    target="_blank"
+                    className="flex items-center justify-between px-4 py-3 hover:bg-muted/30 transition-colors"
+                  >
+                    <span className="font-medium">{recipe.name}</span>
+                    <ExternalLink className="h-3.5 w-3.5 text-muted-foreground/40" />
+                  </Link>
                 ))}
-              </ul>
+              </div>
             )}
           </div>
           <DialogFooter>
@@ -879,7 +871,7 @@ export function MatvarorClient({
           </DialogHeader>
 
           {aliasDialogFood?.canonical_food_name && (
-            <div className="flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 p-3">
+            <div className="flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50 p-3">
               <span className="text-sm">
                 Nuvarande: <strong>{aliasDialogFood.canonical_food_name}</strong>
               </span>
@@ -895,13 +887,17 @@ export function MatvarorClient({
           )}
 
           <div className="space-y-3">
-            <Input
-              type="search"
-              placeholder="Sök kanonisk matvara..."
-              value={aliasSearchQuery}
-              onChange={(e) => setAliasSearchQuery(e.target.value)}
-              autoFocus
-            />
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/50" />
+              <input
+                type="search"
+                placeholder="Sök kanonisk matvara..."
+                value={aliasSearchQuery}
+                onChange={(e) => setAliasSearchQuery(e.target.value)}
+                autoFocus
+                className="h-9 w-full rounded-lg border border-border bg-card pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
 
             {aliasSearchLoading && (
               <div className="flex items-center justify-center py-4">
@@ -910,7 +906,7 @@ export function MatvarorClient({
             )}
 
             {!aliasSearchLoading && aliasSearchResults.length > 0 && (
-              <div className="max-h-60 space-y-1 overflow-y-auto">
+              <div className="max-h-60 overflow-y-auto rounded-xl border border-border/40 divide-y divide-border/40">
                 {aliasSearchResults.map((result) => (
                   <button
                     key={result.id}
@@ -918,7 +914,7 @@ export function MatvarorClient({
                       aliasDialogFood &&
                       handleSetCanonical(aliasDialogFood, result.id, result.name)
                     }
-                    className="w-full rounded-lg border border-border p-2 text-left text-sm hover:bg-accent/50 transition-colors"
+                    className="w-full px-4 py-2.5 text-left text-sm hover:bg-muted/30 transition-colors"
                   >
                     {result.name}
                   </button>
