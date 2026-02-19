@@ -24,7 +24,7 @@ import {
   type ChangePasswordState,
   type DeleteAccountState,
 } from '@/lib/auth-actions'
-import { Check, Trash2 } from 'lucide-react'
+import { Check, Trash2 } from '@/lib/icons'
 
 export function SettingsForm() {
   const { user, updateUser, clearUser } = useAuth()

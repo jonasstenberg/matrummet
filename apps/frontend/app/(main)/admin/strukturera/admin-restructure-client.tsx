@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/dialog'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { AlertCircle, Wand2, Check, X, ChevronRight, RefreshCw, ExternalLink } from 'lucide-react'
+import { AlertCircle, Wand2, Check, X, ChevronRight, RefreshCw, ExternalLink } from '@/lib/icons'
 import {
   Pagination,
   PaginationContent,

@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft } from '@/lib/icons'
 import { getHomeInfo } from '@/lib/home-api'
 import { MedlemmarClient } from '@/components/home/medlemmar-client'
 

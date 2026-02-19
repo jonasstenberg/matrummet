@@ -16,7 +16,7 @@ import {
   disableJoinCode,
   inviteToHome,
 } from '@/lib/home-actions'
-import { LogOut, Trash2, ChevronDown } from 'lucide-react'
+import { LogOut, Trash2, ChevronDown } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 
 interface HomeSettingsClientProps {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useMemo } from 'react'
-import { ChevronDown, Plus, Check } from 'lucide-react'
+import { ChevronDown, Plus, Check } from '@/lib/icons'
 import type { PantryItem, CommonPantryItem } from '@/lib/ingredient-search-types'
 import { addToPantry, removeFromPantry, updatePantryItemExpiry } from '@/lib/ingredient-search-actions'
 import { cn } from '@/lib/utils'

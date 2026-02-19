@@ -16,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { AlertTriangle, Trash2 } from 'lucide-react'
+import { AlertTriangle, Trash2 } from '@/lib/icons'
 
 export function AccountDeletionForm() {
   const { user, clearUser } = useAuth()

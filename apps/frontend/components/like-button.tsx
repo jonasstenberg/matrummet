@@ -1,7 +1,7 @@
 'use client'
 
 import { useOptimistic, useTransition } from 'react'
-import { Heart } from 'lucide-react'
+import { Heart } from '@/lib/icons'
 import { Button } from '@/components/ui/button'
 import { toggleRecipeLike } from '@/lib/actions'
 import { cn } from '@/lib/utils'

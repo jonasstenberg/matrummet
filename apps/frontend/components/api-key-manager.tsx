@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/dialog'
 import { createApiKey, revokeApiKey } from '@/lib/actions'
 import { ApiKey } from '@/lib/types'
-import { AlertTriangle, Check, Copy, Key, Plus, Trash2 } from 'lucide-react'
+import { AlertTriangle, Check, Copy, Key, Plus, Trash2 } from '@/lib/icons'
 
 interface ApiKeyManagerProps {
   initialKeys: ApiKey[]

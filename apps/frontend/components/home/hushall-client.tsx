@@ -6,7 +6,7 @@ import { HomeInfo } from '@/lib/types'
 import { HomeNameEditor } from './home-name-editor'
 import { HomeLeaveDialog } from './home-leave-dialog'
 import { updateHomeName, leaveHome } from '@/lib/home-actions'
-import { LogOut, Users, ChevronRight } from 'lucide-react'
+import { LogOut, Users, ChevronRight } from '@/lib/icons'
 import Link from 'next/link'
 
 interface HushallClientProps {

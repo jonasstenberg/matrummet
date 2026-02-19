@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
-import { Search, X, Clock } from 'lucide-react'
+import { Search, X, Clock } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import { useRecentSearches } from '@/lib/hooks/use-recent-searches'
 import { Popover, PopoverContent, PopoverAnchor } from '@/components/ui/popover'

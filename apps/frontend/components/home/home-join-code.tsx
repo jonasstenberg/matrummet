@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Copy, Check, RefreshCw, Trash2 } from 'lucide-react'
+import { Copy, Check, RefreshCw, Trash2 } from '@/lib/icons'
 import { HomeJoinCode as JoinCodeType } from '@/lib/types'
 
 interface HomeJoinCodeProps {

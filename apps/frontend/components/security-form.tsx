@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef } from 'react'
 import { useAuth } from '@/components/auth-provider'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { changePassword, type ChangePasswordState } from '@/lib/auth-actions'
-import { Check, Lock } from 'lucide-react'
+import { Check, Lock } from '@/lib/icons'
 
 export function SecurityForm() {
   const { user } = useAuth()

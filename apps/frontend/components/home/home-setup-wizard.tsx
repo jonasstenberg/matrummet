@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { HomeCreateDialog } from './home-create-dialog'
-import { Home } from 'lucide-react'
+import { Home } from '@/lib/icons'
 import { createHome } from '@/lib/home-actions'
 
 export function HomeSetupWizard() {

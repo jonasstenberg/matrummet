@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { User, Lock, Key, Download, Trash2, Share2 } from 'lucide-react'
+import { User, Lock, Key, Download, Trash2, Share2 } from '@/lib/icons'
 
 const settingsLinks = [
   { href: '/installningar', label: 'Profil', icon: User },

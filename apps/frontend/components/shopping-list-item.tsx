@@ -5,7 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { toggleShoppingListItem } from '@/lib/actions'
 import { addToPantry } from '@/lib/ingredient-search-actions'
 import { cn } from '@/lib/utils'
-import { PackagePlus, X } from 'lucide-react'
+import { PackagePlus, X } from '@/lib/icons'
 import type { ShoppingListItem as ShoppingListItemType } from '@/lib/types'
 
 interface ShoppingListItemProps {

@@ -15,7 +15,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Card } from '@/components/ui/card'
-import { Pencil, Trash2, Plus, AlertCircle } from 'lucide-react'
+import { Pencil, Trash2, Plus, AlertCircle } from '@/lib/icons'
 import {
   Pagination,
   PaginationContent,

@@ -25,7 +25,7 @@ import {
   Plus,
   Star,
   Trash2,
-} from 'lucide-react'
+} from '@/lib/icons'
 
 interface ShoppingListManagerProps {
   lists: ShoppingList[]

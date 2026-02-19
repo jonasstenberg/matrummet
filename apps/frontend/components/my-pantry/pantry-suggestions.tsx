@@ -1,6 +1,6 @@
 'use client'
 
-import { Plus, Check } from 'lucide-react'
+import { Plus, Check } from '@/lib/icons'
 import type { CommonPantryItem } from '@/lib/ingredient-search-types'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'

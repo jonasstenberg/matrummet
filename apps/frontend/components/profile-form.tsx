@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/components/auth-provider'
 import { updateProfileAction, type UpdateProfileState } from '@/lib/actions'
 import { useActionState } from 'react'
-import { Pencil, Check, X, Mail, User } from 'lucide-react'
+import { Pencil, Check, X, Mail, User } from '@/lib/icons'
 
 export function ProfileForm() {
   const { user, updateUser } = useAuth()

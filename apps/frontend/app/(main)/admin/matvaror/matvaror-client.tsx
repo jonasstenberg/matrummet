@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dialog'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Pencil, Trash2, Plus, AlertCircle, Check, X, ChefHat, ExternalLink, Loader2, Link2 } from 'lucide-react'
+import { Pencil, Trash2, Plus, AlertCircle, Check, X, ChefHat, ExternalLink, Loader2, Link2 } from '@/lib/icons'
 import Link from 'next/link'
 import {
   Pagination,

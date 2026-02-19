@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
-import { Loader2, Plus, Check, CalendarDays } from 'lucide-react'
+import { Loader2, Plus, Check, CalendarDays } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import type { SelectedIngredient } from '@/lib/ingredient-search-types'
 import { searchFoodsWithIds } from '@/lib/ingredient-search-actions'

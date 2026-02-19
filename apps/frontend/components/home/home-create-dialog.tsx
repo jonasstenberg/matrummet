@@ -14,7 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Home, Plus } from 'lucide-react'
+import { Home, Plus } from '@/lib/icons'
 
 interface HomeCreateDialogProps {
   onCreateHome: (name: string) => Promise<void>

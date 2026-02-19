@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { UserHome } from '@/lib/types'
 import { HomeCreateDialog } from './home-create-dialog'
 import { createHome } from '@/lib/home-actions'
-import { Users, ChevronRight, Settings } from 'lucide-react'
+import { Users, ChevronRight, Settings } from '@/lib/icons'
 
 interface HushallOverviewProps {
   homes: UserHome[]

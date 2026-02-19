@@ -10,7 +10,7 @@ import {
   createColumnHelper,
   type ColumnFiltersState,
 } from '@tanstack/react-table'
-import { Trash2, Search, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Trash2, Search, ChevronLeft, ChevronRight } from '@/lib/icons'
 import type { PantryItem } from '@/lib/ingredient-search-types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'

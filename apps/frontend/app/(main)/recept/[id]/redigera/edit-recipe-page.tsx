@@ -8,7 +8,7 @@ import { setRecipeFeatured } from '@/lib/admin-actions'
 import { Recipe, CreateRecipeInput, UpdateRecipeInput } from '@/lib/types'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-import { Star } from 'lucide-react'
+import { Star } from '@/lib/icons'
 
 interface EditRecipePageProps {
   recipe: Recipe

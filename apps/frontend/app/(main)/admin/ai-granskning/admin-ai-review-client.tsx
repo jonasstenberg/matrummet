@@ -11,7 +11,7 @@ import {
   AccordionTrigger,
   AccordionContent,
 } from '@/components/ui/accordion'
-import { Sparkles, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Sparkles, Loader2, AlertCircle, CheckCircle2 } from '@/lib/icons'
 
 interface ReviewDetail {
   foodName: string

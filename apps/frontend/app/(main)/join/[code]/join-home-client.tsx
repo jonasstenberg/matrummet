@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Home, Users, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Home, Users, AlertCircle, CheckCircle2 } from '@/lib/icons'
 import { joinHomeByCode } from '@/lib/home-actions'
 
 interface JoinHomeClientProps {

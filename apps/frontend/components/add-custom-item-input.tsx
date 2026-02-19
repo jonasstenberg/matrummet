@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect, useTransition } from 'react'
-import { Loader2, Plus } from 'lucide-react'
+import { Loader2, Plus } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import { addCustomShoppingListItem } from '@/lib/actions'
 import { searchFoodsWithIds } from '@/lib/ingredient-search-actions'

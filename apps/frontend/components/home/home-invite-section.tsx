@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { HomeJoinCode } from './home-join-code'
 import { HomeJoinCode as JoinCodeType } from '@/lib/types'
-import { Send, Check } from 'lucide-react'
+import { Send, Check } from '@/lib/icons'
 
 interface HomeInviteSectionProps {
   joinCode: JoinCodeType | null

@@ -5,7 +5,7 @@ import { AddCustomItemInput } from '@/components/add-custom-item-input'
 import { ShoppingListItem } from '@/components/shopping-list-item'
 import { clearCheckedItems } from '@/lib/actions'
 import type { ShoppingListItem as ShoppingListItemType } from '@/lib/types'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 
 interface ShoppingListProps {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
-import { Filter } from 'lucide-react'
+import { Filter } from '@/lib/icons'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'

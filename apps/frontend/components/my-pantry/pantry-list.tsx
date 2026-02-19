@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useRef } from 'react'
-import { X, Search, ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react'
+import { X, Search, ChevronLeft, ChevronRight, CalendarDays } from '@/lib/icons'
 import type { PantryItem } from '@/lib/ingredient-search-types'
 import { cn } from '@/lib/utils'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
