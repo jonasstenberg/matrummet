@@ -21,9 +21,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Pencil, Trash2, AlertCircle, UserCog, Sparkles } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Pencil,
+  Trash2,
+  AlertCircle,
+  UserCog,
+  Sparkles,
+  Search,
+  EllipsisVertical,
+  ChevronUp,
+  ChevronDown,
+} from '@/lib/icons'
 import {
   Pagination,
   PaginationContent,
@@ -33,7 +59,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination'
-import type { User, UserRole, UsersPaginatedResponse } from '@/lib/admin-api'
+import type { User, UserRole, UserSortField, SortDir, UsersPaginatedResponse } from '@/lib/admin-api'
 import {
   updateUserRole,
   updateUserName,
@@ -46,6 +72,8 @@ interface AnvandareClientProps {
   page: number
   search: string
   roleFilter: UserRole | 'all'
+  sortBy: UserSortField
+  sortDir: SortDir
 }
 
 export function AnvandareClient({
@@ -53,6 +81,8 @@ export function AnvandareClient({
   page,
   search,
   roleFilter,
+  sortBy,
+  sortDir,
 }: AnvandareClientProps) {
   const router = useRouter()
   const { user: currentUser } = useAuth()
@@ -63,14 +93,19 @@ export function AnvandareClient({
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
-  // Update local state when initialData changes
   useEffect(() => {
     setUsers(initialData.items)
     setTotal(initialData.total)
     setTotalPages(initialData.totalPages)
   }, [initialData])
 
-  // Debounce for search
+  // Auto-dismiss success messages
+  useEffect(() => {
+    if (!success) return
+    const timer = setTimeout(() => setSuccess(null), 3000)
+    return () => clearTimeout(timer)
+  }, [success])
+
   const searchTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
 
   // Edit state
@@ -91,37 +126,60 @@ export function AnvandareClient({
   const [userToGrant, setUserToGrant] = useState<User | null>(null)
   const [creditAmount, setCreditAmount] = useState('10')
 
-  function updateURL(newPage: number, newSearch: string, newRole?: UserRole | 'all') {
+  function buildURL(overrides: {
+    page?: number
+    search?: string
+    role?: UserRole | 'all'
+    sort?: UserSortField
+    dir?: SortDir
+  }) {
     const params = new URLSearchParams()
 
-    if (newPage > 1) {
-      params.set('page', newPage.toString())
-    }
+    const p = overrides.page ?? page
+    if (p > 1) params.set('page', p.toString())
 
-    if (newSearch) {
-      params.set('search', newSearch)
-    }
+    const s = overrides.search ?? search
+    if (s) params.set('search', s)
 
-    const role = newRole !== undefined ? newRole : roleFilter
-    if (role !== 'all') {
-      params.set('role', role)
+    const r = overrides.role ?? roleFilter
+    if (r !== 'all') params.set('role', r)
+
+    const sort = overrides.sort ?? sortBy
+    const dir = overrides.dir ?? sortDir
+    if (sort !== 'name' || dir !== 'asc') {
+      params.set('sort', sort)
+      params.set('dir', dir)
     }
 
     const queryString = params.toString()
+    return queryString ? `/admin/anvandare?${queryString}` : '/admin/anvandare'
+  }
+
+  function navigate(overrides: {
+    page?: number
+    search?: string
+    role?: UserRole | 'all'
+    sort?: UserSortField
+    dir?: SortDir
+  }) {
     startTransition(() => {
-      router.replace(queryString ? `/admin/anvandare?${queryString}` : '/admin/anvandare')
+      router.replace(buildURL(overrides))
     })
   }
 
   function handleSearchChange(value: string) {
     clearTimeout(searchTimeoutRef.current)
     searchTimeoutRef.current = setTimeout(() => {
-      updateURL(1, value)
+      navigate({ page: 1, search: value })
     }, 300)
   }
 
-  function setRoleFilterValue(newRole: UserRole | 'all') {
-    updateURL(1, search, newRole)
+  function handleSort(field: UserSortField) {
+    if (sortBy === field) {
+      navigate({ page: 1, sort: field, dir: sortDir === 'asc' ? 'desc' : 'asc' })
+    } else {
+      navigate({ page: 1, sort: field, dir: 'asc' })
+    }
   }
 
   async function handleRename(id: string, newName: string) {
@@ -178,9 +236,8 @@ export function AnvandareClient({
       setDeleteDialogOpen(false)
       setUserToDelete(null)
 
-      // If we deleted the last item on this page and it's not page 1, go back a page
       if (users.length === 1 && page > 1) {
-        updateURL(page - 1, search)
+        navigate({ page: page - 1 })
       } else {
         router.refresh()
       }
@@ -210,6 +267,7 @@ export function AnvandareClient({
       )
       setCreditDialogOpen(false)
       setUserToGrant(null)
+      router.refresh()
     } else {
       setError(result.error)
       setCreditDialogOpen(false)
@@ -279,48 +337,88 @@ export function AnvandareClient({
     return pages
   }
 
-  function getRoleBadge(role: UserRole) {
-    switch (role) {
-      case 'admin':
-        return (
-          <Badge className="bg-green-100 text-green-900 hover:bg-green-100">
-            Admin
-          </Badge>
-        )
-      case 'user':
-        return (
-          <Badge className="bg-gray-100 text-gray-900 hover:bg-gray-100">
-            Användare
-          </Badge>
-        )
-    }
-  }
+  const isCurrentUser = (user: User) => currentUser?.email === user.email
 
-  function getProviderBadge(provider: string | null) {
-    if (provider === 'google') {
-      return (
-        <Badge variant="outline" className="border-blue-200 text-blue-700">
-          Google
-        </Badge>
-      )
-    }
+  const roleFilterOptions: { value: UserRole | 'all'; label: string }[] = [
+    { value: 'all', label: 'Alla' },
+    { value: 'user', label: 'Användare' },
+    { value: 'admin', label: 'Admins' },
+  ]
+
+  function SortableHeader({ field, children, className }: { field: UserSortField; children: React.ReactNode; className?: string }) {
+    const active = sortBy === field
     return (
-      <Badge variant="outline" className="border-gray-200 text-gray-700">
-        E-post
-      </Badge>
+      <TableHead className={className}>
+        <button
+          onClick={() => handleSort(field)}
+          className="inline-flex items-center gap-1 hover:text-foreground"
+        >
+          {children}
+          {active ? (
+            sortDir === 'asc' ? (
+              <ChevronUp className="h-3.5 w-3.5" />
+            ) : (
+              <ChevronDown className="h-3.5 w-3.5" />
+            )
+          ) : (
+            <ChevronDown className="h-3.5 w-3.5 opacity-0 group-hover:opacity-30" />
+          )}
+        </button>
+      </TableHead>
     )
   }
 
-  const isCurrentUser = (user: User) => currentUser?.email === user.email
+  function UserActions({ user }: { user: User }) {
+    const isSelf = isCurrentUser(user)
+
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+            <EllipsisVertical className="h-4 w-4" />
+            <span className="sr-only">Åtgärder</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => startEdit(user)}>
+            <Pencil className="mr-2 h-4 w-4" />
+            Redigera namn
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => openCreditDialog(user)}>
+            <Sparkles className="mr-2 h-4 w-4" />
+            Bevilja AI-poäng
+          </DropdownMenuItem>
+          {!(isSelf && user.role === 'admin') && (
+            <DropdownMenuItem onClick={() => openRoleDialog(user)}>
+              <UserCog className="mr-2 h-4 w-4" />
+              Byt roll
+            </DropdownMenuItem>
+          )}
+          {!isSelf && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onClick={() => confirmDelete(user)}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Ta bort
+              </DropdownMenuItem>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    )
+  }
 
   return (
     <>
       <header>
         <h1 className="text-4xl font-bold tracking-tight text-foreground">
-          Hantera användare
+          Användare
         </h1>
         <p className="mt-2 text-lg text-muted-foreground">
-          Hantera användare, ändra roller och ta bort konton.
+          Hantera användare, roller och AI-poäng.
         </p>
       </header>
 
@@ -338,43 +436,40 @@ export function AnvandareClient({
         </Alert>
       )}
 
-      {/* Role filter tabs */}
+      {/* Toolbar: search + role filter */}
       <Card className="p-4">
-        <div className="flex gap-2">
-          <Button
-            variant={roleFilter === 'all' ? 'default' : 'outline'}
-            onClick={() => setRoleFilterValue('all')}
-          >
-            Alla
-          </Button>
-          <Button
-            variant={roleFilter === 'user' ? 'default' : 'outline'}
-            onClick={() => setRoleFilterValue('user')}
-          >
-            Användare
-          </Button>
-          <Button
-            variant={roleFilter === 'admin' ? 'default' : 'outline'}
-            onClick={() => setRoleFilterValue('admin')}
-          >
-            Administratörer
-          </Button>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Sök användare..."
+              defaultValue={search}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <div className="flex rounded-lg bg-muted p-1">
+            {roleFilterOptions.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => navigate({ page: 1, role: opt.value })}
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  roleFilter === opt.value
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
       </Card>
 
-      {/* Search */}
-      <Card className="p-4">
-        <Input
-          type="search"
-          placeholder="Sök användare..."
-          defaultValue={search}
-          onChange={(e) => handleSearchChange(e.target.value)}
-        />
-      </Card>
-
       {/* Users list */}
-      <Card className="p-4">
-        <div className="mb-4 flex items-center justify-between">
+      <Card>
+        <div className="flex items-center justify-between border-b p-4">
           <h2 className="text-lg font-semibold">Användare</h2>
           <p className="text-sm text-muted-foreground">
             {total} {total === 1 ? 'användare' : 'användare'}
@@ -382,41 +477,129 @@ export function AnvandareClient({
         </div>
 
         {isPending ? (
-          <p className="text-center text-muted-foreground">
-            Laddar användare...
-          </p>
+          <div className="p-4">
+            {/* Desktop skeleton */}
+            <div className="hidden space-y-3 md:block">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-4">
+                  <Skeleton className="h-5 w-40" />
+                  <Skeleton className="h-5 w-20" />
+                  <Skeleton className="h-5 w-16" />
+                  <Skeleton className="ml-auto h-5 w-12" />
+                  <Skeleton className="h-5 w-12" />
+                  <Skeleton className="h-8 w-8" />
+                </div>
+              ))}
+            </div>
+            {/* Mobile skeleton */}
+            <div className="space-y-3 md:hidden">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="rounded-lg border p-4">
+                  <Skeleton className="mb-2 h-5 w-32" />
+                  <Skeleton className="mb-2 h-4 w-48" />
+                  <Skeleton className="h-4 w-24" />
+                </div>
+              ))}
+            </div>
+          </div>
         ) : users.length === 0 ? (
-          <p className="text-center text-muted-foreground">
+          <p className="p-8 text-center text-muted-foreground">
             {search ? 'Inga användare hittades' : 'Inga användare finns ännu'}
           </p>
         ) : (
           <>
-            <div className="space-y-2">
+            {/* Desktop table */}
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <SortableHeader field="name">Användare</SortableHeader>
+                    <SortableHeader field="role">Roll</SortableHeader>
+                    <SortableHeader field="provider">Inloggning</SortableHeader>
+                    <SortableHeader field="recipe_count" className="text-right">Recept</SortableHeader>
+                    <SortableHeader field="credit_balance" className="text-right">AI-poäng</SortableHeader>
+                    <TableHead className="w-10" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {users.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        {editingId === user.id ? (
+                          <div className="flex items-center gap-2">
+                            <Input
+                              value={editName}
+                              onChange={(e) => setEditName(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleRename(user.id, editName)
+                                else if (e.key === 'Escape') cancelEdit()
+                              }}
+                              autoFocus
+                              className="h-8 w-48"
+                              placeholder="Ange namn"
+                            />
+                            <Button size="sm" className="h-8" onClick={() => handleRename(user.id, editName)}>
+                              Spara
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-8" onClick={cancelEdit}>
+                              Avbryt
+                            </Button>
+                          </div>
+                        ) : (
+                          <div>
+                            <p className="font-medium">{user.name || user.email}</p>
+                            {user.name && (
+                              <p className="text-sm text-muted-foreground">{user.email}</p>
+                            )}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {user.role === 'admin' ? (
+                          <Badge className="bg-green-100 text-green-900 hover:bg-green-100">Admin</Badge>
+                        ) : (
+                          <Badge className="bg-gray-100 text-gray-900 hover:bg-gray-100">Användare</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {user.provider === 'google' ? (
+                          <Badge variant="outline" className="border-blue-200 text-blue-700">Google</Badge>
+                        ) : (
+                          <Badge variant="outline" className="border-gray-200 text-gray-700">E-post</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">{user.recipe_count}</TableCell>
+                      <TableCell className="text-right tabular-nums">{user.credit_balance}</TableCell>
+                      <TableCell>
+                        <UserActions user={user} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile cards */}
+            <div className="space-y-2 p-4 md:hidden">
               {users.map((user) => (
                 <div
                   key={user.id}
-                  className="flex items-center justify-between rounded-lg border border-border p-3 hover:bg-accent/50"
+                  className="rounded-lg border border-border p-3"
                 >
                   {editingId === user.id ? (
-                    <div className="flex flex-1 items-center gap-2">
+                    <div className="flex items-center gap-2">
                       <Input
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            handleRename(user.id, editName)
-                          } else if (e.key === 'Escape') {
-                            cancelEdit()
-                          }
+                          if (e.key === 'Enter') handleRename(user.id, editName)
+                          else if (e.key === 'Escape') cancelEdit()
                         }}
                         autoFocus
                         className="flex-1"
                         placeholder="Ange namn"
                       />
-                      <Button
-                        size="sm"
-                        onClick={() => handleRename(user.id, editName)}
-                      >
+                      <Button size="sm" onClick={() => handleRename(user.id, editName)}>
                         Spara
                       </Button>
                       <Button size="sm" variant="ghost" onClick={cancelEdit}>
@@ -424,61 +607,31 @@ export function AnvandareClient({
                       </Button>
                     </div>
                   ) : (
-                    <>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">
-                            {user.name || user.email}
-                          </span>
-                          {getRoleBadge(user.role)}
-                          {getProviderBadge(user.provider)}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="font-medium">{user.name || user.email}</span>
+                          {user.role === 'admin' ? (
+                            <Badge className="bg-green-100 text-green-900 hover:bg-green-100">Admin</Badge>
+                          ) : (
+                            <Badge className="bg-gray-100 text-gray-900 hover:bg-gray-100">Användare</Badge>
+                          )}
+                          {user.provider === 'google' ? (
+                            <Badge variant="outline" className="border-blue-200 text-blue-700">Google</Badge>
+                          ) : (
+                            <Badge variant="outline" className="border-gray-200 text-gray-700">E-post</Badge>
+                          )}
                         </div>
-                        <div className="mt-1 text-sm text-muted-foreground">
-                          {user.name && <span>{user.email} &bull; </span>}
-                          {user.recipe_count} recept
+                        {user.name && (
+                          <p className="mt-0.5 truncate text-sm text-muted-foreground">{user.email}</p>
+                        )}
+                        <div className="mt-1.5 flex gap-4 text-sm text-muted-foreground">
+                          <span>{user.recipe_count} recept</span>
+                          <span>{user.credit_balance} AI-poäng</span>
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => startEdit(user)}
-                          aria-label="Redigera användare"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => openCreditDialog(user)}
-                          aria-label="Bevilja AI-poäng"
-                        >
-                          <Sparkles className="h-4 w-4" />
-                        </Button>
-                        {/* Hide role change to user for current user */}
-                        {!(isCurrentUser(user) && user.role === 'admin') && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => openRoleDialog(user)}
-                            aria-label="Byt roll"
-                          >
-                            <UserCog className="h-4 w-4" />
-                          </Button>
-                        )}
-                        {/* Hide delete for current user */}
-                        {!isCurrentUser(user) && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => confirmDelete(user)}
-                            aria-label="Ta bort användare"
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        )}
-                      </div>
-                    </>
+                      <UserActions user={user} />
+                    </div>
                   )}
                 </div>
               ))}
@@ -486,7 +639,7 @@ export function AnvandareClient({
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="mt-4 border-t border-border pt-4">
+              <div className="border-t border-border p-4">
                 <Pagination>
                   <PaginationContent>
                     <PaginationItem>
@@ -494,13 +647,9 @@ export function AnvandareClient({
                         href="#"
                         onClick={(e) => {
                           e.preventDefault()
-                          if (page > 1) {
-                            updateURL(page - 1, search)
-                          }
+                          if (page > 1) navigate({ page: page - 1 })
                         }}
-                        className={
-                          page === 1 ? 'pointer-events-none opacity-50' : ''
-                        }
+                        className={page === 1 ? 'pointer-events-none opacity-50' : ''}
                       />
                     </PaginationItem>
 
@@ -513,7 +662,7 @@ export function AnvandareClient({
                             href="#"
                             onClick={(e) => {
                               e.preventDefault()
-                              updateURL(pageNum, search)
+                              navigate({ page: pageNum })
                             }}
                             isActive={pageNum === page}
                           >
@@ -528,15 +677,9 @@ export function AnvandareClient({
                         href="#"
                         onClick={(e) => {
                           e.preventDefault()
-                          if (page < totalPages) {
-                            updateURL(page + 1, search)
-                          }
+                          if (page < totalPages) navigate({ page: page + 1 })
                         }}
-                        className={
-                          page === totalPages
-                            ? 'pointer-events-none opacity-50'
-                            : ''
-                        }
+                        className={page === totalPages ? 'pointer-events-none opacity-50' : ''}
                       />
                     </PaginationItem>
                   </PaginationContent>

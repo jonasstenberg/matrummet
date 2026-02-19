@@ -38,7 +38,13 @@ export interface User {
   role: UserRole
   provider: string | null
   recipe_count: number
-  date_published: string
+  credit_balance: number
+}
+
+export interface UserStats {
+  total_users: number
+  admin_count: number
+  total_credit_balance: number
 }
 
 export interface UsersPaginatedResponse {
@@ -47,6 +53,7 @@ export interface UsersPaginatedResponse {
   page: number
   pageSize: number
   totalPages: number
+  stats: UserStats
 }
 
 export interface SimilarFood {
@@ -188,17 +195,41 @@ export async function getAdminFoods(params: GetAdminFoodsParams = {}): Promise<F
   }
 }
 
+export type UserSortField = 'name' | 'email' | 'role' | 'provider' | 'recipe_count' | 'credit_balance'
+export type SortDir = 'asc' | 'desc'
+
 export interface GetAdminUsersParams {
   page?: number
   search?: string
   role?: UserRole | 'all'
+  sortBy?: UserSortField
+  sortDir?: SortDir
+}
+
+async function getAdminUserStats(token: string): Promise<UserStats> {
+  const response = await fetch(`${env.POSTGREST_URL}/rpc/admin_user_stats`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    return { total_users: 0, admin_count: 0, total_credit_balance: 0 }
+  }
+
+  const data = await response.json()
+  // PostgREST returns a single-row result as an array for RPC
+  return Array.isArray(data) ? data[0] : data
 }
 
 /**
  * Fetch paginated users for admin
  */
 export async function getAdminUsers(params: GetAdminUsersParams = {}): Promise<UsersPaginatedResponse> {
-  const { page = 1, search = '', role = 'all' } = params
+  const { page = 1, search = '', role = 'all', sortBy = 'name', sortDir = 'asc' } = params
   const pageSize = 50
 
   const session = await getSession()
@@ -208,48 +239,53 @@ export async function getAdminUsers(params: GetAdminUsersParams = {}): Promise<U
 
   const token = await signPostgrestToken(session.email, session.role)
 
-  // Fetch total count
-  const countResponse = await fetch(`${env.POSTGREST_URL}/rpc/admin_count_users`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      p_search: search || null,
-      p_role: role === 'all' ? null : role,
+  const offset = (page - 1) * pageSize
+
+  // Fetch count, items, and stats in parallel
+  const [countResponse, itemsResponse, stats] = await Promise.all([
+    fetch(`${env.POSTGREST_URL}/rpc/admin_count_users`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        p_search: search || null,
+        p_role: role === 'all' ? null : role,
+      }),
+      cache: 'no-store',
     }),
-    cache: 'no-store',
-  })
+    fetch(`${env.POSTGREST_URL}/rpc/admin_list_users`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        p_search: search || null,
+        p_role: role === 'all' ? null : role,
+        p_limit: pageSize,
+        p_offset: offset,
+        p_sort_by: sortBy,
+        p_sort_dir: sortDir,
+      }),
+      cache: 'no-store',
+    }),
+    getAdminUserStats(token),
+  ])
 
   if (!countResponse.ok) {
     throw new Error('Failed to fetch user count')
   }
 
-  const total = await countResponse.json()
-
-  // Fetch paginated items
-  const offset = (page - 1) * pageSize
-  const itemsResponse = await fetch(`${env.POSTGREST_URL}/rpc/admin_list_users`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      p_search: search || null,
-      p_role: role === 'all' ? null : role,
-      p_limit: pageSize,
-      p_offset: offset,
-    }),
-    cache: 'no-store',
-  })
-
   if (!itemsResponse.ok) {
     throw new Error('Failed to fetch users')
   }
 
-  const items = await itemsResponse.json()
+  const [total, items] = await Promise.all([
+    countResponse.json(),
+    itemsResponse.json(),
+  ])
 
   return {
     items,
@@ -257,6 +293,7 @@ export async function getAdminUsers(params: GetAdminUsersParams = {}): Promise<U
     page,
     pageSize,
     totalPages: Math.ceil(total / pageSize),
+    stats,
   }
 }
 
