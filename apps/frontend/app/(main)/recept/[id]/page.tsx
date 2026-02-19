@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { RecipeDetailWithActions } from '@/components/recipe-detail-with-actions'
@@ -9,6 +10,11 @@ import { generateRecipeJsonLd } from '@/lib/recipe-json-ld'
 // ISR/static generation conflicts with getSession() in Next.js 15
 export const dynamic = 'force-dynamic'
 
+// Deduplicate getRecipe calls between generateMetadata and page component
+const getCachedRecipe = cache(async (id: string, token?: string) => {
+  return getRecipe(id, token)
+})
+
 interface RecipePageProps {
   params: Promise<{
     id: string
@@ -19,7 +25,7 @@ export async function generateMetadata({ params }: RecipePageProps): Promise<Met
   const { id } = await params
   const session = await getSession()
   const token = session ? await signPostgrestToken(session.email) : undefined
-  const recipe = await getRecipe(id, token)
+  const recipe = await getCachedRecipe(id, token)
 
   if (!recipe) {
     return {
@@ -53,7 +59,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
   const { id } = await params
   const session = await getSession()
   const token = session ? await signPostgrestToken(session.email) : undefined
-  const recipe = await getRecipe(id, token)
+  const recipe = await getCachedRecipe(id, token)
 
   if (!recipe) {
     notFound()
