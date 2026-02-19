@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession, signPostgrestToken, signSystemPostgrestToken } from '@/lib/auth'
 import { env } from '@/lib/env'
@@ -50,10 +51,14 @@ interface ExistingFood {
 async function authenticateRequest(
   request: NextRequest
 ): Promise<{ authorized: boolean; email: string | null; role?: 'user' | 'admin'; error?: string }> {
-  // Check for cron secret header
+  // Check for cron secret header (constant-time comparison to prevent timing attacks)
   const cronSecret = request.headers.get('X-Cron-Secret')
-  if (cronSecret && env.CRON_SECRET && cronSecret === env.CRON_SECRET) {
-    return { authorized: true, email: null, role: 'admin' }
+  if (cronSecret && env.CRON_SECRET) {
+    const a = Buffer.from(cronSecret)
+    const b = Buffer.from(env.CRON_SECRET)
+    if (a.length === b.length && timingSafeEqual(a, b)) {
+      return { authorized: true, email: null, role: 'admin' }
+    }
   }
 
   // Fall back to session-based auth
