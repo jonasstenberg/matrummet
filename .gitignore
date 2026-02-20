@@ -41,10 +41,8 @@ data/data.sql
 *.tsbuildinfo
 next-env.d.ts
 
-# claude
-.claude/
-CLAUDE.md
-.mcp.json
+# claude (local-only, machine-specific)
+.claude/settings.local.json
 
 # playwright mcp
 .playwright-mcp/
