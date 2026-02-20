@@ -25,7 +25,9 @@
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f",
     "inbucket": "docker compose up -d inbucket",
-    "inbucket:stop": "docker compose stop inbucket"
+    "inbucket:stop": "docker compose stop inbucket",
+    "android": "pnpm --filter matrummet-mobile exec expo run:android",
+    "ios": "pnpm --filter matrummet-mobile exec expo run:ios"
   },
   "devDependencies": {
     "jose": "^6.1.3",
@@ -33,8 +35,11 @@
   },
   "pnpm": {
     "overrides": {
-      "@types/react": "19.2.7",
-      "@types/react-dom": "19.2.3"
+      "react": "19.1.0",
+      "react-dom": "19.1.0",
+      "@types/react": "~19.1.0",
+      "@types/react-dom": "~19.1.0"
     }
-  }
+  },
+  "dependencies": {}
 }

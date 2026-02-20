@@ -5,6 +5,7 @@
   "license": "MIT",
   "files": [
     "base.json",
+    "expo.json",
     "node.json",
     "web.json"
   ]
