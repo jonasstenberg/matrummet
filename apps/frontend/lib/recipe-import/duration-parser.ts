@@ -2,8 +2,8 @@
  * Parse ISO 8601 duration strings to minutes
  * Handles formats like: PT30M, PT1H30M, P1DT2H30M
  */
-export function parseDuration(duration: string | undefined): number | null {
-  if (!duration) return null
+export function parseDuration(duration: unknown): number | null {
+  if (!duration || typeof duration !== "string") return null
 
   // ISO 8601 duration pattern
   const pattern = /^P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/

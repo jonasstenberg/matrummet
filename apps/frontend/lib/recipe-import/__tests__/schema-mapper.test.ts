@@ -27,9 +27,9 @@ describe("schema-mapper", () => {
         expect(result.data.description).toBe("A delicious test recipe");
       });
 
-      it("should default description to empty string if missing", () => {
+      it("should fall back to recipe name if description is missing", () => {
         const result = mapJsonLdToRecipeInput(baseRecipe, "https://example.com");
-        expect(result.data.description).toBe("");
+        expect(result.data.description).toBe("Test Recipe");
       });
     });
 

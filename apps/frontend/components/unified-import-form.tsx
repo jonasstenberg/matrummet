@@ -90,11 +90,11 @@ export function UnifiedImportForm({ onImport }: UnifiedImportFormProps) {
         await handleAiImport(pageText)
         return
       } catch {
-        // AI failed — fall through to JSON-LD
+        // AI failed — fall through to structured extraction
       }
     }
 
-    // Fallback: try JSON-LD extraction
+    // Structured extraction (JSON-LD, native extractors like Provecho)
     const result = await importRecipeFromUrl(url)
 
     if (result.success) {
