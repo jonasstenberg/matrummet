@@ -39,6 +39,25 @@ export async function GET() {
   spec.basePath = '/api/postgrest'
   spec.schemes = [proto]
 
+  // Inject x-api-key security scheme for external agent access
+  spec.securityDefinitions = {
+    ...spec.securityDefinitions,
+    apiKey: {
+      type: 'apiKey',
+      name: 'x-api-key',
+      in: 'header',
+      description:
+        'API key for external access. Create at /installningar/api-nycklar',
+    },
+  }
+
+  spec.info = {
+    ...spec.info,
+    description: `${spec.info?.description || ''}
+
+For curated API documentation, see /api/docs`.trim(),
+  }
+
   return Response.json(spec, {
     headers: {
       'Cache-Control': 'private, max-age=300',

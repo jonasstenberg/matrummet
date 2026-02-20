@@ -24,6 +24,12 @@ export function Footer() {
           >
             Villkor
           </Link>
+          <Link
+            href="/api-dokumentation"
+            className="text-background/60 hover:text-background transition-colors"
+          >
+            API
+          </Link>
         </nav>
 
         {/* Divider */}
