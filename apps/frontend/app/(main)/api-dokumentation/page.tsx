@@ -185,12 +185,12 @@ export default function ApiDokumentationPage() {
     "p_description": "Klassisk italiensk pasta",
     "p_categories": ["Pasta", "Middag"],
     "p_ingredients": [
-      {"name": "Spaghetti", "quantity": 400, "unit": "g", "group_name": null},
-      {"name": "Pancetta", "quantity": 150, "unit": "g", "group_name": null}
+      {"name": "Spaghetti", "quantity": 400, "measurement": "g"},
+      {"name": "Pancetta", "quantity": 150, "measurement": "g"}
     ],
     "p_instructions": [
-      {"step": 1, "text": "Koka pastan al dente."},
-      {"step": 2, "text": "Stek pancettan krispig."}
+      {"step": "Koka pastan al dente."},
+      {"step": "Stek pancettan krispig."}
     ],
     "p_cuisine": "Italienskt"
   }'`}</CodeBlock>
@@ -296,15 +296,14 @@ export default function ApiDokumentationPage() {
                 <CodeBlock title="json">{`{
   "name": "Spaghetti",
   "quantity": 400,
-  "unit": "g",
-  "group_name": null
+  "measurement": "g"
 }`}</CodeBlock>
                 <div className="mt-3">
                   <ParamTable
                     params={[
                       { name: "name", type: "string", required: "ja", description: "Ingrediensnamn" },
                       { name: "quantity", type: "number | null", required: "nej", description: "Mängd" },
-                      { name: "unit", type: "string | null", required: "nej", description: 'Enhet (t.ex. "g", "dl", "st")' },
+                      { name: "measurement", type: "string | null", required: "nej", description: 'Enhet (t.ex. "g", "dl", "st")' },
                       { name: "group_name", type: "string | null", required: "nej", description: 'Grupp (t.ex. "Sås", "Topping")' },
                     ]}
                   />
@@ -316,14 +315,12 @@ export default function ApiDokumentationPage() {
                   Instruktionsobjekt
                 </h3>
                 <CodeBlock title="json">{`{
-  "step": 1,
-  "text": "Koka pastan al dente."
+  "step": "Koka pastan al dente."
 }`}</CodeBlock>
                 <div className="mt-3">
                   <ParamTable
                     params={[
-                      { name: "step", type: "integer", required: "ja", description: "Stegnummer (börjar på 1)" },
-                      { name: "text", type: "string", required: "ja", description: "Instruktionstexten" },
+                      { name: "step", type: "string", required: "ja", description: "Instruktionstexten" },
                     ]}
                   />
                 </div>
