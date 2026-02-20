@@ -763,14 +763,6 @@ curl -s "https://api.matrummet.se/user_recipes?select=id,name,categories&limit=5
                 api.matrummet.se
               </a>
               {" "}(begär med <Code>Accept: application/openapi+json</Code>).
-              Swagger UI finns på{" "}
-              <Link
-                href="/api-docs"
-                className="underline hover:text-foreground"
-              >
-                /api-docs
-              </Link>
-              .
             </p>
           </section>
         </div>

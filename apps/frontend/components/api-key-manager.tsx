@@ -169,7 +169,7 @@ export function ApiKeyManager({ initialKeys }: ApiKeyManagerProps) {
               <p className="text-[15px] text-muted-foreground">
                 Hantera API-nycklar för externa integrationer.{' '}
                 <a
-                  href="/api-docs"
+                  href="/api-dokumentation"
                   className="inline-flex items-center gap-1 text-primary hover:underline"
                 >
                   API-dokumentation
