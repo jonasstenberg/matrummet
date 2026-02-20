@@ -265,7 +265,7 @@ export function mapJsonLdToRecipeInput(
   // Build the result
   const data: Partial<CreateRecipeInput> = {
     recipe_name: jsonLd.name,
-    description: jsonLd.description || '',
+    description: jsonLd.description || jsonLd.name || '-',
     url: sourceUrl,
     author: author,
     prep_time: finalPrepTime,

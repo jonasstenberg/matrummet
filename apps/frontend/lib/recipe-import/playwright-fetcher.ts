@@ -209,7 +209,13 @@ export async function fetchWithPlaywright(
           : originalQuery(parameters)
     })
 
-    await page.goto(url, { waitUntil: "networkidle", timeout: 30000 })
+    await page.goto(url, { waitUntil: "load", timeout: 30000 })
+
+    // Wait for JS to render content (SPAs). Poll until body has substantial text.
+    await page.waitForFunction(
+      () => (document.body?.innerText?.length || 0) > 200,
+      { timeout: 15000 }
+    ).catch(() => {})
 
     // Check if we hit a browser challenge page (Cloudflare, WordPress.com, etc.)
     // Wait for it to resolve by checking for challenge indicators
@@ -253,11 +259,8 @@ export async function fetchWithPlaywright(
     })
 
     const jsonLd = parseJsonLdFromScripts(jsonLdScripts)
-    if (jsonLd) {
-      return { jsonLd, pageText: null }
-    }
 
-    // No JSON-LD found - extract page text for AI fallback
+    // Always extract page text (needed for AI import even when JSON-LD exists)
     const pageText = await page.evaluate(() => {
       // Extract image URL from meta tags first
       const ogImage = document.querySelector('meta[property="og:image"]') as HTMLMetaElement | null
@@ -320,7 +323,7 @@ export async function fetchWithPlaywright(
       return cleanedText
     })
 
-    return { jsonLd: null, pageText: pageText || null }
+    return { jsonLd, pageText: pageText || null }
   } catch (error) {
     console.error("Playwright fetch failed:", url, error)
     return { jsonLd: null, pageText: null }

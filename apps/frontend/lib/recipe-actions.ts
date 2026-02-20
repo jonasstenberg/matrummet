@@ -6,7 +6,7 @@ import {
   UpdateRecipeInput,
   ShareLink,
 } from '@/lib/types'
-import { extractJsonLdRecipe, mapJsonLdToRecipeInput, fetchWithPlaywright } from '@/lib/recipe-import'
+import { extractJsonLdRecipe, extractProvechoRecipe, extractProvechoRecipeText, PROVECHO_HOSTNAMES, mapJsonLdToRecipeInput, fetchWithPlaywright } from '@/lib/recipe-import'
 import { downloadImage } from '@/lib/recipe-import/image-downloader'
 import { deleteImageVariants } from './image-processing'
 import { getRecipes } from '@/lib/api'
@@ -90,7 +90,7 @@ export async function createRecipe(
     const payload = {
       p_name: data.recipe_name,
       p_author: data.author || null,
-      p_description: data.description,
+      p_description: data.description || null,
       p_url: data.url || null,
       p_recipe_yield: data.recipe_yield || null,
       p_recipe_yield_name: data.recipe_yield_name || null,
@@ -502,7 +502,16 @@ export async function importRecipeFromUrl(
 
       if (response.ok) {
         const html = await response.text()
-        jsonLd = extractJsonLdRecipe(html)
+
+        // Provecho.co: encoded recipe in __NEXT_DATA__
+        const isProvecho = (PROVECHO_HOSTNAMES as readonly string[]).includes(parsedUrl.hostname)
+        if (isProvecho) {
+          jsonLd = extractProvechoRecipe(html)
+        }
+
+        if (!jsonLd) {
+          jsonLd = extractJsonLdRecipe(html)
+        }
       }
     } catch {
       // HTTP fetch failed, will try Playwright
@@ -583,13 +592,29 @@ export async function fetchUrlPageText(
       return { pageText: null, error: 'Du måste vara inloggad' }
     }
 
+    let parsedUrl: URL
     try {
-      const parsedUrl = new URL(url)
+      parsedUrl = new URL(url)
       if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
         return { pageText: null, error: 'Ogiltig URL' }
       }
     } catch {
       return { pageText: null, error: 'Ogiltig URL-format' }
+    }
+
+    // Provecho: extract structured recipe text directly (no Playwright needed)
+    if ((PROVECHO_HOSTNAMES as readonly string[]).includes(parsedUrl.hostname)) {
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; RecipeImporter/1.0)',
+          'Accept': 'text/html',
+        },
+      })
+      if (response.ok) {
+        const html = await response.text()
+        const recipeText = extractProvechoRecipeText(html)
+        if (recipeText) return { pageText: recipeText }
+      }
     }
 
     const result = await fetchWithPlaywright(url)

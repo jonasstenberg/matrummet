@@ -1,4 +1,5 @@
 export { extractJsonLdRecipe } from './json-ld-parser'
+export { extractProvechoRecipe, extractProvechoRecipeText, PROVECHO_HOSTNAMES } from './provecho-extractor'
 export { mapJsonLdToRecipeInput } from './schema-mapper'
 export { parseIngredient } from './ingredient-parser'
 export { parseDuration } from './duration-parser'
