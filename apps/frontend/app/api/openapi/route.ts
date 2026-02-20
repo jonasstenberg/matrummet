@@ -55,7 +55,7 @@ export async function GET() {
     ...spec.info,
     description: `${spec.info?.description || ''}
 
-For curated API documentation, see /api/docs`.trim(),
+For curated API documentation, see /api-dokumentation`.trim(),
   }
 
   return Response.json(spec, {
