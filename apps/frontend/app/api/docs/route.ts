@@ -65,12 +65,12 @@ curl -s https://api.matrummet.se/rpc/insert_recipe \\
     "p_description": "Classic Italian pasta",
     "p_categories": ["Pasta", "Middag"],
     "p_ingredients": [
-      {"name": "Spaghetti", "quantity": 400, "unit": "g", "group_name": null},
-      {"name": "Pancetta", "quantity": 150, "unit": "g", "group_name": null}
+      {"name": "Spaghetti", "quantity": 400, "measurement": "g", "group_name": null},
+      {"name": "Pancetta", "quantity": 150, "measurement": "g", "group_name": null}
     ],
     "p_instructions": [
-      {"step": 1, "text": "Koka pastan al dente."},
-      {"step": 2, "text": "Stek pancettan krispig."}
+      {"step": "Koka pastan al dente."},
+      {"step": "Stek pancettan krispig."}
     ],
     "p_cuisine": "Italienskt"
   }'
@@ -178,7 +178,7 @@ curl -s https://api.matrummet.se/rpc/toggle_recipe_like \\
 {
   "name": "Spaghetti",
   "quantity": 400,
-  "unit": "g",
+  "measurement": "g",
   "group_name": null
 }
 \`\`\`
@@ -187,22 +187,20 @@ curl -s https://api.matrummet.se/rpc/toggle_recipe_like \\
 |-------|------|-------------|
 | name | string | Ingredient name |
 | quantity | number or null | Amount |
-| unit | string or null | Unit (e.g. "g", "dl", "st") |
+| measurement | string or null | Unit (e.g. "g", "dl", "st") |
 | group_name | string or null | Group heading (e.g. "Sas", "Topping") |
 
 ### Instruction object
 
 \`\`\`json
 {
-  "step": 1,
-  "text": "Koka pastan al dente."
+  "step": "Koka pastan al dente."
 }
 \`\`\`
 
 | Field | Type | Description |
 |-------|------|-------------|
-| step | integer | Step number (1-indexed) |
-| text | string | Instruction text |
+| step | string | Instruction text |
 
 ## Search Helpers
 
