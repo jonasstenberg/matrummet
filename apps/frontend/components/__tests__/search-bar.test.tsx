@@ -342,7 +342,7 @@ describe('SearchBar', () => {
         fireEvent.submit(form)
       })
 
-      expect(mockPush).toHaveBeenCalledWith('/sok?q=padded%20search')
+      expect(mockPush).toHaveBeenCalledWith('/sok?q=padded+search')
     })
 
     it('navigates to home when submitting empty form', async () => {

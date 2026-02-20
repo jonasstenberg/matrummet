@@ -40,17 +40,22 @@ export function SearchBar({ className }: SearchBarProps) {
   }
 
   function getSearchUrl(term: string) {
-    // When on /alla-recept, search should stay within that scope
-    if (isAllRecipesPage) {
-      return `/alla-recept/sok?q=${encodeURIComponent(term)}`
-    }
-    return `/sok?q=${encodeURIComponent(term)}`
+    const params = new URLSearchParams()
+    params.set('q', term)
+    // Preserve member filter across searches
+    const members = searchParams.get('members')
+    if (members) params.set('members', members)
+
+    const base = isAllRecipesPage ? '/alla-recept/sok' : '/sok'
+    return `${base}?${params.toString()}`
   }
 
   function getEmptyUrl() {
-    // When on /alla-recept, clear should go back to /alla-recept
-    if (isAllRecipesPage) return '/alla-recept'
-    return '/'
+    // Preserve member filter when clearing search
+    const members = searchParams.get('members')
+    const base = isAllRecipesPage ? '/alla-recept' : '/'
+    if (members) return `${base}?members=${encodeURIComponent(members)}`
+    return base
   }
 
   function handleSearch(term: string) {

@@ -2,7 +2,7 @@
 
 import { useSearchParams, usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { BookOpen } from '@/lib/icons'
+import { BookOpen, Home } from '@/lib/icons'
 
 interface MemberFilterProps {
   members: Array<{ id: string; name: string; isCurrentUser: boolean; type?: 'household' | 'shared-book' }>
@@ -79,7 +79,8 @@ export function MemberFilter({ members, selectedIds }: MemberFilterProps) {
             )}
             aria-pressed={isSelected}
           >
-            {isSharedBook && <BookOpen className={cn('h-3.5 w-3.5', isSelected ? 'text-background/70' : 'text-warm')} />}
+            {!member.isCurrentUser && isSharedBook && <BookOpen className={cn('h-3.5 w-3.5', isSelected ? 'text-background/70' : 'text-warm')} />}
+            {!member.isCurrentUser && !isSharedBook && <Home className={cn('h-3.5 w-3.5', isSelected ? 'text-background/70' : 'text-muted-foreground')} />}
             {label}
           </button>
         )
