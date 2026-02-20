@@ -7,8 +7,6 @@ import { RecipeGrid } from '@/components/recipe-grid'
 import { RecipeGridSkeleton } from '@/components/recipe-grid-skeleton'
 import { MemberFilter } from '@/components/member-filter'
 import { buildMemberData, resolveSelectedMembers } from '@/lib/member-utils'
-import type { MemberEntry } from '@/lib/member-utils'
-
 interface SearchPageProps {
   searchParams: Promise<{ q?: string; members?: string }>
 }
@@ -31,14 +29,10 @@ async function SearchResults({
   query,
   token,
   ownerIds,
-  memberList,
-  selectedMemberIds,
 }: {
   query: string
   token: string
   ownerIds: string[] | undefined
-  memberList: MemberEntry[]
-  selectedMemberIds: string[]
 }) {
   const recipes = query
     ? await getRecipes({ search: query, ownerIds, token })
@@ -46,20 +40,15 @@ async function SearchResults({
 
   return (
     <>
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="mb-2 text-3xl font-bold text-foreground">
-            Sökresultat för &quot;{query}&quot;
-          </h1>
-          <p className="text-lg text-muted-foreground">
-            {recipes.length === 0 && 'Inga recept hittades'}
-            {recipes.length === 1 && '1 recept hittades'}
-            {recipes.length > 1 && `${recipes.length} recept hittades`}
-          </p>
-        </div>
-        {memberList.length > 1 && (
-          <MemberFilter members={memberList} selectedIds={selectedMemberIds} />
-        )}
+      <header>
+        <h1 className="mb-2 text-3xl font-bold text-foreground">
+          Sökresultat för &quot;{query}&quot;
+        </h1>
+        <p className="text-lg text-muted-foreground">
+          {recipes.length === 0 && 'Inga recept hittades'}
+          {recipes.length === 1 && '1 recept hittades'}
+          {recipes.length > 1 && `${recipes.length} recept hittades`}
+        </p>
       </header>
 
       <RecipeGrid recipes={recipes} />
@@ -86,6 +75,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
   return (
     <div className="space-y-8">
+      {/* Member Filter Badges (consistent position, always visible) */}
+      {memberList.length > 1 && (
+        <MemberFilter members={memberList} selectedIds={selectedMemberIds} />
+      )}
+
       {/* Results with query */}
       {query && (
         <Suspense fallback={<RecipeGridSkeleton count={6} />}>
@@ -93,8 +87,6 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             query={query}
             token={token}
             ownerIds={ownerIds}
-            memberList={memberList}
-            selectedMemberIds={selectedMemberIds}
           />
         </Suspense>
       )}
