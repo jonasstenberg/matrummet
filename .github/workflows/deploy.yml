@@ -362,8 +362,8 @@ jobs:
         run: |
           pnpm build
           # Playwright can't be bundled by Nitro (uses __dirname, CJS internals)
-          # Install it in the output so it's available at runtime
-          (cd .output/server && npm install --no-save playwright)
+          # Install it in a temp dir then copy to avoid npm touching sharp's platform deps
+          tmp=$(mktemp -d) && (cd "$tmp" && npm init -y --silent && npm install --no-save playwright) && cp -r "$tmp/node_modules/playwright" "$tmp/node_modules/playwright-core" .output/server/node_modules/ && rm -rf "$tmp"
           ls -la .output/server/  # Verify build output exists
 
       - name: Build and prepare email-service deployment
