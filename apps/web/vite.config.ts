@@ -19,6 +19,11 @@ export default defineConfig({
     exclude: ['playwright-core', 'playwright'],
   },
   ssr: {
-    external: ['sharp', 'chromium-bidi'],
+    external: ['sharp'],
+  },
+  nitro: {
+    rollupConfig: {
+      external: ['playwright', 'playwright-core', 'playwright/index.mjs'],
+    },
   },
 })
