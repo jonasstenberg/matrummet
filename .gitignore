@@ -13,6 +13,9 @@ coverage
 .next/
 out/
 
+# tanstack start
+.output
+
 # production
 build
 dist
