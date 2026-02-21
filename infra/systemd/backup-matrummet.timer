@@ -1,0 +1,9 @@
+[Unit]
+Description=Run Matrummet Backup Service every 4 hours
+
+[Timer]
+OnCalendar=*-*-* 02/4:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

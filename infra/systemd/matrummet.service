@@ -1,0 +1,16 @@
+[Unit]
+Description=Matrummet TanStack Start Application
+After=network.target postgrest-matrummet.service
+
+[Service]
+Type=simple
+User=deploy_recept
+Group=deploy_recept
+WorkingDirectory=/opt/matrummet/apps/web
+ExecStart=/usr/bin/node .output/server/index.mjs
+Restart=always
+RestartSec=5
+EnvironmentFile=/opt/matrummet/.matrummet.env
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,31 @@
+[Unit]
+Description=Matrummet Email Service
+After=network.target postgresql.service postgrest-matrummet.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=deploy_recept
+Group=deploy_recept
+WorkingDirectory=/opt/matrummet/apps/email-service
+
+# Environment file stored outside deployment directory (safe from rsync --delete)
+EnvironmentFile=/opt/matrummet/.email-service.env
+Environment="NODE_ENV=production"
+
+ExecStart=/usr/local/bin/bun src/index.ts
+Restart=on-failure
+RestartSec=5s
+StartLimitInterval=300s
+StartLimitBurst=10
+
+TimeoutStopSec=15s
+KillMode=mixed
+KillSignal=SIGTERM
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=matrummet-email
+
+[Install]
+WantedBy=multi-user.target

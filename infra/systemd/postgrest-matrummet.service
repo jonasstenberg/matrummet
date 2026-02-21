@@ -1,0 +1,15 @@
+[Unit]
+Description=PostgREST API Server
+After=postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=postgres
+Group=postgres
+ExecStart=/usr/local/bin/postgrest /etc/postgrest/matrummet.conf
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
