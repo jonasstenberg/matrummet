@@ -61,9 +61,8 @@ export function SignupForm() {
         return
       }
 
-      // Success - server fn throws redirect, but if we get here, invalidate and navigate
       await router.invalidate()
-      router.navigate({ to: returnUrl })
+      router.navigate({ to: returnUrl, state: { authTransition: 'login' } })
     } catch {
       setError('Ett fel uppstod vid registrering')
       setIsPending(false)

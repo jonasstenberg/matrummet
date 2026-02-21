@@ -100,9 +100,8 @@ export function LoginForm() {
         return
       }
 
-      // Success - server fn may throw redirect, or we navigate
       await router.invalidate()
-      router.navigate({ to: resolvedReturnUrl })
+      router.navigate({ to: resolvedReturnUrl, state: { authTransition: 'login' } })
     } catch {
       setLoginError('Ett fel uppstod vid inloggning')
       setIsLoginPending(false)

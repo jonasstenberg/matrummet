@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useLocation } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import { getSession, signPostgrestToken } from '@/lib/auth'
@@ -10,6 +10,8 @@ import {
 import { getUserPantry } from '@/lib/ingredient-search-actions'
 import { buildMemberData, resolveSelectedMembers } from '@/lib/member-utils'
 import { RecipePageClient } from '@/components/recipe-page-client'
+import { RecipeGridSkeleton } from '@/components/recipe-grid-skeleton'
+import { Skeleton } from '@/components/ui/skeleton'
 import { LandingPage } from '@/components/landing-page'
 
 const PAGE_SIZE = 24
@@ -81,6 +83,9 @@ export const Route = createFileRoute('/_main/')({
     fetchHomeData({
       data: { offset: deps.offset, members: deps.members },
     }),
+  pendingMs: 0,
+  pendingMinMs: 300,
+  pendingComponent: HomePageSkeleton,
   head: () => ({
     meta: [
       { title: 'Matrummet' },
@@ -90,8 +95,31 @@ export const Route = createFileRoute('/_main/')({
   component: HomePage,
 })
 
+function HomePageSkeleton() {
+  return (
+    <div className="space-y-8">
+      <header className="space-y-2">
+        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-6 w-96 max-w-full" />
+      </header>
+      <RecipeGridSkeleton />
+    </div>
+  )
+}
+
 function HomePage() {
   const data = Route.useLoaderData()
+  const { state } = useLocation()
+
+  // During auth transitions, the router serves stale cached data while refetching.
+  // Show skeleton when the data contradicts the expected post-transition state.
+  // Once fresh data arrives matching the expected state, the condition is false.
+  if (
+    (state.authTransition === 'login' && !data.authenticated) ||
+    (state.authTransition === 'logout' && data.authenticated)
+  ) {
+    return <HomePageSkeleton />
+  }
 
   if (!data.authenticated) {
     return <LandingPage recipes={data.featuredRecipes} />
