@@ -47,17 +47,27 @@ export function ShareRecipeDialog({
       setIsLoading(true);
       setError(null);
 
-      const result = await createShareLink(recipeId);
-      if (cancelled) return;
+      try {
+        const result = await createShareLink(recipeId);
+        if (cancelled) return;
 
-      setIsLoading(false);
-      if ("error" in result) {
-        setError(result.error);
-        return;
+        setIsLoading(false);
+        if (!result || typeof result !== 'object') {
+          setError('Kunde inte skapa delningslänk. Försök igen.');
+          return;
+        }
+        if ("error" in result) {
+          setError(result.error);
+          return;
+        }
+
+        setShareUrl(result.url);
+        setShareToken(result.token);
+      } catch {
+        if (cancelled) return;
+        setIsLoading(false);
+        setError('Kunde inte skapa delningslänk. Försök igen.');
       }
-
-      setShareUrl(result.url);
-      setShareToken(result.token);
     }
 
     getOrCreateLink();
@@ -79,22 +89,34 @@ export function ShareRecipeDialog({
     if (!shareToken) return;
 
     startTransition(async () => {
-      // Revoke old link
-      const revokeResult = await revokeShareLink(shareToken);
-      if ("error" in revokeResult) {
-        setError(revokeResult.error);
-        return;
-      }
+      try {
+        // Revoke old link
+        const revokeResult = await revokeShareLink(shareToken);
+        if (!revokeResult || typeof revokeResult !== 'object') {
+          setError('Kunde inte återkalla länken. Försök igen.');
+          return;
+        }
+        if ("error" in revokeResult) {
+          setError(revokeResult.error);
+          return;
+        }
 
-      // Create new link
-      const createResult = await createShareLink(recipeId);
-      if ("error" in createResult) {
-        setError(createResult.error);
-        return;
-      }
+        // Create new link
+        const createResult = await createShareLink(recipeId);
+        if (!createResult || typeof createResult !== 'object') {
+          setError('Kunde inte skapa delningslänk. Försök igen.');
+          return;
+        }
+        if ("error" in createResult) {
+          setError(createResult.error);
+          return;
+        }
 
-      setShareUrl(createResult.url);
-      setShareToken(createResult.token);
+        setShareUrl(createResult.url);
+        setShareToken(createResult.token);
+      } catch {
+        setError('Kunde inte skapa delningslänk. Försök igen.');
+      }
     });
   }
 
