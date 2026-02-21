@@ -39,7 +39,10 @@ export function AuthProvider({ children, initialUser, initialHomes = EMPTY_HOMES
   const [homes, setHomes] = useState<UserHome[]>(initialHomes)
   const [isLoading, setIsLoading] = useState(false)
 
-  // Sync homes when server re-renders with fresh data (e.g. after creating/deleting a home)
+  // Sync user/homes when server re-renders with fresh data (e.g. after login or creating a home)
+  useEffect(() => {
+    setUser(initialUser)
+  }, [initialUser])
   useEffect(() => {
     setHomes(initialHomes)
   }, [initialHomes])
