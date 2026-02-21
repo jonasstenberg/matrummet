@@ -38,6 +38,14 @@ on:
         options:
           - "true"
           - "false"
+      deploy_nginx:
+        description: "Deploy nginx configuration"
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
 
 env:
   NODE_VERSION: "22"
@@ -50,6 +58,7 @@ jobs:
       deploy_frontend: ${{ steps.changes.outputs.deploy_frontend }}
       deploy_email_service: ${{ steps.changes.outputs.deploy_email_service }}
       deploy_events_service: ${{ steps.changes.outputs.deploy_events_service }}
+      deploy_nginx: ${{ steps.changes.outputs.deploy_nginx }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -158,6 +167,27 @@ jobs:
             else
               echo "deploy_events_service=false" >> $GITHUB_OUTPUT
               echo "No events-service changes detected"
+            fi
+          fi
+
+          # Check for nginx config changes
+          if [[ "${{ github.event.inputs.deploy_nginx }}" == "false" ]]; then
+            echo "deploy_nginx=false" >> $GITHUB_OUTPUT
+            echo "Skipping nginx deployment as requested"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.deploy_nginx }}" == "true" ]]; then
+            echo "deploy_nginx=true" >> $GITHUB_OUTPUT
+            echo "Manual request to deploy nginx"
+          elif [[ -z "$PARENT_SHA" ]]; then
+            echo "deploy_nginx=true" >> $GITHUB_OUTPUT
+            echo "First commit, deploying nginx"
+          else
+            CHANGED_FILES=$(git diff --name-only $PARENT_SHA $WORKFLOW_SHA 2>/dev/null || git ls-files)
+            if echo "$CHANGED_FILES" | grep -q "^nginx/"; then
+              echo "deploy_nginx=true" >> $GITHUB_OUTPUT
+              echo "Nginx config changes detected"
+            else
+              echo "deploy_nginx=false" >> $GITHUB_OUTPUT
+              echo "No nginx config changes detected"
             fi
           fi
 
@@ -432,8 +462,32 @@ jobs:
         run: |
           ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'sudo systemctl restart ${{ vars.SERVICE_EVENTS }}'
 
+  deploy-nginx:
+    needs: [setup]
+    if: needs.setup.outputs.deploy_nginx == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy nginx config
+        run: |
+          scp nginx/production.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/etc/nginx/sites-enabled/recept
+          scp nginx/proxy-cache.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/etc/nginx/conf.d/proxy-cache.conf
+
+      - name: Test and reload nginx
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'sudo nginx -t && sudo systemctl reload nginx'
+
   notify:
-    needs: [setup, test, api-tests, deploy-migrations, deploy-services]
+    needs: [setup, test, api-tests, deploy-migrations, deploy-services, deploy-nginx]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -447,3 +501,4 @@ jobs:
           echo "- Frontend: ${{ needs.setup.outputs.deploy_frontend == 'true' && 'Deployed' || 'Skipped' }}"
           echo "- Email-service: ${{ needs.setup.outputs.deploy_email_service == 'true' && 'Deployed' || 'Skipped' }}"
           echo "- Events-service: ${{ needs.setup.outputs.deploy_events_service == 'true' && 'Deployed' || 'Skipped' }}"
+          echo "- Nginx: ${{ needs.setup.outputs.deploy_nginx == 'true' && (needs.deploy-nginx.result == 'success' && 'Deployed' || 'Failed') || 'Skipped' }}"
