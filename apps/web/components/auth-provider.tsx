@@ -72,13 +72,12 @@ export function AuthProvider({ children, initialUser, initialHomes = EMPTY_HOMES
     setIsLoading(true)
     try {
       const result = await logoutFn()
-
       if (result && 'error' in result && result.error) {
         throw new Error(result.error)
       }
-
       setUser(null)
-      router.invalidate()
+      await router.invalidate()
+      router.navigate({ to: '/', state: { authTransition: 'logout' } })
     } finally {
       setIsLoading(false)
     }
