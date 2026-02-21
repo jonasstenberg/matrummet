@@ -1,13 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
-import { apiAuthMiddleware } from '@/lib/middleware'
+import { apiAuthWithApiKeyMiddleware } from '@/lib/middleware'
 import { getDataFilesDir } from '@/lib/paths'
 import { generateImageVariants } from '@/lib/image-processing'
 
 export const Route = createFileRoute('/api/upload')({
   server: {
-    middleware: [apiAuthMiddleware],
+    middleware: [apiAuthWithApiKeyMiddleware],
     handlers: {
       POST: async ({ request }) => {
         try {

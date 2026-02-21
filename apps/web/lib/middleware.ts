@@ -1,7 +1,7 @@
 import { createMiddleware } from '@tanstack/react-start'
 import { createServerFn } from '@tanstack/react-start'
 import { redirect } from '@tanstack/react-router'
-import { getSession, signPostgrestToken, type JWTPayload } from '@/lib/auth'
+import { getSession, getAuthFromRequest, signPostgrestToken, type JWTPayload } from '@/lib/auth'
 
 // ---------------------------------------------------------------------------
 // Server function middleware (for use with createServerFn().middleware([...]))
@@ -171,6 +171,34 @@ export const apiAdminMiddleware = createMiddleware().server(
     }
     if (session.role !== 'admin') {
       throw Response.json({ error: 'Forbidden' }, { status: 403 })
+    }
+    const postgrestToken = await signPostgrestToken(session.email, session.role)
+    return next({ context: { session, postgrestToken } })
+  },
+)
+
+/**
+ * Middleware for API route handlers that accept both cookie and API key auth.
+ * Supports x-api-key header authentication in addition to cookies.
+ * Returns 401 on failure. Adds `session` and `postgrestToken` to handler context.
+ *
+ * Usage:
+ *   export const Route = createFileRoute('/api/my-endpoint')({
+ *     server: {
+ *       middleware: [apiAuthWithApiKeyMiddleware],
+ *       handlers: {
+ *         POST: async ({ request, context }) => {
+ *           const { session, postgrestToken } = context
+ *         },
+ *       },
+ *     },
+ *   })
+ */
+export const apiAuthWithApiKeyMiddleware = createMiddleware().server(
+  async ({ next, request }) => {
+    const session = await getAuthFromRequest(request)
+    if (!session) {
+      throw Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
     const postgrestToken = await signPostgrestToken(session.email, session.role)
     return next({ context: { session, postgrestToken } })
