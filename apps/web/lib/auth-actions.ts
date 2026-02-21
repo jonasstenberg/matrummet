@@ -78,7 +78,7 @@ export const requestPasswordResetFn = createServerFn({ method: 'POST' })
     }
 
     try {
-      const appUrl = env.APP_URL || 'http://localhost:3001'
+      const appUrl = env.APP_URL || 'http://localhost:3002'
 
       const postgrestResponse = await fetch(
         `${env.POSTGREST_URL}/rpc/request_password_reset`,

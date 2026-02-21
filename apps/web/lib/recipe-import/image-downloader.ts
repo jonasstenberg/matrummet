@@ -1,7 +1,4 @@
-import { join } from 'path'
-import { randomUUID } from 'crypto'
-import { getDataFilesDir } from '@/lib/paths'
-import { generateImageVariants } from '@/lib/image-processing'
+import { uploadImageBuffer } from '@/lib/image-service-client'
 
 const MAX_IMAGE_SIZE = 20 * 1024 * 1024 // 20MB
 
@@ -20,8 +17,8 @@ export interface DownloadResult {
 }
 
 /**
- * Download an image from a URL, optimize it, and save locally as multiple size variants.
- * Returns the image ID (directory name) on success.
+ * Download an image from a URL and upload it to the image service.
+ * Returns the image ID (filename) on success.
  */
 export async function downloadImage(imageUrl: string): Promise<DownloadResult> {
   try {
@@ -76,14 +73,10 @@ export async function downloadImage(imageUrl: string): Promise<DownloadResult> {
       }
     }
 
-    // Generate unique image ID (no extension - it's a directory)
-    const imageId = randomUUID()
-    const imageDir = join(getDataFilesDir(), imageId)
+    // Upload to image service
+    const filename = await uploadImageBuffer(buffer, contentType)
 
-    // Generate all image size variants
-    await generateImageVariants(buffer, imageDir)
-
-    return { success: true, filename: imageId }
+    return { success: true, filename }
   } catch (error) {
     console.error('Image download error:', error)
     return {

@@ -6,7 +6,7 @@ import tailwindcss from '@tailwindcss/vite'
 import { nitro } from 'nitro/vite'
 
 export default defineConfig({
-  server: { port: 3001 },
+  server: { port: 3002 },
   plugins: [
     tailwindcss(),
     tsConfigPaths({ projects: ['./tsconfig.json'] }),
@@ -17,9 +17,6 @@ export default defineConfig({
   ],
   optimizeDeps: {
     exclude: ['playwright-core', 'playwright'],
-  },
-  ssr: {
-    external: ['sharp'],
   },
   nitro: {
     rollupConfig: {

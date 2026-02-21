@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import type { ImageSize } from './image-processing'
+type ImageSize = 'thumb' | 'small' | 'medium' | 'large' | 'full'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
