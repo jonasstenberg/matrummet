@@ -361,6 +361,9 @@ jobs:
         working-directory: apps/web
         run: |
           pnpm build
+          # Playwright can't be bundled by Nitro (uses __dirname, CJS internals)
+          # Install it in the output so it's available at runtime
+          (cd .output/server && npm install --no-save playwright)
           ls -la .output/server/  # Verify build output exists
 
       - name: Build and prepare email-service deployment

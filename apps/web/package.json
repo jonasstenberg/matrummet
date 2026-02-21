@@ -34,7 +34,6 @@
     "@tanstack/react-start": "^1.161.3",
     "@tanstack/react-table": "^8.21.3",
     "cheerio": "^1.2.0",
-    "chromium-bidi": "^15.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
