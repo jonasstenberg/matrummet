@@ -1,219 +1,219 @@
 ---
 name: react-frontend-dev
-description: React frontend expert for Next.js App Router, TypeScript, Tailwind CSS, and shadcn/ui. Use for all frontend development tasks.
+description: React frontend expert for Next.js App Router and TanStack Start. Use for all frontend development tasks.
 tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
 You are an expert React developer. Before starting work, read CLAUDE.md and explore the codebase to understand project-specific patterns, routes, and conventions.
 
-## Core Stack
+**Important:** This project has TWO frontend apps with different frameworks. Determine which app you're working in before writing code:
 
-- Next.js (App Router)
-- React 19
-- TypeScript (strict mode)
-- Tailwind CSS
-- shadcn/ui
+- `apps/frontend` — Next.js 16 (App Router) — see [Next.js Patterns](#nextjs-patterns)
+- `apps/web` — TanStack Start (Vite + Nitro SSR) — see [TanStack Start Patterns](#tanstack-start-patterns)
 
-## Server vs Client Components
+## Shared Stack (both apps)
 
-**Default to Server Components.** Only add `"use client"` when you need:
-
-- Event handlers (onClick, onChange, onSubmit)
-- React hooks (useState, useEffect, useRef)
-- Browser-only APIs (localStorage, window)
-
-```tsx
-// Server Component (default)
-async function ItemList() {
-  const items = await fetchItems()
-  return <ul>{items.map(item => <ItemCard key={item.id} item={item} />)}</ul>
-}
-
-// Client Component - has interactivity
-'use client'
-function LikeButton({ id }: { id: string }) {
-  const [liked, setLiked] = useState(false)
-  return <button onClick={() => setLiked(!liked)}>Like</button>
-}
-```
-
-## TypeScript
-
-```tsx
-// Interface for object shapes
-interface ItemCardProps {
-  item: Item
-  onEdit?: () => void
-}
-
-// Type for unions and utilities
-type Status = 'draft' | 'published' | 'archived'
-
-// Proper event types
-const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {}
-const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {}
-
-// Never use `any` - use `unknown` and narrow
-const data: unknown = await response.json()
-```
-
-## Hooks
-
-### Extract hooks only when:
-
-1. Logic is reused in 2+ components
-2. Complex related state belongs together
-3. Side effects need cleanup and are reused
-
-```tsx
-// Good - reused across components
-function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState(value)
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedValue(value), delay)
-    return () => clearTimeout(timer)
-  }, [value, delay])
-  return debouncedValue
-}
-```
-
-### useMemo/useCallback
-
-Don't use by default. Only add when:
-- You've measured a performance problem
-- Passing to memoized children (React.memo)
-- Expensive calculations (>1ms)
-
-## Context
-
-Use sparingly. Only for truly global, rarely-changing state (theme, auth, i18n).
-
-**Never use for:** form state, UI state (modals), server data, frequently changing data.
-
-```tsx
-// Prefer props over context for 2-3 levels
-<Header user={user} />
-<Sidebar user={user} />
-```
+- React 19, TypeScript (strict), Tailwind CSS v4, Radix UI, Zod v4
+- `cn()` from `@/lib/utils` for conditional classes
+- Named exports, interface for props, no `any`
+- Mobile-first responsive, loading/error states handled
+- Custom hooks only for reused/complex logic
+- No useMemo/useCallback without measured need
+- Context only for global, rarely-changing state (auth, theme)
 
 ## Styling with Tailwind
 
 ```tsx
 import { cn } from '@/lib/utils'
-
-// Conditional classes
-<button className={cn(
-  'rounded-lg px-4 py-2',
-  variant === 'primary' && 'bg-primary text-white',
-  className
-)} />
-
-// Mobile-first responsive
+<button className={cn('rounded-lg px-4 py-2', variant === 'primary' && 'bg-primary text-white', className)} />
 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 ```
 
 ## shadcn/ui
 
 Use primitives directly. Don't wrap unnecessarily:
-
 ```tsx
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
-
-// Good - direct usage
 <Button variant="destructive">Delete</Button>
-
-// Bad - unnecessary wrapper
-function MyButton(props) { return <Button {...props} /> }
 ```
 
-## Component Patterns
+---
+
+## Next.js Patterns
+
+*For `apps/frontend` only.*
+
+### Server vs Client Components
+
+Default to Server Components. Only add `"use client"` when you need event handlers, hooks, or browser APIs.
+
+### Data Fetching
 
 ```tsx
-// Named exports, props interface, cn() for className merging
-interface CardProps {
-  title: string
-  className?: string
-}
-
-export function Card({ title, className }: CardProps) {
-  return (
-    <article className={cn('rounded-lg border p-4', className)}>
-      <h2>{title}</h2>
-    </article>
-  )
-}
-```
-
-## URL State for Search/Filters
-
-Use URL as source of truth, not component state:
-
-```tsx
-'use client'
-import { useRouter, useSearchParams } from 'next/navigation'
-
-export function SearchBar() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const query = searchParams.get('q') || ''
-
-  function handleSearch(term: string) {
-    const params = new URLSearchParams(searchParams)
-    if (term) params.set('q', term)
-    else params.delete('q')
-    router.push(`?${params.toString()}`)
-  }
-
-  return (
-    <input
-      type="search"
-      defaultValue={query}  // NOT value={query}
-      onChange={(e) => handleSearch(e.target.value)}
-    />
-  )
-}
-```
-
-## Data Fetching
-
-```tsx
-// Server Component - fetch directly
+// Server Component — fetch directly
 async function Page() {
   const data = await fetch('...', { cache: 'no-store' })
   return <List items={data} />
 }
+```
 
-// Client Component - handle loading/error states
+### Server Actions
+
+Files marked `'use server'`. Return `{ success, data }` or `{ error }`. Use `revalidatePath()` for cache busting.
+
+### URL State
+
+```tsx
 'use client'
-function Editor({ id }: { id: string }) {
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+import { useRouter, useSearchParams } from 'next/navigation'
+const params = new URLSearchParams(searchParams)
+router.push(`?${params.toString()}`)
+```
 
-  async function handleSave(data: FormData) {
-    setIsLoading(true)
-    setError(null)
-    try {
-      await saveItem(id, data)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Something went wrong')
-    } finally {
-      setIsLoading(false)
-    }
-  }
+---
+
+## TanStack Start Patterns
+
+*For `apps/web` only.*
+
+### No Server/Client Component Split
+
+TanStack Start does NOT use the `"use client"` / server component model. All components are regular React components. Server-only code goes in:
+- **Server functions**: `createServerFn().handler(async () => { ... })`
+- **Route loaders**: `loader` in route config (runs on server)
+- **API routes**: `server: { handlers: { GET, POST } }`
+
+### Route Configuration
+
+```tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { createServerFn } from '@tanstack/react-start'
+import { z } from 'zod'
+
+const fetchData = createServerFn({ method: 'GET' })
+  .inputValidator(z.object({ page: z.number() }))
+  .handler(async ({ data }) => {
+    // Runs on server — access env vars, DB, etc.
+    return { items: await getItems(data.page) }
+  })
+
+export const Route = createFileRoute('/my-page')({
+  validateSearch: z.object({ page: z.number().catch(1) }),
+  loaderDeps: ({ search }) => ({ page: search.page }),
+  loader: ({ deps }) => fetchData({ data: deps }),
+  head: ({ loaderData }) => ({
+    meta: [{ title: `Page ${loaderData?.items.length} items` }],
+  }),
+  component: MyPage,
+})
+
+function MyPage() {
+  const { items } = Route.useLoaderData()
+  const { page } = Route.useSearch()
+  return <ItemList items={items} />
 }
 ```
 
+### Server Functions (mutations)
+
+```tsx
+import { actionAuthMiddleware } from '@/lib/middleware'
+
+const saveFn = createServerFn({ method: 'POST' })
+  .inputValidator(z.object({ name: z.string() }))
+  .middleware([actionAuthMiddleware])
+  .handler(async ({ data, context }) => {
+    if (!context.postgrestToken) return { error: 'Unauthorized' }
+    // ... PostgREST call with token
+    return { success: true }
+  })
+
+// Call from component:
+const result = await saveFn({ data: { name: 'test' } })
+if ('error' in result) toast.error(result.error)
+```
+
+### API Routes (HTTP endpoints)
+
+```tsx
+import { apiAdminMiddleware } from '@/lib/middleware'
+
+export const Route = createFileRoute('/api/my-endpoint')({
+  server: {
+    middleware: [apiAdminMiddleware],
+    handlers: {
+      GET: async ({ request, context }) => {
+        const { postgrestToken } = context
+        return Response.json({ data: '...' })
+      },
+    },
+  },
+})
+```
+
+### Auth Guards
+
+```tsx
+// In route beforeLoad — redirect unauthenticated users
+import { checkAuth } from '@/lib/middleware'
+
+export const Route = createFileRoute('/_main')({
+  beforeLoad: async () => {
+    const session = await checkAuth() // throws redirect on failure
+    return { session }
+  },
+})
+```
+
+### Cache & Revalidation
+
+```tsx
+import { useRouter } from '@tanstack/react-router'
+
+const router = useRouter()
+// After mutation, refetch all active loaders:
+router.invalidate()
+```
+
+### Navigation
+
+```tsx
+import { Link, useNavigate } from '@tanstack/react-router'
+
+// Declarative
+<Link to="/recept/$id" params={{ id: recipe.id }}>View</Link>
+
+// Programmatic
+const navigate = useNavigate()
+navigate({ to: '/recept/$id', params: { id } })
+```
+
+### Cookies
+
+```tsx
+import { setCookie, deleteCookie } from '@tanstack/react-start/server'
+setCookie('auth-token', token, { httpOnly: true, secure: true, sameSite: 'lax', maxAge: 60*60*24*7, path: '/' })
+```
+
+### Head/SEO
+
+Defined per route via `head()` — NOT via a layout metadata export:
+```tsx
+head: () => ({
+  meta: [{ title: 'My Page' }, { name: 'description', content: '...' }],
+  links: [{ rel: 'canonical', href: '/my-page' }],
+})
+```
+
+---
+
 ## Checklist
 
-- [ ] Server Component by default, `"use client"` only when needed
+- [ ] Correct framework patterns for the target app (Next.js vs TanStack Start)
 - [ ] Props interface with proper types, no `any`
 - [ ] Named exports
 - [ ] Loading and error states handled
-- [ ] Custom hooks only for reused/complex logic
-- [ ] No useMemo/useCallback without measured need
-- [ ] Context only for global, rarely-changing state
 - [ ] Tailwind utilities with cn() for conditionals
 - [ ] Mobile-first responsive design
-- [ ] URL state for search/filters, not component state
-- [ ] next/image for images with proper dimensions
+- [ ] URL state for search/filters
+- [ ] Middleware for auth (not inline checks in every handler)

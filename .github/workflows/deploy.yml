@@ -110,7 +110,7 @@ jobs:
             echo "First commit, deploying frontend"
           else
             CHANGED_FILES=$(git diff --name-only $PARENT_SHA $WORKFLOW_SHA 2>/dev/null || git ls-files)
-            if echo "$CHANGED_FILES" | grep -q "^apps/frontend/"; then
+            if echo "$CHANGED_FILES" | grep -q "^apps/web/"; then
               echo "deploy_frontend=true" >> $GITHUB_OUTPUT
               echo "Frontend changes detected"
             else
@@ -356,22 +356,12 @@ jobs:
         if: steps.should-deploy.outputs.deploy == 'true'
         run: pnpm install --frozen-lockfile
 
-      - name: Cache Next.js build
-        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'frontend'
-        uses: actions/cache@v4
-        with:
-          path: apps/frontend/.next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/frontend/**/*.js', 'apps/frontend/**/*.jsx', 'apps/frontend/**/*.ts', 'apps/frontend/**/*.tsx') }}
-          restore-keys: |
-            ${{ runner.os }}-nextjs-${{ hashFiles('pnpm-lock.yaml') }}-
-            ${{ runner.os }}-nextjs-
-
       - name: Build frontend
         if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'frontend'
-        working-directory: apps/frontend
+        working-directory: apps/web
         run: |
           pnpm build
-          ls -la .next/standalone/  # Verify build output exists
+          ls -la .output/server/  # Verify build output exists
 
       - name: Build and prepare email-service deployment
         if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'email-service'
@@ -389,22 +379,6 @@ jobs:
           pnpm deploy --filter @matrummet/events-service --prod --legacy deploy/events-service
           ls -la deploy/events-service/  # Verify deployment package
 
-      - name: Prepare frontend deployment package
-        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'frontend'
-        run: |
-          mkdir -p deploy/.next
-          # Next.js standalone preserves monorepo structure, copy from nested path
-          cp -r apps/frontend/.next/standalone/apps/frontend/. deploy/
-          # Copy root node_modules (shared dependencies)
-          cp -r apps/frontend/.next/standalone/node_modules deploy/
-          # Copy static assets
-          cp -r apps/frontend/.next/static deploy/.next/static
-          # Merge source public files into standalone public (standalone only has uploads)
-          cp -r apps/frontend/public/. deploy/public/
-          cp -r apps/frontend/scripts deploy/scripts
-          # Verify structure
-          ls -la deploy/
-
       - name: Setup SSH
         if: steps.should-deploy.outputs.deploy == 'true'
         run: |
@@ -416,16 +390,11 @@ jobs:
       - name: Deploy frontend to VPS
         if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'frontend'
         run: |
-          rsync -avz --delete --exclude='public/uploads' \
-            deploy/ \
-            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ vars.DEPLOY_PATH }}/apps/frontend/
+          rsync -avz --delete \
+            apps/web/.output/ \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ vars.DEPLOY_PATH }}/apps/web/.output/
 
           echo "Frontend deployed successfully"
-
-      - name: Install Playwright browsers on VPS
-        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'frontend'
-        run: |
-          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'cd ${{ vars.DEPLOY_PATH }}/apps/frontend && npx playwright install chromium'
 
       - name: Deploy email-service to VPS
         if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'email-service'

@@ -1,0 +1,176 @@
+import { createFileRoute } from '@tanstack/react-router'
+import { apiAdminMiddleware } from '@/lib/middleware'
+import { env } from '@/lib/env'
+
+const PAGE_SIZE = 20
+
+interface RecipeWithGroups {
+  id: string
+  name: string
+  ingredient_groups: Array<{ id: string; name: string; sort_order: number }> | null
+  ingredients: Array<{
+    id: string
+    name: string
+    measurement: string
+    quantity: string
+    group_id: string | null
+    sort_order: number
+  }> | null
+  instructions: Array<{
+    id: string
+    step: string
+    group_id: string | null
+    sort_order: number
+  }> | null
+}
+
+/**
+ * Checks if a recipe needs restructuring:
+ * - Has ingredient_groups with items, OR
+ * - Has ingredients with names starting with '#' (old format)
+ */
+function needsRestructuring(recipe: RecipeWithGroups): boolean {
+  // Has proper ingredient groups
+  if (recipe.ingredient_groups && recipe.ingredient_groups.length > 0) {
+    return true
+  }
+
+  // Has old-style # prefixed ingredients
+  if (recipe.ingredients?.some(i => i.name.startsWith("#"))) {
+    return true
+  }
+
+  return false
+}
+
+/**
+ * Extract group names from a recipe (both proper groups and # prefixed ingredients)
+ */
+function extractGroupNames(recipe: RecipeWithGroups): string[] {
+  const groups: string[] = []
+
+  // Add proper ingredient groups
+  if (recipe.ingredient_groups) {
+    groups.push(...recipe.ingredient_groups.map(g => g.name))
+  }
+
+  // Add # prefixed ingredients as group names
+  if (recipe.ingredients) {
+    for (const ing of recipe.ingredients) {
+      if (ing.name.startsWith("#")) {
+        // Remove # and trim
+        const groupName = ing.name.substring(1).trim()
+        if (groupName && !groups.includes(groupName)) {
+          groups.push(groupName)
+        }
+      }
+    }
+  }
+
+  return groups
+}
+
+export const Route = createFileRoute('/api/admin/restructure')({
+  server: {
+    middleware: [apiAdminMiddleware],
+    handlers: {
+      /**
+       * GET /api/admin/restructure
+       * Lists recipes for restructuring/instruction improvement.
+       *
+       * Query params:
+       * - page: Page number (default 1)
+       * - search: Search term for recipe name
+       * - mode: Filter mode - "all" shows all recipes, "ingredients" shows only those needing restructuring (default: "ingredients")
+       */
+      GET: async ({ request, context }) => {
+        try {
+          const { postgrestToken } = context
+
+          const { searchParams } = new URL(request.url)
+          const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10))
+          const search = searchParams.get("search") || ""
+          const mode = searchParams.get("mode") || "ingredients"
+
+          const params = new URLSearchParams()
+          params.set("select", "id,name,ingredient_groups,ingredients,instructions")
+          params.set("order", "name.asc")
+
+          if (search) {
+            params.set("name", `ilike.*${search}*`)
+          }
+
+          const response = await fetch(
+            `${env.POSTGREST_URL}/user_recipes?${params}`,
+            {
+              headers: {
+                Authorization: `Bearer ${postgrestToken}`,
+              },
+            }
+          )
+
+          if (!response.ok) {
+            console.error("PostgREST error:", await response.text())
+            return Response.json(
+              { error: "Failed to fetch recipes" },
+              { status: 500 }
+            )
+          }
+
+          const allRecipes: RecipeWithGroups[] = await response.json()
+
+          // Filter based on mode
+          const recipesToRestructure = mode === "all"
+            ? allRecipes
+            : allRecipes.filter(needsRestructuring)
+
+          // Calculate pagination
+          const total = recipesToRestructure.length
+          const totalPages = Math.ceil(total / PAGE_SIZE)
+          const offset = (page - 1) * PAGE_SIZE
+
+          // Prepare items with summary info
+          const allItems = recipesToRestructure.map(r => {
+            const groups = extractGroupNames(r)
+            const hashPrefixedCount = r.ingredients?.filter(i => i.name.startsWith("#")).length || 0
+            const instructionCount = r.instructions?.length || 0
+
+            return {
+              id: r.id,
+              name: r.name,
+              groupCount: groups.length,
+              ingredientCount: (r.ingredients?.length || 0) - hashPrefixedCount,
+              instructionCount,
+              groups,
+              hasLegacyFormat: hashPrefixedCount > 0,
+              hasInstructions: instructionCount > 0,
+            }
+          })
+
+          // Sort by priority: Legacy #-format first, then no instructions, then rest
+          allItems.sort((a, b) => {
+            if (a.hasLegacyFormat !== b.hasLegacyFormat) return a.hasLegacyFormat ? -1 : 1
+            if (a.hasInstructions !== b.hasInstructions) return a.hasInstructions ? 1 : -1
+            return a.name.localeCompare(b.name, "sv")
+          })
+
+          const paginatedItems = allItems.slice(offset, offset + PAGE_SIZE)
+
+          return Response.json({
+            items: paginatedItems,
+            total,
+            page,
+            pageSize: PAGE_SIZE,
+            totalPages,
+          })
+        } catch (error) {
+          console.error("Error listing recipes for restructure:", error)
+          return Response.json(
+            { error: "Internal server error" },
+            { status: 500 }
+          )
+        }
+      },
+    },
+  },
+})

@@ -6,7 +6,9 @@ Matrummet is a Swedish recipe management app. Monorepo with:
 
 - `apps/frontend` — Next.js 16, React 19, Tailwind v4, Radix UI
 - `apps/mobile` — React Native/Expo mobile app (shared API client)
+- `apps/web` — TanStack Start (Vite + Nitro SSR), React 19, Tailwind v4, Radix UI
 - `apps/email-service` — Email notifications
+- `apps/events-service` — Event processing
 - `packages/types` — Shared TypeScript types and Zod schemas
 - `packages/api-client` — Shared PostgREST client, auth (pure JS JWT via @noble/hashes)
 - `packages/` — Shared configs (eslint, tsconfig, testing)
@@ -71,6 +73,85 @@ Migrations: `flyway/sql/V{version}__{description}.sql`
 Seed data: `data/data.sql`
 Backups: `flyway/run-flyway.sh backup|restore|list-backups`
 
+## Architecture
+
+### Separation of Concerns
+
+Business logic lives in `lib/`, API routes are thin HTTP handlers.
+
+**API routes** (`app/api/*/route.ts`) handle only:
+- Auth checks (`getSession()`)
+- Request parsing
+- Calling lib functions
+- Formatting HTTP responses
+
+**Server actions** (`lib/*-actions.ts`) are `'use server'` files that:
+- Get PostgREST tokens via `getPostgrestToken()` from `action-utils.ts`
+- Call business logic in lib
+- Revalidate Next.js cache paths
+- Return `{ success, data }` or `{ error }` objects
+
+**Pure lib modules** (no `'use server'`) contain reusable business logic:
+- `lib/auth-operations.ts` — Login, signup, password reset, account deletion (PostgREST + JWT)
+- `lib/credits.ts` — Check/deduct/refund AI credits
+- `lib/ingredient-matching.ts` — Match ingredients to food/unit database
+- `lib/substitutions.ts` — AI ingredient substitution suggestions
+- `lib/recipe-refinement.ts` — AI recipe refinement with Zod validation
+- `lib/meal-plan/service.ts` — Meal plan generation, validation, enrichment, saving
+- `lib/ai-review/food-normalization.ts` — AI food name normalization and review suggestions
+
+### Environment Variables
+
+`lib/env.ts` exports a lazy-validated `env` object with getters. Use `env.POSTGREST_URL`, `env.JWT_SECRET`, etc. — never `process.env.*` directly (except `NEXT_PUBLIC_*` client vars).
+
+`lib/env.ts` also exports `BASE_URL` for the public site URL (`NEXT_PUBLIC_URL`).
+
+### Cookie Handling
+
+`lib/cookie-utils.ts` centralizes auth cookie operations:
+- Server actions: `setAuthCookie(token)`, `deleteAuthCookie()` — use `cookies()` from `next/headers`
+- API routes: `setAuthCookieOnResponse(res, token)`, `deleteAuthCookieOnResponse(res)` — use `response.cookies`
+- `COOKIE_NAME` constant exported from here (imported by `auth.ts`, `action-utils.ts`, `proxy.ts`)
+
+### PostgREST Helpers
+
+- `lib/action-utils.ts` (`'use server'`) — `getPostgrestToken()`, `postgrestHeaders(token, homeId?)`, `getCurrentUserEmail()`
+- `lib/postgrest-helpers.ts` (pure) — `isDuplicateKeyError(errorText)`, `parsePostgrestError(errorText)`
+
+### Auth
+
+- `lib/auth.ts` — JWT signing/verification (`signToken`, `verifyToken`, `signPostgrestToken`, `getSession`)
+- `lib/auth-operations.ts` — Pure auth business logic (`performLogin`, `performSignup`, `performChangePassword`, `performDeleteAccount`, `performRequestPasswordReset`)
+- `lib/auth-actions.ts` — Server actions wrapping auth-operations + cookie manipulation
+- `app/api/auth/*/route.ts` — Thin API route handlers for auth (used by auth-provider.tsx and mobile)
+
+### AI Integration
+
+Uses Mistral AI via `@mistralai/mistralai`:
+- `lib/ai-client.ts` — `createMistralClient()` factory, `MISTRAL_MODEL` constant (`mistral-medium-latest`)
+- Pattern: `client.chat.complete()` with `responseFormat: { type: 'json_schema', jsonSchema: { name, schemaDefinition, strict: true } }`
+- Zod v4: Use `toJSONSchema()` for schema definitions. Do NOT use `chat.parse()` (incompatible with Zod v4)
+- Schemas defined as Zod schemas + exported `*_JSON_SCHEMA` constants
+
+**AI-powered features:**
+| Feature | Lib | API Route |
+|---------|-----|-----------|
+| Recipe generation (text + image) | `lib/recipe-parser/` | `app/api/ai/generate/route.ts` |
+| Meal plan generation | `lib/meal-plan/service.ts` | `app/api/ai/meal-plan/route.ts` |
+| Recipe refinement | `lib/recipe-refinement.ts` | `app/api/admin/ai/refine/route.ts` |
+| Ingredient restructuring | `lib/ingredient-restructure/` | `app/api/admin/restructure/*/route.ts` |
+| Ingredient substitutions | `lib/substitutions.ts` | `app/api/substitutions/route.ts` |
+| Food name AI review | `lib/ai-review/food-normalization.ts` | `app/api/admin/ai-review/stream/route.ts`, `app/api/admin/foods/ai-review/route.ts` |
+| Recipe import from URL | `lib/recipe-import/` | `app/api/recipes/import/route.ts` |
+
+### Credit System
+
+AI features cost credits (1 point each). Managed via `lib/credits.ts`:
+- `checkCredits(token)` — Verify balance
+- `deductCredit(token, description)` — Atomic deduction
+- `refundCredit(email, description)` — Refund on failure
+- Credits purchased via Stripe (`lib/stripe.ts`, `app/api/credits/*/route.ts`)
+
 ### Key Patterns
 
 **RLS**: All tables use JWT email claim (`request.jwt.claims->>'email'`) for ownership. SELECT is public, INSERT/UPDATE/DELETE is owner-only.
@@ -79,6 +160,8 @@ Backups: `flyway/run-flyway.sh backup|restore|list-backups`
 
 **Full-text Search**: Swedish text search via `recipes_and_categories` view's `full_tsv` column.
 
+**Households**: Users can share recipe books and shopping lists within a household. `homeId` is passed via `X-Active-Home-Id` header (handled by `postgrestHeaders()`).
+
 ### Schema Overview
 
 - `users` / `user_passwords` — Auth with bcrypt trigger
@@ -86,8 +169,16 @@ Backups: `flyway/run-flyway.sh backup|restore|list-backups`
 - `ingredients` — Measurements and quantities
 - `instructions` — Recipe steps
 - `categories` — Many-to-many via `recipe_categories`
+- `category_groups` — 7 predefined groups for organizing categories
+- `foods` / `units` — Canonical food and unit databases
+- `ai_review_runs` / `ai_review_suggestions` — AI food review system
+- `shopping_lists` / `shopping_list_items` — Shopping list management
+- `meal_plans` / `meal_plan_entries` — Weekly meal planning
+- `homes` / `home_members` — Household management
+- `book_share_tokens` / `book_share_connections` — Recipe book sharing
+- `user_credits` / `credit_transactions` — AI credit system
 
-### Auth Functions
+### Auth Functions (SQL)
 
 `login()`, `signup()`, `signup_provider()`, `reset_password()`
 
@@ -99,6 +190,98 @@ Expo/React Native app in `apps/mobile/`. Uses shared packages:
 - Images via `EXPO_PUBLIC_IMAGE_BASE_URL` (local: `http://localhost:4446/uploads`, prod: nginx)
 - Dev: `cd apps/mobile && npx expo run:ios` (not `expo start` — needs dev build for native modules)
 - Metro config: `unstable_enablePackageExports = true` required for `@noble/hashes` subpath imports
+
+## apps/web — TanStack Start
+
+### Stack & Entry Points
+
+- **Framework**: TanStack Start (`@tanstack/react-start`) + TanStack Router (`@tanstack/react-router`)
+- **Bundler**: Vite with `tanstackStart()` plugin (must come before `viteReact()`)
+- **SSR**: Nitro — `src/ssr.tsx` → `createStartHandler(defaultStreamHandler)`
+- **Client**: `src/client.tsx` → `hydrateRoot(document, <StartClient />)`
+- **Router**: `src/router.tsx` → `getRouter()` with type registration via `declare module`
+- **Dev port**: 3001
+
+### Routing (File-based)
+
+Routes in `src/routes/`. Key conventions:
+- `__root.tsx` — Root layout (`<html>`, `<HeadContent />`, `<Scripts />`)
+- `_auth.tsx` / `_main.tsx` — Layout groups (pathless, wrap child routes)
+- `$id/index.tsx` — Dynamic segments
+- `api/**/*.ts` — Server route handlers (HTTP endpoints)
+
+**Route configuration:**
+```ts
+export const Route = createFileRoute('/_main/')({
+  validateSearch: zodSchema,           // Search param validation
+  loaderDeps: ({ search }) => ({...}), // Deps that trigger refetch
+  loader: ({ deps }) => serverFn({ data: deps }),
+  head: ({ loaderData }) => ({ meta: [...] }),  // SEO/meta per route
+  component: MyPage,
+})
+```
+
+### Server Functions (replace Next.js server actions)
+
+```ts
+const myFn = createServerFn({ method: 'POST' })
+  .inputValidator(zodSchema)
+  .middleware([actionAuthMiddleware])
+  .handler(async ({ data, context }) => { ... })
+```
+
+- Defined in `lib/*-actions.ts`
+- Use `createMiddleware({ type: 'function' }).server(...)` for server function middleware
+- Middleware types: `authMiddleware` (throws redirect), `actionAuthMiddleware` (returns error objects)
+- Auth helpers: `checkAuth()` / `checkAdminAuth()` for `beforeLoad`
+
+### API Routes (HTTP handlers)
+
+```ts
+export const Route = createFileRoute('/api/my-endpoint')({
+  server: {
+    middleware: [apiAdminMiddleware],  // Route-level auth
+    handlers: {
+      GET: async ({ request, context }) => {
+        const { postgrestToken } = context
+        return Response.json({ ... })
+      },
+    },
+  },
+})
+```
+
+- Use `server.middleware` for shared auth across all handlers
+- Cookies via `setCookie()` / `deleteCookie()` from `@tanstack/react-start/server`
+- Middleware in `lib/middleware.ts`: `apiAuthMiddleware`, `apiAdminMiddleware`
+
+### Key Differences from apps/frontend (Next.js)
+
+| Concept | Next.js (`apps/frontend`) | TanStack Start (`apps/web`) |
+|---------|--------------------------|----------------------------|
+| Server logic | `'use server'` actions | `createServerFn().handler()` |
+| Auth middleware | `getSession()` in each action | `createMiddleware()` chains |
+| Route guards | Middleware file | `beforeLoad` + `checkAuth()` |
+| Data loading | Server components | Route `loader` + `useLoaderData()` |
+| Cookies | `cookies()` from next/headers | `setCookie()` from react-start/server |
+| Cache | `revalidatePath()` | `router.invalidate()` |
+| Head/SEO | `generateMetadata()` | `head()` on route config |
+| Search params | `useSearchParams()` | `validateSearch` + `Route.useSearch()` |
+
+## Server Actions Reference (apps/frontend)
+
+| File | Purpose |
+|------|---------|
+| `lib/auth-actions.ts` | Login, signup, password reset, account deletion |
+| `lib/recipe-actions.ts` | CRUD, copy, like, share, import recipes |
+| `lib/admin-actions.ts` | Food/user management (admin-only) |
+| `lib/shopping-list-actions.ts` | Shopping list CRUD, add/toggle/clear items |
+| `lib/meal-plan-actions.ts` | List/get/swap meal plans, save to shopping list |
+| `lib/home-actions.ts` | Household CRUD, member management |
+| `lib/book-share-actions.ts` | Recipe book sharing (create link, accept, revoke) |
+| `lib/settings-actions.ts` | Profile updates, API key management |
+| `lib/ingredient-search-actions.ts` | Food/unit search, substitution suggestions |
+| `lib/credits-actions.ts` | Credit balance, transaction history |
 
 ## User Story Workflow
 
