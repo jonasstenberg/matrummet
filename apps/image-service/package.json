@@ -1,0 +1,39 @@
+{
+  "name": "@matrummet/image-service",
+  "version": "0.0.1",
+  "description": "Image upload, processing and serving service for Matrummet",
+  "license": "MIT",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "bun src/index.ts",
+    "dev": "bun --watch src/index.ts",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@matrummet/shared": "workspace:*",
+    "sharp": "^0.33.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.24.0",
+    "@matrummet/eslint": "workspace:*",
+    "@matrummet/tsconfig": "workspace:*",
+    "@types/bun": "^1.2.0",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.14.0",
+    "@typescript-eslint/eslint-plugin": "^8.48.0",
+    "@typescript-eslint/parser": "^8.48.0",
+    "eslint": "^9.22.0",
+    "eslint-plugin-import": "^2.31.0",
+    "globals": "^16.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.48.0",
+    "vitest": "^4.0.15"
+  }
+}

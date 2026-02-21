@@ -38,6 +38,14 @@ on:
         options:
           - "true"
           - "false"
+      deploy_image_service:
+        description: "Deploy image service"
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
       deploy_nginx:
         description: "Deploy nginx configuration"
         required: false
@@ -58,6 +66,7 @@ jobs:
       deploy_frontend: ${{ steps.changes.outputs.deploy_frontend }}
       deploy_email_service: ${{ steps.changes.outputs.deploy_email_service }}
       deploy_events_service: ${{ steps.changes.outputs.deploy_events_service }}
+      deploy_image_service: ${{ steps.changes.outputs.deploy_image_service }}
       deploy_nginx: ${{ steps.changes.outputs.deploy_nginx }}
     steps:
       - name: Checkout code
@@ -170,6 +179,27 @@ jobs:
             fi
           fi
 
+          # Check for image-service changes
+          if [[ "${{ github.event.inputs.deploy_image_service }}" == "false" ]]; then
+            echo "deploy_image_service=false" >> $GITHUB_OUTPUT
+            echo "Skipping image-service deployment as requested"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.deploy_image_service }}" == "true" ]]; then
+            echo "deploy_image_service=true" >> $GITHUB_OUTPUT
+            echo "Manual request to deploy image-service"
+          elif [[ -z "$PARENT_SHA" ]]; then
+            echo "deploy_image_service=true" >> $GITHUB_OUTPUT
+            echo "First commit, deploying image-service"
+          else
+            CHANGED_FILES=$(git diff --name-only $PARENT_SHA $WORKFLOW_SHA 2>/dev/null || git ls-files)
+            if echo "$CHANGED_FILES" | grep -q "^apps/image-service/"; then
+              echo "deploy_image_service=true" >> $GITHUB_OUTPUT
+              echo "Image-service changes detected"
+            else
+              echo "deploy_image_service=false" >> $GITHUB_OUTPUT
+              echo "No image-service changes detected"
+            fi
+          fi
+
           # Check for nginx config changes
           if [[ "${{ github.event.inputs.deploy_nginx }}" == "false" ]]; then
             echo "deploy_nginx=false" >> $GITHUB_OUTPUT
@@ -193,7 +223,7 @@ jobs:
 
   test:
     needs: setup
-    if: needs.setup.outputs.deploy_frontend == 'true' || needs.setup.outputs.deploy_email_service == 'true' || needs.setup.outputs.deploy_events_service == 'true'
+    if: needs.setup.outputs.deploy_frontend == 'true' || needs.setup.outputs.deploy_email_service == 'true' || needs.setup.outputs.deploy_events_service == 'true' || needs.setup.outputs.deploy_image_service == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -347,11 +377,11 @@ jobs:
 
   deploy-services:
     needs: [setup, test, api-tests, deploy-migrations]
-    if: always() && (needs.setup.outputs.deploy_frontend == 'true' || needs.setup.outputs.deploy_email_service == 'true' || needs.setup.outputs.deploy_events_service == 'true') && (needs.test.result == 'success' || needs.test.result == 'skipped') && (needs.api-tests.result == 'success' || needs.api-tests.result == 'skipped') && (needs.deploy-migrations.result == 'success' || needs.deploy-migrations.result == 'skipped')
+    if: always() && (needs.setup.outputs.deploy_frontend == 'true' || needs.setup.outputs.deploy_email_service == 'true' || needs.setup.outputs.deploy_events_service == 'true' || needs.setup.outputs.deploy_image_service == 'true') && (needs.test.result == 'success' || needs.test.result == 'skipped') && (needs.api-tests.result == 'success' || needs.api-tests.result == 'skipped') && (needs.deploy-migrations.result == 'success' || needs.deploy-migrations.result == 'skipped')
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [frontend, email-service, events-service]
+        service: [frontend, email-service, events-service, image-service]
       fail-fast: false
     steps:
       - name: Check if service should be deployed
@@ -362,6 +392,8 @@ jobs:
           elif [[ "${{ matrix.service }}" == "email-service" && "${{ needs.setup.outputs.deploy_email_service }}" == "true" ]]; then
             echo "deploy=true" >> $GITHUB_OUTPUT
           elif [[ "${{ matrix.service }}" == "events-service" && "${{ needs.setup.outputs.deploy_events_service }}" == "true" ]]; then
+            echo "deploy=true" >> $GITHUB_OUTPUT
+          elif [[ "${{ matrix.service }}" == "image-service" && "${{ needs.setup.outputs.deploy_image_service }}" == "true" ]]; then
             echo "deploy=true" >> $GITHUB_OUTPUT
           else
             echo "deploy=false" >> $GITHUB_OUTPUT
@@ -410,6 +442,13 @@ jobs:
           pnpm deploy --filter @matrummet/events-service --prod --legacy deploy/events-service
           ls -la deploy/events-service/  # Verify deployment package
 
+      - name: Build and prepare image-service deployment
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'image-service'
+        run: |
+          pnpm --filter @matrummet/shared build
+          pnpm deploy --filter @matrummet/image-service --prod --legacy deploy/image-service
+          ls -la deploy/image-service/  # Verify deployment package
+
       - name: Setup SSH
         if: steps.should-deploy.outputs.deploy == 'true'
         run: |
@@ -445,6 +484,15 @@ jobs:
 
           echo "Events-service deployed successfully"
 
+      - name: Deploy image-service to VPS
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'image-service'
+        run: |
+          rsync -avz --delete \
+            deploy/image-service/ \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ vars.DEPLOY_PATH }}/apps/image-service/
+
+          echo "Image-service deployed successfully"
+
       - name: Restart frontend service
         if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'frontend'
         run: |
@@ -459,6 +507,11 @@ jobs:
         if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'events-service'
         run: |
           ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'sudo systemctl restart ${{ vars.SERVICE_EVENTS }}'
+
+      - name: Restart image-service
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'image-service'
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'sudo systemctl restart ${{ vars.SERVICE_IMAGE }}'
 
   deploy-nginx:
     needs: [setup]
@@ -500,4 +553,5 @@ jobs:
           echo "- Frontend: ${{ needs.setup.outputs.deploy_frontend == 'true' && 'Deployed' || 'Skipped' }}"
           echo "- Email-service: ${{ needs.setup.outputs.deploy_email_service == 'true' && 'Deployed' || 'Skipped' }}"
           echo "- Events-service: ${{ needs.setup.outputs.deploy_events_service == 'true' && 'Deployed' || 'Skipped' }}"
+          echo "- Image-service: ${{ needs.setup.outputs.deploy_image_service == 'true' && 'Deployed' || 'Skipped' }}"
           echo "- Nginx: ${{ needs.setup.outputs.deploy_nginx == 'true' && (needs.deploy-nginx.result == 'success' && 'Deployed' || 'Failed') || 'Skipped' }}"

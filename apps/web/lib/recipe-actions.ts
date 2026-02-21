@@ -7,7 +7,7 @@ import {
 } from '@/lib/types'
 import { extractJsonLdRecipe, extractProvechoRecipe, extractProvechoRecipeText, PROVECHO_HOSTNAMES, mapJsonLdToRecipeInput, fetchWithPlaywright } from '@/lib/recipe-import'
 import { downloadImage } from '@/lib/recipe-import/image-downloader'
-import { deleteImageVariants } from './image-processing'
+import { deleteImageFromService } from './image-service-client'
 import { getRecipes } from '@/lib/api'
 import type { Recipe } from '@/lib/types'
 import { actionAuthMiddleware } from './middleware'
@@ -64,7 +64,7 @@ async function deleteImageFile(filename: string | null): Promise<void> {
   if (!filename) return
   if (filename.startsWith('http://') || filename.startsWith('https://')) return
   const imageId = filename.replace(/\.webp$/, '')
-  await deleteImageVariants(imageId)
+  await deleteImageFromService(imageId)
 }
 
 // ============================================================================

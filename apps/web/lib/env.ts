@@ -16,6 +16,7 @@ const envSchema = z.object({
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   STRIPE_PUBLISHABLE_KEY: z.string().optional(),
+  IMAGE_SERVICE_URL: z.string().url().optional(),
 });
 
 type Env = z.infer<typeof envSchema>;
@@ -37,6 +38,7 @@ function getEnv(): Env {
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY,
+    IMAGE_SERVICE_URL: process.env.IMAGE_SERVICE_URL,
   });
 
   if (!result.success) {
@@ -86,5 +88,8 @@ export const env = {
   },
   get STRIPE_PUBLISHABLE_KEY() {
     return getEnv().STRIPE_PUBLISHABLE_KEY;
+  },
+  get IMAGE_SERVICE_URL() {
+    return getEnv().IMAGE_SERVICE_URL;
   },
 };
