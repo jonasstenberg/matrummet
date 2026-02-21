@@ -4,11 +4,10 @@
   "description": "Email service for Matrummet",
   "license": "MIT",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "src/index.ts",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "tsx watch src/index.ts",
+    "start": "bun src/index.ts",
+    "dev": "bun --watch src/index.ts",
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest run",
@@ -36,7 +35,6 @@
     "eslint-plugin-import": "^2.31.0",
     "globals": "^16.0.0",
     "prettier": "^3.5.3",
-    "tsx": "^4.19.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.48.0",
     "vitest": "^4.0.15"
