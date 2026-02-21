@@ -19,6 +19,6 @@ export default defineConfig({
     exclude: ['playwright-core', 'playwright'],
   },
   ssr: {
-    external: ['sharp', 'playwright-core', 'playwright'],
+    external: ['sharp'],
   },
 })
