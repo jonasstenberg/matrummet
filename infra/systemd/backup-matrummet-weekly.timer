@@ -1,0 +1,9 @@
+[Unit]
+Description=Run Matrummet Weekly Backup every Sunday at 03:00 UTC
+
+[Timer]
+OnCalendar=Sun *-*-* 03:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

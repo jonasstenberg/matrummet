@@ -1,0 +1,20 @@
+[Unit]
+Description=Matrummet Backup Service (PostgreSQL + Photos)
+
+[Service]
+Type=oneshot
+EnvironmentFile=/opt/matrummet/.backup.env
+ExecStart=/bin/bash -c '\
+  set -euo pipefail && \
+  STORAGEBOX=/mnt/storagebox/backups/matrummet && \
+  LOCAL=/mnt/HC_Volume_104290842/matrummet/backups && \
+  TIMESTAMP=$(date +%%Y%%m%%d%%H%%M%%S) && \
+  DUMPFILE=db-dump-$TIMESTAMP.sql.gz && \
+  find $STORAGEBOX/db/ -type f -mtime +30 -name "db-dump-*.sql.gz" -delete && \
+  find $LOCAL/db/ -type f -mtime +30 -name "db-dump-*.sql.gz" -delete && \
+  PGPASSWORD="$BACKUP_DB_PASSWORD" pg_dump -U backupuser -h localhost matrummet --no-owner --no-privileges | gzip > $LOCAL/db/$DUMPFILE && \
+  test $(stat -c%%s $LOCAL/db/$DUMPFILE) -gt 1000 && \
+  cp $LOCAL/db/$DUMPFILE $STORAGEBOX/db/$DUMPFILE && \
+  rsync -a --delete /mnt/HC_Volume_104290842/matrummet/uploads/ $STORAGEBOX/photos/ && \
+  curl -fsS --retry 3 "$BACKUP_MONITOR_URL" > /dev/null && \
+  echo "Backup completed: $DUMPFILE (local + storagebox) + photos synced + monitor pinged"'

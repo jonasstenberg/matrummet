@@ -1,0 +1,19 @@
+[Unit]
+Description=Matrummet Weekly Backup Service (PostgreSQL, 6-month retention)
+
+[Service]
+Type=oneshot
+EnvironmentFile=/opt/matrummet/.backup.env
+ExecStart=/bin/bash -c '\
+  set -euo pipefail && \
+  STORAGEBOX=/mnt/storagebox/backups/matrummet/db-weekly && \
+  LOCAL=/mnt/HC_Volume_104290842/matrummet/backups/db-weekly && \
+  TIMESTAMP=$(date +%%Y%%m%%d) && \
+  DUMPFILE=weekly-dump-$TIMESTAMP.sql.gz && \
+  find $STORAGEBOX/ -type f -mtime +180 -name "weekly-dump-*.sql.gz" -delete && \
+  find $LOCAL/ -type f -mtime +180 -name "weekly-dump-*.sql.gz" -delete && \
+  PGPASSWORD="$BACKUP_DB_PASSWORD" pg_dump -U backupuser -h localhost matrummet --no-owner --no-privileges | gzip > $LOCAL/$DUMPFILE && \
+  test $(stat -c%%s $LOCAL/$DUMPFILE) -gt 1000 && \
+  cp $LOCAL/$DUMPFILE $STORAGEBOX/$DUMPFILE && \
+  curl -fsS --retry 3 "$WEEKLY_BACKUP_MONITOR_URL" > /dev/null && \
+  echo "Weekly backup completed: $DUMPFILE (local + storagebox) + monitor pinged"'
