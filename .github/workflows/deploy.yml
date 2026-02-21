@@ -182,7 +182,7 @@ jobs:
             echo "First commit, deploying nginx"
           else
             CHANGED_FILES=$(git diff --name-only $PARENT_SHA $WORKFLOW_SHA 2>/dev/null || git ls-files)
-            if echo "$CHANGED_FILES" | grep -q "^nginx/"; then
+            if echo "$CHANGED_FILES" | grep -q "^infra/nginx/"; then
               echo "deploy_nginx=true" >> $GITHUB_OUTPUT
               echo "Nginx config changes detected"
             else
@@ -400,7 +400,6 @@ jobs:
         if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'email-service'
         run: |
           pnpm --filter @matrummet/shared build
-          pnpm --filter @matrummet/email-service build
           pnpm deploy --filter @matrummet/email-service --prod --legacy deploy/email-service
           ls -la deploy/email-service/  # Verify deployment package
 
@@ -408,7 +407,6 @@ jobs:
         if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'events-service'
         run: |
           pnpm --filter @matrummet/shared build
-          pnpm --filter @matrummet/events-service build
           pnpm deploy --filter @matrummet/events-service --prod --legacy deploy/events-service
           ls -la deploy/events-service/  # Verify deployment package
 
@@ -479,8 +477,9 @@ jobs:
 
       - name: Deploy nginx config
         run: |
-          scp nginx/production.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/etc/nginx/sites-enabled/recept
-          scp nginx/proxy-cache.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/etc/nginx/conf.d/proxy-cache.conf
+          scp infra/nginx/production.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/etc/nginx/sites-enabled/recept
+          scp infra/nginx/api.matrummet.se.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/etc/nginx/sites-enabled/api.matrummet.se
+          scp infra/nginx/proxy-cache.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/etc/nginx/conf.d/proxy-cache.conf
 
       - name: Test and reload nginx
         run: |
