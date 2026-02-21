@@ -55,7 +55,7 @@ export function RecipeDetailWithActions({
     try {
       const result = await deleteRecipe(recipe.id);
 
-      if ("error" in result) {
+      if (result && typeof result === 'object' && "error" in result) {
         setDeleteError(result.error);
         setIsDeleting(false);
         return;
