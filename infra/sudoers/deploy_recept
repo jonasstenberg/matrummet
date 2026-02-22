@@ -1,0 +1,23 @@
+# Service management
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart postgrest-matrummet
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart matrummet
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart matrummet-email
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart matrummet-events
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart matrummet-image
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart postgrest-matrummet matrummet
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart postgrest-matrummet matrummet matrummet-email
+
+# Nginx config deployment
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/cp /tmp/nginx-deploy/* /etc/nginx/snippets/*
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/cp /tmp/nginx-deploy/* /etc/nginx/sites-enabled/*
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/cp /tmp/nginx-deploy/* /etc/nginx/conf.d/*
+deploy_recept ALL=(ALL) NOPASSWD: /usr/sbin/nginx -t
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/systemctl reload nginx
+
+# Database backups
+deploy_recept ALL=(postgres) NOPASSWD: /usr/bin/pg_dump
+
+# PostgREST config deployment
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/cp /tmp/postgrest-deploy/matrummet.conf /etc/postgrest/matrummet.conf
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/chown postgres\:postgres /etc/postgrest/matrummet.conf
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/chmod 600 /etc/postgrest/matrummet.conf
