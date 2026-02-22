@@ -1,6 +1,7 @@
 import { createMiddleware } from '@tanstack/react-start'
 import { createServerFn } from '@tanstack/react-start'
 import { redirect } from '@tanstack/react-router'
+import { getRequestUrl } from '@tanstack/react-start/server'
 import { getSession, signPostgrestToken, type JWTPayload } from '@/lib/auth'
 import { logger as rootLogger } from '@/lib/logger'
 
@@ -143,7 +144,8 @@ export const apiAuthMiddleware = createMiddleware().server(
   async ({ next }) => {
     const session = await getSession()
     if (!session) {
-      logger.warn('API auth denied: no session (401)')
+      const path = new URL(getRequestUrl()).pathname
+      logger.warn({ path }, 'API auth denied: no session (401)')
       throw Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
     logger.debug({ email: session.email }, 'API auth resolved')
@@ -170,13 +172,14 @@ export const apiAuthMiddleware = createMiddleware().server(
  */
 export const apiAdminMiddleware = createMiddleware().server(
   async ({ next }) => {
+    const path = new URL(getRequestUrl()).pathname
     const session = await getSession()
     if (!session) {
-      logger.warn('API admin auth denied: no session (401)')
+      logger.warn({ path }, 'API admin auth denied: no session (401)')
       throw Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
     if (session.role !== 'admin') {
-      logger.warn({ email: session.email, role: session.role }, 'API admin auth denied: insufficient role (403)')
+      logger.warn({ email: session.email, role: session.role, path }, 'API admin auth denied: insufficient role (403)')
       throw Response.json({ error: 'Forbidden' }, { status: 403 })
     }
     logger.debug({ email: session.email }, 'API admin auth resolved')
