@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createReadStream, statSync } from 'fs'
+import { readFileSync, statSync } from 'fs'
 import { join } from 'path'
 import { createHash } from 'crypto'
-import { Readable } from 'stream'
 import { getDataFilesDir } from '@/lib/paths'
 
 const VALID_SIZES = ['thumb', 'small', 'medium', 'large', 'full'] as const
@@ -65,13 +64,9 @@ export async function GET(
       return new NextResponse(null, { status: 304 })
     }
 
-    // Create a Node.js readable stream
-    const nodeStream = createReadStream(imagePath)
+    const buffer = readFileSync(imagePath)
 
-    // Convert Node.js stream to Web ReadableStream for true streaming
-    const webStream = Readable.toWeb(nodeStream) as ReadableStream<Uint8Array>
-
-    return new NextResponse(webStream, {
+    return new NextResponse(buffer, {
       headers: {
         'Content-Type': 'image/webp',
         'Cache-Control': 'public, max-age=31536000, immutable',
