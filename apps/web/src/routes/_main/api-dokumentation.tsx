@@ -98,9 +98,9 @@ function ApiDokumentationPage() {
         <h1 className="font-heading text-3xl font-bold mb-2">API</h1>
         <p className="text-foreground/60 mb-8">
           Dokumentation för Matrummets REST-API. Tillgänglig som{' '}
-          <Link to="/api/docs" className="underline hover:text-foreground">
+          <a href="/api/docs" className="underline hover:text-foreground">
             ren text
-          </Link>{' '}
+          </a>{' '}
           för agenter och verktyg.
         </p>
 
