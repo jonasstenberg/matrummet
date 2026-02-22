@@ -1,5 +1,5 @@
 import type { Logger } from "pino";
-import { authenticateRequest } from "../auth.js";
+import { authenticateServiceRequest } from "../auth.js";
 import { deleteImageVariants } from "../image-processing.js";
 
 export async function handleDelete(
@@ -7,9 +7,9 @@ export async function handleDelete(
   imageId: string,
   logger: Logger,
 ): Promise<Response> {
-  // Authenticate
+  // Authenticate — only service tokens accepted
   try {
-    authenticateRequest(request);
+    await authenticateServiceRequest(request);
   } catch {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }

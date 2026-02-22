@@ -41,11 +41,15 @@ export async function deleteImageFromService(
 ): Promise<void> {
   try {
     const token = await getServiceToken()
-    await fetch(`${getImageServiceUrl()}/images/${imageId}`, {
+    const response = await fetch(`${getImageServiceUrl()}/images/${imageId}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
     })
-  } catch {
-    // Best-effort cleanup
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}))
+      console.warn(`Image delete failed for ${imageId}: ${response.status}`, body)
+    }
+  } catch (error) {
+    console.warn(`Image delete request failed for ${imageId}:`, error)
   }
 }

@@ -81,7 +81,8 @@ Production configs are version-controlled in `infra/` and deployed via CI.
 
 | File | Deploys to | Purpose |
 |------|-----------|---------|
-| `production.conf` | `/etc/nginx/sites-enabled/recept` | Main site (mat.stenberg.io, matrummet.se) |
+| `production.conf` | `/etc/nginx/sites-enabled/recept` | Main site (matrummet.se), 301 redirect from mat.stenberg.io |
+| `shared-locations.conf` | `/etc/nginx/snippets/matrummet-locations.conf` | Shared location blocks (included by production.conf) |
 | `api.conf` | `/etc/nginx/sites-enabled/api.matrummet.se` | Public PostgREST API with CORS |
 | `proxy-cache.conf` | `/etc/nginx/conf.d/proxy-cache.conf` | Cache zone for static assets/images |
 
@@ -227,7 +228,7 @@ Expo/React Native app in `apps/mobile/`. Uses shared packages:
 - **SSR**: Nitro — `src/ssr.tsx` → `createStartHandler(defaultStreamHandler)`
 - **Client**: `src/client.tsx` → `hydrateRoot(document, <StartClient />)`
 - **Router**: `src/router.tsx` → `getRouter()` with type registration via `declare module`
-- **Dev port**: 3001
+- **Dev port**: 3002 (production runs Nitro build on 3001)
 
 ### Routing (File-based)
 

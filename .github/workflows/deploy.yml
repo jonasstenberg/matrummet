@@ -530,6 +530,8 @@ jobs:
 
       - name: Deploy nginx config
         run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'sudo mkdir -p /etc/nginx/snippets'
+          scp infra/nginx/shared-locations.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/etc/nginx/snippets/matrummet-locations.conf
           scp infra/nginx/production.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/etc/nginx/sites-enabled/recept
           scp infra/nginx/api.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/etc/nginx/sites-enabled/api.matrummet.se
           scp infra/nginx/proxy-cache.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/etc/nginx/conf.d/proxy-cache.conf
