@@ -86,6 +86,12 @@ Production configs are version-controlled in `infra/` and deployed via CI.
 | `api.conf` | `/etc/nginx/sites-enabled/api.matrummet.se` | Public PostgREST API with CORS |
 | `proxy-cache.conf` | `/etc/nginx/conf.d/proxy-cache.conf` | Cache zone for static assets/images |
 
+**PostgREST** (`infra/postgrest/`) — auto-deployed when files change, secrets via `envsubst`:
+
+| File | Deploys to | Purpose |
+|------|-----------|---------|
+| `matrummet.conf` | `/etc/postgrest/matrummet.conf` | Connection, auth, pool settings (`${POSTGREST_DB_PASSWORD}`, `${POSTGREST_JWT_SECRET}`) |
+
 **Systemd** (`infra/systemd/`) — reference copies, not auto-deployed:
 
 | Service | Runtime | Purpose |
