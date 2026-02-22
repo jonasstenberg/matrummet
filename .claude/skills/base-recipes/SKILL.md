@@ -59,8 +59,8 @@ Site category pages → Playwright URL discovery → Playwright fetch recipe pag
 
 ### Meal Planner Integration
 
-- `apps/frontend/app/api/ai/meal-plan/route.ts` — fetches base recipes via `get_base_recipes` RPC, passes to prompt
-- `apps/frontend/lib/meal-plan/prompt.ts` — lists base recipes as `[BASE:uuid]` in "BASRECEPT" section
+- `apps/web/app/api/ai/meal-plan/route.ts` — fetches base recipes via `get_base_recipes` RPC, passes to prompt
+- `apps/web/lib/meal-plan/prompt.ts` — lists base recipes as `[BASE:uuid]` in "BASRECEPT" section
 - When AI picks `BASE:uuid`, route converts to `suggested_recipe` entry with full data + `source_url`/`source_site` attribution
 - Frontend shows "Basrecept" badge + source link instead of "AI-förslag"
 

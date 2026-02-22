@@ -59,7 +59,7 @@ Before coding, understand the context and commit to a **bold aesthetic direction
    - Industrial/utilitarian
    - Scandinavian clean (fitting for a Swedish recipe app)
 
-3. **Constraints**: Technical requirements (Next.js 16, React 19, Tailwind v4, Radix UI)
+3. **Constraints**: Technical requirements (TanStack Start, React 19, Tailwind v4, Radix UI)
 4. **Differentiation**: What makes this memorable?
 
 Choose a clear conceptual direction and execute it with precision.
@@ -72,7 +72,7 @@ Choose a clear conceptual direction and execute it with precision.
 
 | Technology   | Version | Usage                              |
 | ------------ | ------- | ---------------------------------- |
-| Next.js      | 16      | App Router, server components      |
+| TanStack Start | Latest | Vite + Nitro SSR framework        |
 | React        | 19      | UI components                      |
 | Tailwind CSS | v4      | Styling (CSS-first config)         |
 | Radix UI     | Latest  | Accessible component primitives    |
@@ -199,13 +199,13 @@ Match implementation complexity to the aesthetic vision:
 pnpm dev
 
 # Check existing components
-ls apps/frontend/components/
+ls apps/web/components/
 
 # Check UI primitives
-ls apps/frontend/components/ui/
+ls apps/web/components/ui/
 
 # Tailwind config
-cat apps/frontend/app/globals.css
+cat apps/web/src/styles/app.css
 ```
 
 </quick_reference>

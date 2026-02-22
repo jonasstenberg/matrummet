@@ -17,7 +17,7 @@ Report ALL bugs found in reviewed files regardless of when they were introduced.
 
 Launch ALL 6 agents in a single message with multiple Task calls (`subagent_type: "general-purpose"`). Provide each agent the file contents, recept patterns below, and instruction to output findings as: `{severity: P0-P3, file, line, description, evidence}`.
 
-**duplicate-detector**: "Search the codebase for existing utilities, helpers, or patterns that duplicate logic in the changed files. Check `packages/shared/`, `apps/frontend/lib/`, and `apps/email-service/src/` for existing implementations."
+**duplicate-detector**: "Search the codebase for existing utilities, helpers, or patterns that duplicate logic in the changed files. Check `packages/shared/`, `apps/web/lib/`, and `apps/email-service/src/` for existing implementations."
 
 **user-intent**: "Read the git diff and recent conversation context. Verify the implementation matches what was requested. Check for missing requirements, partial implementations, or misunderstood specifications."
 
@@ -54,8 +54,8 @@ Only spawn agents for severity levels that have findings.
 
 ### Architecture
 
-- **Monorepo structure**: Frontend in `apps/frontend`, email service in `apps/email-service`, shared packages in `packages/`.
-- **API layer**: PostgREST on port 4444, not custom API routes (except Next.js server actions/API routes for auth).
+- **Monorepo structure**: Frontend in `apps/web`, email service in `apps/email-service`, shared packages in `packages/`.
+- **API layer**: PostgREST on port 4444, plus TanStack Start server functions and API routes for auth and AI features.
 - **Database migrations**: Flyway versioned migrations in `flyway/sql/V{version}__{description}.sql`.
 
 ## Scope Guidelines

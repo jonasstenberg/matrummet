@@ -1,7 +1,7 @@
 ---
 name: boot-local
 version: 1.0.0
-description: Kill all running local development processes (Next.js dev, email service, PostgREST), wait for termination, then restart them. Use when user says "boot local", "restart local", "reboot dev", or needs to refresh local services.
+description: Kill all running local development processes (TanStack Start dev, email service, PostgREST), wait for termination, then restart them. Use when user says "boot local", "restart local", "reboot dev", or needs to refresh local services.
 allowed-tools: Bash, TaskOutput
 context: fork
 ---
@@ -44,7 +44,7 @@ Use `run_in_background: true` for start commands to avoid blocking.
 
 | Service        | Command                | Port | Health Check                |
 | -------------- | ---------------------- | ---- | --------------------------- |
-| Next.js dev    | `pnpm dev`             | 3000 | http://localhost:3000        |
+| TanStack Start | `pnpm dev`             | 3000 | http://localhost:3000        |
 | PostgREST API  | `./start-postgrest.sh` | 4444 | http://localhost:4444/       |
 | Nginx images   | `./start-nginx.sh`     | 4446 | http://localhost:4446/uploads/ |
 
@@ -55,7 +55,7 @@ Use `run_in_background: true` for start commands to avoid blocking.
 | Inbucket       | `docker compose up -d inbucket` | 9050 | Email testing              |
 | Email service  | Part of `pnpm dev`          | -    | Runs via monorepo dev      |
 
-Note: `pnpm dev` runs all apps in parallel (frontend + email-service) via `pnpm -r --parallel dev`.
+Note: `pnpm dev` runs all apps in parallel (web + email-service) via `pnpm -r --parallel dev`.
 </services>
 
 <execution>
@@ -65,7 +65,7 @@ Note: `pnpm dev` runs all apps in parallel (frontend + email-service) via `pnpm 
 Find and kill processes on development ports:
 
 ```bash
-# Find process on port 3000 (Next.js)
+# Find process on port 3000 (TanStack Start)
 lsof -ti :3000 | xargs kill -9 2>/dev/null || true
 
 # Find process on port 4444 (PostgREST)
@@ -94,7 +94,7 @@ Start services using `run_in_background: true`:
    ./start-postgrest.sh
    ```
 
-2. **All apps** (Next.js + email service):
+2. **All apps** (TanStack Start + email service):
    ```bash
    pnpm dev
    ```
@@ -107,8 +107,8 @@ Wait for services to be available:
 # Check PostgREST (should respond quickly)
 curl -sf http://localhost:4444/ > /dev/null && echo "PostgREST OK" || echo "PostgREST NOT READY"
 
-# Check Next.js (may take a few seconds for Turbopack)
-curl -sf http://localhost:3000 > /dev/null && echo "Next.js OK" || echo "Next.js NOT READY"
+# Check TanStack Start (may take a few seconds for Vite)
+curl -sf http://localhost:3000 > /dev/null && echo "TanStack Start OK" || echo "TanStack Start NOT READY"
 ```
 
 ## Phase 5: Status Report
@@ -119,7 +119,7 @@ Display summary:
 Local Development Services
 --------------------------
 PostgREST API:  http://localhost:4444  [OK/FAILED]
-Next.js:        http://localhost:3000  [OK/FAILED]
+TanStack Start:        http://localhost:3000  [OK/FAILED]
 Email service:  running via pnpm dev   [OK/FAILED]
 ```
 
@@ -131,7 +131,7 @@ Email service:  running via pnpm dev   [OK/FAILED]
 
 | Issue                  | Cause                          | Fix                                      |
 | ---------------------- | ------------------------------ | ---------------------------------------- |
-| Port 3000 won't free   | Zombie Next.js process         | `kill -9 $(lsof -ti :3000)`              |
+| Port 3000 won't free   | Zombie TanStack Start process         | `kill -9 $(lsof -ti :3000)`              |
 | PostgREST won't start  | PostgreSQL not running         | Start PostgreSQL first                   |
 | PostgREST config error | Missing postgrest.cfg          | Check `postgrest.cfg` exists in root     |
 | pnpm dev fails         | Missing dependencies           | Run `pnpm install` first                 |

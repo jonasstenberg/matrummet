@@ -53,9 +53,9 @@ Launch 1 agent to challenge ALL findings from Phase 2:
 
 | Principle                  | Application in Recept                                            |
 | -------------------------- | ---------------------------------------------------------------- |
-| Frontend structure         | Next.js 16 App Router with React 19                              |
+| Frontend structure         | TanStack Start (Vite + Nitro SSR) with React 19                  |
 | Styling                    | Tailwind v4 + Radix UI components                                |
-| State management           | React 19 patterns (use, server components where appropriate)     |
+| State management           | React 19 patterns, route loaders, server functions               |
 | API layer                  | PostgREST (port 4444) — no ORM, no custom API layer              |
 | Shared code                | `packages/` for cross-app utilities                              |
 

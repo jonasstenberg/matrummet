@@ -114,7 +114,7 @@ If any verification fails, report the errors and suggest rollback:
 
 ```bash
 # Rollback if needed
-git checkout pnpm-lock.yaml apps/frontend/package.json
+git checkout pnpm-lock.yaml apps/web/package.json
 pnpm install
 ```
 
@@ -124,7 +124,7 @@ Display what was updated:
 
 ```bash
 # Show git diff of package.json changes
-git diff apps/frontend/package.json
+git diff apps/web/package.json
 
 # Show lockfile changes summary
 git diff --stat pnpm-lock.yaml
