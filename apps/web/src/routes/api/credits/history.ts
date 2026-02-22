@@ -25,7 +25,7 @@ export const Route = createFileRoute('/api/credits/history')({
 
         if (!response.ok) {
           return Response.json(
-            { error: 'Failed to fetch history' },
+            { error: 'Kunde inte hämta historik' },
             { status: 500 },
           )
         }

@@ -34,7 +34,7 @@ export const Route = createFileRoute('/api/admin/users')({
           )
 
           if (!countResponse.ok) {
-            throw new Error('Failed to fetch user count')
+            throw new Error('Kunde inte hämta antal användare')
           }
 
           const total = await countResponse.json()
@@ -59,7 +59,7 @@ export const Route = createFileRoute('/api/admin/users')({
           )
 
           if (!itemsResponse.ok) {
-            throw new Error('Failed to fetch users')
+            throw new Error('Kunde inte hämta användare')
           }
 
           const items = await itemsResponse.json()
@@ -74,7 +74,7 @@ export const Route = createFileRoute('/api/admin/users')({
         } catch (error) {
           console.error('Get users error:', error)
           return Response.json(
-            { error: 'Failed to fetch users' },
+            { error: 'Kunde inte hämta användare' },
             { status: 500 }
           )
         }
@@ -90,7 +90,7 @@ export const Route = createFileRoute('/api/admin/users')({
 
           if (!id || !name || !name.trim()) {
             return Response.json(
-              { error: 'ID and name are required' },
+              { error: 'ID och namn krävs' },
               { status: 400 }
             )
           }
@@ -112,14 +112,14 @@ export const Route = createFileRoute('/api/admin/users')({
 
           if (!response.ok) {
             const errorText = await response.text()
-            throw new Error(errorText || 'Failed to update user')
+            throw new Error(errorText || 'Kunde inte uppdatera användare')
           }
 
           return Response.json({ success: true })
         } catch (error) {
           console.error('Update user error:', error)
           return Response.json(
-            { error: error instanceof Error ? error.message : 'Failed to update user' },
+            { error: error instanceof Error ? error.message : 'Kunde inte uppdatera användare' },
             { status: 500 }
           )
         }
@@ -134,7 +134,7 @@ export const Route = createFileRoute('/api/admin/users')({
           const id = searchParams.get('id')
 
           if (!id) {
-            return Response.json({ error: 'ID is required' }, { status: 400 })
+            return Response.json({ error: 'ID krävs' }, { status: 400 })
           }
 
           const response = await fetch(
@@ -153,14 +153,14 @@ export const Route = createFileRoute('/api/admin/users')({
 
           if (!response.ok) {
             const errorText = await response.text()
-            throw new Error(errorText || 'Failed to delete user')
+            throw new Error(errorText || 'Kunde inte ta bort användare')
           }
 
           return Response.json({ success: true })
         } catch (error) {
           console.error('Delete user error:', error)
           return Response.json(
-            { error: error instanceof Error ? error.message : 'Failed to delete user' },
+            { error: error instanceof Error ? error.message : 'Kunde inte ta bort användare' },
             { status: 500 }
           )
         }

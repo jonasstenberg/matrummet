@@ -36,7 +36,7 @@ export const Route = createFileRoute('/api/admin/units')({
           )
 
           if (!unitsResponse.ok) {
-            throw new Error('Failed to fetch units')
+            throw new Error('Kunde inte hämta enheter')
           }
 
           let items = await unitsResponse.json()
@@ -64,7 +64,7 @@ export const Route = createFileRoute('/api/admin/units')({
           )
 
           if (!countResponse.ok) {
-            throw new Error('Failed to fetch unit count')
+            throw new Error('Kunde inte hämta antal enheter')
           }
 
           const total = await countResponse.json()
@@ -80,7 +80,7 @@ export const Route = createFileRoute('/api/admin/units')({
         } catch (error) {
           console.error('Get units error:', error)
           return Response.json(
-            { error: 'Failed to fetch units' },
+            { error: 'Kunde inte hämta enheter' },
             { status: 500 }
           )
         }
@@ -98,7 +98,7 @@ export const Route = createFileRoute('/api/admin/units')({
             const { sourceId, targetId } = body
 
             if (!sourceId || !targetId) {
-              return Response.json({ error: 'sourceId and targetId are required' }, { status: 400 })
+              return Response.json({ error: 'Käll-ID och mål-ID krävs' }, { status: 400 })
             }
 
             // Update all ingredients from source unit to target unit
@@ -115,7 +115,7 @@ export const Route = createFileRoute('/api/admin/units')({
             )
 
             if (!updateRes.ok) {
-              throw new Error('Failed to transfer ingredients')
+              throw new Error('Kunde inte flytta ingredienser')
             }
 
             // Delete source unit
@@ -125,7 +125,7 @@ export const Route = createFileRoute('/api/admin/units')({
             })
 
             if (!deleteRes.ok) {
-              throw new Error('Failed to delete source unit')
+              throw new Error('Kunde inte ta bort källenhet')
             }
 
             return Response.json({ success: true })
@@ -135,11 +135,11 @@ export const Route = createFileRoute('/api/admin/units')({
           const { name, plural, abbreviation } = body
 
           if (!name || !name.trim()) {
-            return Response.json({ error: 'Name is required' }, { status: 400 })
+            return Response.json({ error: 'Namn krävs' }, { status: 400 })
           }
 
           if (!plural || !plural.trim()) {
-            return Response.json({ error: 'Plural is required' }, { status: 400 })
+            return Response.json({ error: 'Pluralform krävs' }, { status: 400 })
           }
 
           const response = await fetch(`${env.POSTGREST_URL}/units`, {
@@ -165,14 +165,14 @@ export const Route = createFileRoute('/api/admin/units')({
                 { status: 400 }
               )
             }
-            throw new Error(errorText || 'Failed to create unit')
+            throw new Error(errorText || 'Kunde inte skapa enhet')
           }
 
           return Response.json({ success: true })
         } catch (error) {
           console.error('Create unit error:', error)
           return Response.json(
-            { error: error instanceof Error ? error.message : 'Failed to create unit' },
+            { error: error instanceof Error ? error.message : 'Kunde inte skapa enhet' },
             { status: 500 }
           )
         }
@@ -188,7 +188,7 @@ export const Route = createFileRoute('/api/admin/units')({
 
           if (!id || !name || !name.trim() || !plural || !plural.trim()) {
             return Response.json(
-              { error: 'ID, name, and plural are required' },
+              { error: 'ID, namn och pluralform krävs' },
               { status: 400 }
             )
           }
@@ -215,14 +215,14 @@ export const Route = createFileRoute('/api/admin/units')({
                 { status: 400 }
               )
             }
-            throw new Error(errorText || 'Failed to update unit')
+            throw new Error(errorText || 'Kunde inte uppdatera enhet')
           }
 
           return Response.json({ success: true })
         } catch (error) {
           console.error('Update unit error:', error)
           return Response.json(
-            { error: error instanceof Error ? error.message : 'Failed to update unit' },
+            { error: error instanceof Error ? error.message : 'Kunde inte uppdatera enhet' },
             { status: 500 }
           )
         }
@@ -237,7 +237,7 @@ export const Route = createFileRoute('/api/admin/units')({
           const id = searchParams.get('id')
 
           if (!id) {
-            return Response.json({ error: 'ID is required' }, { status: 400 })
+            return Response.json({ error: 'ID krävs' }, { status: 400 })
           }
 
           const response = await fetch(`${env.POSTGREST_URL}/units?id=eq.${id}`, {
@@ -249,14 +249,14 @@ export const Route = createFileRoute('/api/admin/units')({
 
           if (!response.ok) {
             const errorText = await response.text()
-            throw new Error(errorText || 'Failed to delete unit')
+            throw new Error(errorText || 'Kunde inte ta bort enhet')
           }
 
           return Response.json({ success: true })
         } catch (error) {
           console.error('Delete unit error:', error)
           return Response.json(
-            { error: error instanceof Error ? error.message : 'Failed to delete unit' },
+            { error: error instanceof Error ? error.message : 'Kunde inte ta bort enhet' },
             { status: 500 }
           )
         }

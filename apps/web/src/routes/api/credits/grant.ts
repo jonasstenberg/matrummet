@@ -13,12 +13,12 @@ export const Route = createFileRoute('/api/credits/grant')({
         const { email, amount } = body as { email: string; amount: number }
 
         if (!email || typeof email !== 'string') {
-          return Response.json({ error: 'Email required' }, { status: 400 })
+          return Response.json({ error: 'E-post krävs' }, { status: 400 })
         }
 
         if (!amount || typeof amount !== 'number' || amount < 1 || amount > 1000) {
           return Response.json(
-            { error: 'Amount must be between 1 and 1000' },
+            { error: 'Antal måste vara mellan 1 och 1000' },
             { status: 400 },
           )
         }
@@ -40,7 +40,7 @@ export const Route = createFileRoute('/api/credits/grant')({
         if (!response.ok) {
           const errorText = await response.text()
           return Response.json(
-            { error: `Failed to grant credits: ${errorText}` },
+            { error: `Kunde inte bevilja AI-poäng: ${errorText}` },
             { status: 500 },
           )
         }

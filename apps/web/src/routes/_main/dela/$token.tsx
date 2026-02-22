@@ -98,6 +98,12 @@ export const Route = createFileRoute('/_main/dela/$token')({
           ? [{ name: 'twitter:image', content: imageUrl }]
           : []),
       ],
+      links: [
+        {
+          rel: 'canonical',
+          href: `${baseUrl}/dela/${loaderData.token}`,
+        },
+      ],
     }
   },
   component: SharedRecipePage,
