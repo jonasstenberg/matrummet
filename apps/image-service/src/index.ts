@@ -1,5 +1,6 @@
 import { createLogger, getOptionalEnv } from "@matrummet/shared";
 import { config } from "./config.js";
+import { startImageCleanupListener, stopImageCleanupListener } from "./listener.js";
 import { handleHealth } from "./routes/health.js";
 import { handleUpload } from "./routes/upload.js";
 import { handleServeWithConditional } from "./routes/serve.js";
@@ -69,11 +70,13 @@ function addCorsHeaders(response: Response): Response {
 
 logger.info({ port: server.port }, "Image service started");
 
+startImageCleanupListener(logger);
+
 // Graceful shutdown
 const shutdown = () => {
   logger.info("Shutting down");
   server.stop();
-  process.exit(0);
+  void stopImageCleanupListener().finally(() => process.exit(0));
 };
 
 process.on("SIGINT", shutdown);
