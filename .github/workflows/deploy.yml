@@ -54,6 +54,14 @@ on:
         options:
           - "true"
           - "false"
+      deploy_postgrest:
+        description: "Deploy PostgREST configuration"
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
 
 env:
   NODE_VERSION: "22"
@@ -68,6 +76,7 @@ jobs:
       deploy_events_service: ${{ steps.changes.outputs.deploy_events_service }}
       deploy_image_service: ${{ steps.changes.outputs.deploy_image_service }}
       deploy_nginx: ${{ steps.changes.outputs.deploy_nginx }}
+      deploy_postgrest: ${{ steps.changes.outputs.deploy_postgrest }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -197,6 +206,27 @@ jobs:
             else
               echo "deploy_image_service=false" >> $GITHUB_OUTPUT
               echo "No image-service changes detected"
+            fi
+          fi
+
+          # Check for PostgREST config changes
+          if [[ "${{ github.event.inputs.deploy_postgrest }}" == "false" ]]; then
+            echo "deploy_postgrest=false" >> $GITHUB_OUTPUT
+            echo "Skipping PostgREST deployment as requested"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.deploy_postgrest }}" == "true" ]]; then
+            echo "deploy_postgrest=true" >> $GITHUB_OUTPUT
+            echo "Manual request to deploy PostgREST"
+          elif [[ -z "$PARENT_SHA" ]]; then
+            echo "deploy_postgrest=true" >> $GITHUB_OUTPUT
+            echo "First commit, deploying PostgREST"
+          else
+            CHANGED_FILES=$(git diff --name-only $PARENT_SHA $WORKFLOW_SHA 2>/dev/null || git ls-files)
+            if echo "$CHANGED_FILES" | grep -q "^infra/postgrest/"; then
+              echo "deploy_postgrest=true" >> $GITHUB_OUTPUT
+              echo "PostgREST config changes detected"
+            else
+              echo "deploy_postgrest=false" >> $GITHUB_OUTPUT
+              echo "No PostgREST config changes detected"
             fi
           fi
 
@@ -513,6 +543,36 @@ jobs:
         run: |
           ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'sudo systemctl restart ${{ vars.SERVICE_IMAGE }}'
 
+  deploy-postgrest:
+    needs: [setup]
+    if: needs.setup.outputs.deploy_postgrest == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy PostgREST config
+        env:
+          POSTGREST_DB_PASSWORD: ${{ secrets.POSTGREST_DB_PASSWORD }}
+          POSTGREST_JWT_SECRET: ${{ secrets.POSTGREST_JWT_SECRET }}
+        run: |
+          envsubst '${POSTGREST_DB_PASSWORD} ${POSTGREST_JWT_SECRET}' < infra/postgrest/matrummet.conf > /tmp/matrummet.conf
+          scp /tmp/matrummet.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/tmp/postgrest-matrummet.conf
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
+            sudo cp /tmp/postgrest-matrummet.conf /etc/postgrest/matrummet.conf &&
+            sudo chown postgres:postgres /etc/postgrest/matrummet.conf &&
+            sudo chmod 600 /etc/postgrest/matrummet.conf &&
+            rm /tmp/postgrest-matrummet.conf &&
+            sudo systemctl restart ${{ vars.SERVICE_POSTGREST }}
+          '
+
   deploy-nginx:
     needs: [setup, test, api-tests]
     if: always() && needs.setup.outputs.deploy_nginx == 'true' && (needs.test.result == 'success' || needs.test.result == 'skipped') && (needs.api-tests.result == 'success' || needs.api-tests.result == 'skipped')
@@ -547,7 +607,7 @@ jobs:
           "
 
   notify:
-    needs: [setup, test, api-tests, deploy-migrations, deploy-services, deploy-nginx]
+    needs: [setup, test, api-tests, deploy-migrations, deploy-services, deploy-postgrest, deploy-nginx]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -562,4 +622,5 @@ jobs:
           echo "- Email-service: ${{ needs.setup.outputs.deploy_email_service == 'true' && 'Deployed' || 'Skipped' }}"
           echo "- Events-service: ${{ needs.setup.outputs.deploy_events_service == 'true' && 'Deployed' || 'Skipped' }}"
           echo "- Image-service: ${{ needs.setup.outputs.deploy_image_service == 'true' && 'Deployed' || 'Skipped' }}"
+          echo "- PostgREST: ${{ needs.setup.outputs.deploy_postgrest == 'true' && (needs.deploy-postgrest.result == 'success' && 'Deployed' || 'Failed') || 'Skipped' }}"
           echo "- Nginx: ${{ needs.setup.outputs.deploy_nginx == 'true' && (needs.deploy-nginx.result == 'success' && 'Deployed' || 'Failed') || 'Skipped' }}"
