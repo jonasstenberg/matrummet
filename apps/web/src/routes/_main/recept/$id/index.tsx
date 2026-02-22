@@ -61,7 +61,7 @@ export const Route = createFileRoute('/_main/recept/$id/')({
           : []),
       ],
       links: [
-        { rel: 'canonical', href: `/recept/${recipe.id}` },
+        { rel: 'canonical', href: `${baseUrl}/recept/${recipe.id}` },
       ],
     }
   },

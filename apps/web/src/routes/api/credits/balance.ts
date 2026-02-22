@@ -21,7 +21,7 @@ export const Route = createFileRoute('/api/credits/balance')({
 
         if (!response.ok) {
           return Response.json(
-            { error: 'Failed to fetch credits' },
+            { error: 'Kunde inte hämta AI-poäng' },
             { status: 500 },
           )
         }

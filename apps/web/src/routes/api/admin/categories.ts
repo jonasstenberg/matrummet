@@ -15,7 +15,7 @@ export const Route = createFileRoute('/api/admin/categories')({
           )
 
           if (!response.ok) {
-            throw new Error('Failed to fetch categories')
+            throw new Error('Kunde inte hämta kategorier')
           }
 
           const data: Array<{
@@ -40,7 +40,7 @@ export const Route = createFileRoute('/api/admin/categories')({
         } catch (error) {
           console.error('Get categories error:', error)
           return Response.json(
-            { error: 'Failed to fetch categories' },
+            { error: 'Kunde inte hämta kategorier' },
             { status: 500 }
           )
         }
@@ -58,7 +58,7 @@ export const Route = createFileRoute('/api/admin/categories')({
             const { sourceId, targetId } = body
 
             if (!sourceId || !targetId) {
-              return Response.json({ error: 'sourceId and targetId are required' }, { status: 400 })
+              return Response.json({ error: 'Käll-ID och mål-ID krävs' }, { status: 400 })
             }
 
             // Move all recipe_categories from source to target
@@ -99,7 +99,7 @@ export const Route = createFileRoute('/api/admin/categories')({
               })
 
               if (!insertRes.ok) {
-                throw new Error('Failed to transfer recipe associations')
+                throw new Error('Kunde inte flytta receptkopplingar')
               }
             }
 
@@ -116,7 +116,7 @@ export const Route = createFileRoute('/api/admin/categories')({
             })
 
             if (!deleteRes.ok) {
-              throw new Error('Failed to delete source category')
+              throw new Error('Kunde inte ta bort källkategori')
             }
 
             return Response.json({ success: true })
@@ -126,7 +126,7 @@ export const Route = createFileRoute('/api/admin/categories')({
           const { name, group_id } = body
 
           if (!name || !name.trim()) {
-            return Response.json({ error: 'Name is required' }, { status: 400 })
+            return Response.json({ error: 'Namn krävs' }, { status: 400 })
           }
 
           const createBody: Record<string, string> = { name: name.trim() }
@@ -146,14 +146,14 @@ export const Route = createFileRoute('/api/admin/categories')({
 
           if (!response.ok) {
             const errorText = await response.text()
-            throw new Error(errorText || 'Failed to create category')
+            throw new Error(errorText || 'Kunde inte skapa kategori')
           }
 
           return Response.json({ success: true })
         } catch (error) {
           console.error('Create category error:', error)
           return Response.json(
-            { error: error instanceof Error ? error.message : 'Failed to create category' },
+            { error: error instanceof Error ? error.message : 'Kunde inte skapa kategori' },
             { status: 500 }
           )
         }
@@ -168,14 +168,14 @@ export const Route = createFileRoute('/api/admin/categories')({
           const { id, name, group_id } = body
 
           if (!id) {
-            return Response.json({ error: 'ID is required' }, { status: 400 })
+            return Response.json({ error: 'ID krävs' }, { status: 400 })
           }
 
           // Build update payload - at least one field must be provided
           const updateBody: Record<string, string | null> = {}
           if (name !== undefined) {
             if (!name || !name.trim()) {
-              return Response.json({ error: 'Name cannot be empty' }, { status: 400 })
+              return Response.json({ error: 'Namn kan inte vara tomt' }, { status: 400 })
             }
             updateBody.name = name.trim()
           }
@@ -184,7 +184,7 @@ export const Route = createFileRoute('/api/admin/categories')({
           }
 
           if (Object.keys(updateBody).length === 0) {
-            return Response.json({ error: 'No fields to update' }, { status: 400 })
+            return Response.json({ error: 'Inga fält att uppdatera' }, { status: 400 })
           }
 
           const response = await fetch(`${env.POSTGREST_URL}/categories?id=eq.${id}`, {
@@ -198,14 +198,14 @@ export const Route = createFileRoute('/api/admin/categories')({
 
           if (!response.ok) {
             const errorText = await response.text()
-            throw new Error(errorText || 'Failed to update category')
+            throw new Error(errorText || 'Kunde inte uppdatera kategori')
           }
 
           return Response.json({ success: true })
         } catch (error) {
           console.error('Update category error:', error)
           return Response.json(
-            { error: error instanceof Error ? error.message : 'Failed to update category' },
+            { error: error instanceof Error ? error.message : 'Kunde inte uppdatera kategori' },
             { status: 500 }
           )
         }
@@ -220,7 +220,7 @@ export const Route = createFileRoute('/api/admin/categories')({
           const id = searchParams.get('id')
 
           if (!id) {
-            return Response.json({ error: 'ID is required' }, { status: 400 })
+            return Response.json({ error: 'ID krävs' }, { status: 400 })
           }
 
           const response = await fetch(`${env.POSTGREST_URL}/categories?id=eq.${id}`, {
@@ -232,14 +232,14 @@ export const Route = createFileRoute('/api/admin/categories')({
 
           if (!response.ok) {
             const errorText = await response.text()
-            throw new Error(errorText || 'Failed to delete category')
+            throw new Error(errorText || 'Kunde inte ta bort kategori')
           }
 
           return Response.json({ success: true })
         } catch (error) {
           console.error('Delete category error:', error)
           return Response.json(
-            { error: error instanceof Error ? error.message : 'Failed to delete category' },
+            { error: error instanceof Error ? error.message : 'Kunde inte ta bort kategori' },
             { status: 500 }
           )
         }

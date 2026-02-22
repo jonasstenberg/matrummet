@@ -15,7 +15,7 @@ export const Route = createFileRoute('/api/credits/checkout')({
 
         const pack = getCreditPack(packId)
         if (!pack) {
-          return Response.json({ error: 'Invalid pack' }, { status: 400 })
+          return Response.json({ error: 'Ogiltigt paket' }, { status: 400 })
         }
 
         const stripe = getStripe()

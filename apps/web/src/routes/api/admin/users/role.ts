@@ -15,12 +15,12 @@ export const Route = createFileRoute('/api/admin/users/role')({
           const { id, role } = body
 
           if (!id) {
-            return Response.json({ error: 'ID is required' }, { status: 400 })
+            return Response.json({ error: 'ID krävs' }, { status: 400 })
           }
 
           if (role !== 'user' && role !== 'admin') {
             return Response.json(
-              { error: 'Role must be "user" or "admin"' },
+              { error: 'Roll måste vara "user" eller "admin"' },
               { status: 400 }
             )
           }
@@ -42,14 +42,14 @@ export const Route = createFileRoute('/api/admin/users/role')({
 
           if (!response.ok) {
             const errorText = await response.text()
-            throw new Error(errorText || 'Failed to update user role')
+            throw new Error(errorText || 'Kunde inte uppdatera användarroll')
           }
 
           return Response.json({ success: true })
         } catch (error) {
           console.error('Update user role error:', error)
           return Response.json(
-            { error: error instanceof Error ? error.message : 'Failed to update user role' },
+            { error: error instanceof Error ? error.message : 'Kunde inte uppdatera användarroll' },
             { status: 500 }
           )
         }

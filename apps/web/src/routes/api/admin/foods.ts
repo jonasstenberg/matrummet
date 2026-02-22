@@ -34,7 +34,7 @@ export const Route = createFileRoute('/api/admin/foods')({
           )
 
           if (!countResponse.ok) {
-            throw new Error('Failed to fetch food count')
+            throw new Error('Kunde inte hämta antal matvaror')
           }
 
           const total = await countResponse.json()
@@ -59,7 +59,7 @@ export const Route = createFileRoute('/api/admin/foods')({
           )
 
           if (!itemsResponse.ok) {
-            throw new Error('Failed to fetch foods')
+            throw new Error('Kunde inte hämta matvaror')
           }
 
           const items = await itemsResponse.json()
@@ -74,7 +74,7 @@ export const Route = createFileRoute('/api/admin/foods')({
         } catch (error) {
           console.error('Get foods error:', error)
           return Response.json(
-            { error: 'Failed to fetch foods' },
+            { error: 'Kunde inte hämta matvaror' },
             { status: 500 }
           )
         }
@@ -89,7 +89,7 @@ export const Route = createFileRoute('/api/admin/foods')({
           const { name } = body
 
           if (!name || !name.trim()) {
-            return Response.json({ error: 'Name is required' }, { status: 400 })
+            return Response.json({ error: 'Namn krävs' }, { status: 400 })
           }
 
           const response = await fetch(`${env.POSTGREST_URL}/foods`, {
@@ -113,7 +113,7 @@ export const Route = createFileRoute('/api/admin/foods')({
               )
             }
 
-            throw new Error(errorText || 'Failed to create food')
+            throw new Error(errorText || 'Kunde inte skapa matvara')
           }
 
           return Response.json({ success: true })
@@ -128,7 +128,7 @@ export const Route = createFileRoute('/api/admin/foods')({
           }
 
           return Response.json(
-            { error: error instanceof Error ? error.message : 'Failed to create food' },
+            { error: error instanceof Error ? error.message : 'Kunde inte skapa matvara' },
             { status: 500 }
           )
         }
@@ -144,7 +144,7 @@ export const Route = createFileRoute('/api/admin/foods')({
 
           if (!id || !name || !name.trim()) {
             return Response.json(
-              { error: 'ID and name are required' },
+              { error: 'ID och namn krävs' },
               { status: 400 }
             )
           }
@@ -169,7 +169,7 @@ export const Route = createFileRoute('/api/admin/foods')({
               )
             }
 
-            throw new Error(errorText || 'Failed to update food')
+            throw new Error(errorText || 'Kunde inte uppdatera matvara')
           }
 
           return Response.json({ success: true })
@@ -184,7 +184,7 @@ export const Route = createFileRoute('/api/admin/foods')({
           }
 
           return Response.json(
-            { error: error instanceof Error ? error.message : 'Failed to update food' },
+            { error: error instanceof Error ? error.message : 'Kunde inte uppdatera matvara' },
             { status: 500 }
           )
         }
@@ -199,7 +199,7 @@ export const Route = createFileRoute('/api/admin/foods')({
           const id = searchParams.get('id')
 
           if (!id) {
-            return Response.json({ error: 'ID is required' }, { status: 400 })
+            return Response.json({ error: 'ID krävs' }, { status: 400 })
           }
 
           const response = await fetch(`${env.POSTGREST_URL}/foods?id=eq.${id}`, {
@@ -211,14 +211,14 @@ export const Route = createFileRoute('/api/admin/foods')({
 
           if (!response.ok) {
             const errorText = await response.text()
-            throw new Error(errorText || 'Failed to delete food')
+            throw new Error(errorText || 'Kunde inte ta bort matvara')
           }
 
           return Response.json({ success: true })
         } catch (error) {
           console.error('Delete food error:', error)
           return Response.json(
-            { error: error instanceof Error ? error.message : 'Failed to delete food' },
+            { error: error instanceof Error ? error.message : 'Kunde inte ta bort matvara' },
             { status: 500 }
           )
         }

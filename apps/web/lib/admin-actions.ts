@@ -19,7 +19,7 @@ const approveFoodFn = createServerFn({ method: 'POST' })
     const { postgrestToken } = context
 
     if (!postgrestToken) {
-      return { success: false, error: 'Unauthorized' }
+      return { success: false, error: 'Ej behörig' }
     }
 
     try {
@@ -34,7 +34,7 @@ const approveFoodFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        throw new Error(errorText || 'Failed to approve food')
+        throw new Error(errorText || 'Kunde inte godkänna matvaran')
       }
 
       return { success: true }
@@ -50,7 +50,7 @@ const rejectFoodFn = createServerFn({ method: 'POST' })
     const { postgrestToken } = context
 
     if (!postgrestToken) {
-      return { success: false, error: 'Unauthorized' }
+      return { success: false, error: 'Ej behörig' }
     }
 
     try {
@@ -65,7 +65,7 @@ const rejectFoodFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        throw new Error(errorText || 'Failed to reject food')
+        throw new Error(errorText || 'Kunde inte avvisa matvaran')
       }
 
       return { success: true }
@@ -85,7 +85,7 @@ const renameFoodFn = createServerFn({ method: 'POST' })
     const { postgrestToken } = context
 
     if (!postgrestToken) {
-      return { success: false, error: 'Unauthorized' }
+      return { success: false, error: 'Ej behörig' }
     }
 
     try {
@@ -103,7 +103,7 @@ const renameFoodFn = createServerFn({ method: 'POST' })
         if (errorText.includes('duplicate key') || errorText.includes('unique constraint')) {
           return { success: false, error: 'En matvara med detta namn finns redan' }
         }
-        throw new Error(errorText || 'Failed to rename food')
+        throw new Error(errorText || 'Kunde inte byta namn på matvaran')
       }
 
       return { success: true }
@@ -119,7 +119,7 @@ const deleteFoodFn = createServerFn({ method: 'POST' })
     const { postgrestToken } = context
 
     if (!postgrestToken) {
-      return { success: false, error: 'Unauthorized' }
+      return { success: false, error: 'Ej behörig' }
     }
 
     try {
@@ -132,7 +132,7 @@ const deleteFoodFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        throw new Error(errorText || 'Failed to delete food')
+        throw new Error(errorText || 'Kunde inte ta bort matvaran')
       }
 
       return { success: true }
@@ -152,7 +152,7 @@ const createFoodFn = createServerFn({ method: 'POST' })
     const { postgrestToken } = context
 
     if (!postgrestToken) {
-      return { success: false, error: 'Unauthorized' }
+      return { success: false, error: 'Ej behörig' }
     }
 
     try {
@@ -171,7 +171,7 @@ const createFoodFn = createServerFn({ method: 'POST' })
         if (errorText.includes('duplicate key') || errorText.includes('unique constraint')) {
           return { success: false, error: 'En matvara med detta namn finns redan' }
         }
-        throw new Error(errorText || 'Failed to create food')
+        throw new Error(errorText || 'Kunde inte skapa matvaran')
       }
 
       return { success: true }
@@ -187,7 +187,7 @@ const approveAsAliasFn = createServerFn({ method: 'POST' })
     const { postgrestToken } = context
 
     if (!postgrestToken) {
-      return { success: false, error: 'Unauthorized' }
+      return { success: false, error: 'Ej behörig' }
     }
 
     try {
@@ -202,7 +202,7 @@ const approveAsAliasFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        throw new Error(errorText || 'Failed to approve food as alias')
+        throw new Error(errorText || 'Kunde inte godkänna matvaran som alias')
       }
 
       return { success: true }
@@ -218,7 +218,7 @@ const setCanonicalFoodFn = createServerFn({ method: 'POST' })
     const { postgrestToken } = context
 
     if (!postgrestToken) {
-      return { success: false, error: 'Unauthorized' }
+      return { success: false, error: 'Ej behörig' }
     }
 
     try {
@@ -233,7 +233,7 @@ const setCanonicalFoodFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        throw new Error(errorText || 'Failed to set canonical food')
+        throw new Error(errorText || 'Kunde inte ställa in kanonisk matvara')
       }
 
       return { success: true }
@@ -249,7 +249,7 @@ const bulkApproveFoodsFn = createServerFn({ method: 'POST' })
     const { postgrestToken } = context
 
     if (!postgrestToken) {
-      return { success: false, error: 'Unauthorized' }
+      return { success: false, error: 'Ej behörig' }
     }
 
     try {
@@ -284,7 +284,7 @@ const bulkRejectFoodsFn = createServerFn({ method: 'POST' })
     const { postgrestToken } = context
 
     if (!postgrestToken) {
-      return { success: false, error: 'Unauthorized' }
+      return { success: false, error: 'Ej behörig' }
     }
 
     try {
@@ -323,7 +323,7 @@ const updateUserRoleFn = createServerFn({ method: 'POST' })
     const { postgrestToken } = context
 
     if (!postgrestToken) {
-      return { success: false, error: 'Unauthorized' }
+      return { success: false, error: 'Ej behörig' }
     }
 
     try {
@@ -341,7 +341,7 @@ const updateUserRoleFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        throw new Error(errorText || 'Failed to update user role')
+        throw new Error(errorText || 'Kunde inte uppdatera användarroll')
       }
 
       return { success: true }
@@ -361,7 +361,7 @@ const updateUserNameFn = createServerFn({ method: 'POST' })
     const { postgrestToken } = context
 
     if (!postgrestToken) {
-      return { success: false, error: 'Unauthorized' }
+      return { success: false, error: 'Ej behörig' }
     }
 
     try {
@@ -379,7 +379,7 @@ const updateUserNameFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        throw new Error(errorText || 'Failed to update user')
+        throw new Error(errorText || 'Kunde inte uppdatera användare')
       }
 
       return { success: true }
@@ -395,7 +395,7 @@ const deleteUserFn = createServerFn({ method: 'POST' })
     const { postgrestToken } = context
 
     if (!postgrestToken) {
-      return { success: false, error: 'Unauthorized' }
+      return { success: false, error: 'Ej behörig' }
     }
 
     try {
@@ -412,7 +412,7 @@ const deleteUserFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        throw new Error(errorText || 'Failed to delete user')
+        throw new Error(errorText || 'Kunde inte ta bort användare')
       }
 
       return { success: true }
@@ -432,7 +432,7 @@ const grantUserCreditsFn = createServerFn({ method: 'POST' })
     const { postgrestToken } = context
 
     if (!postgrestToken) {
-      return { success: false, error: 'Unauthorized' }
+      return { success: false, error: 'Ej behörig' }
     }
 
     try {
@@ -452,7 +452,7 @@ const grantUserCreditsFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        throw new Error(errorText || 'Failed to grant credits')
+        throw new Error(errorText || 'Kunde inte bevilja AI-poäng')
       }
 
       const result = await response.json()
@@ -469,7 +469,7 @@ const setRecipeFeaturedFn = createServerFn({ method: 'POST' })
     const { postgrestToken } = context
 
     if (!postgrestToken) {
-      return { success: false, error: 'Unauthorized' }
+      return { success: false, error: 'Ej behörig' }
     }
 
     try {
@@ -487,7 +487,7 @@ const setRecipeFeaturedFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        throw new Error(errorText || 'Failed to update featured status')
+        throw new Error(errorText || 'Kunde inte uppdatera utvald-status')
       }
 
       return { success: true }
