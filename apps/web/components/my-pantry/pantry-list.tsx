@@ -52,7 +52,7 @@ function ExpiryEditor({
             hasExpiry && isExpired &&
               'bg-destructive/10 text-destructive hover:bg-destructive/20',
             !hasExpiry &&
-              'text-muted-foreground/40 opacity-0 group-hover:opacity-100 hover:bg-muted'
+              'text-muted-foreground/40 md:opacity-0 md:group-hover:opacity-100 hover:bg-muted'
           )}
           aria-label={hasExpiry ? `Utgångsdatum: ${item.expires_at}` : 'Sätt utgångsdatum'}
         >
@@ -151,7 +151,7 @@ export function PantryList({ items, onRemoveItem, onUpdateExpiry }: PantryListPr
               <button
                 type="button"
                 onClick={() => onRemoveItem(item.food_id)}
-                className="shrink-0 rounded-full p-1.5 opacity-0 text-muted-foreground transition-all group-hover:opacity-100 hover:text-destructive hover:bg-destructive/10"
+                className="shrink-0 rounded-full p-1.5 text-muted-foreground transition-all md:opacity-0 md:group-hover:opacity-100 hover:text-destructive hover:bg-destructive/10"
                 aria-label={`Ta bort ${item.food_name}`}
               >
                 <X className="h-4 w-4" />
