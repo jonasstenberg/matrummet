@@ -524,9 +524,9 @@ describe("API Key RPCs", () => {
         expect(listAfter.data!.some((k) => k.id === keyId)).toBe(false);
       });
 
-      it("is idempotent - can revoke already revoked key", async () => {
+      it("rejects revoking an already deleted key", async () => {
         // Create and revoke a key
-        const keyName = `IdempotentRevoke${randomString(8)}`;
+        const keyName = `DoubleRevoke${randomString(8)}`;
         const createResponse = await clientA.rpc<CreateApiKeyResponse>(
           "create_user_api_key",
           { p_name: keyName }
@@ -534,18 +534,18 @@ describe("API Key RPCs", () => {
         expectSuccess(createResponse);
         const keyId = createResponse.data!.id;
 
-        // Revoke once
+        // Revoke once (deletes the row)
         const revoke1 = await clientA.rpc<RevokeApiKeyResponse>("revoke_api_key", {
           p_key_id: keyId,
         });
         expectSuccess(revoke1);
 
-        // Revoke again - should succeed
+        // Revoke again - key no longer exists
         const revoke2 = await clientA.rpc<RevokeApiKeyResponse>("revoke_api_key", {
           p_key_id: keyId,
         });
-        expectSuccess(revoke2);
-        expect(revoke2.data!.revoked).toBe(true);
+        expectError(revoke2);
+        expect(revoke2.error?.message).toContain("key-not-found");
       });
     });
 

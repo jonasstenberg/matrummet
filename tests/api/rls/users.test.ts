@@ -447,16 +447,14 @@ describe("RLS: user_api_keys table", () => {
 
       expectSuccess(revokeResult);
 
-      // Verify the key is no longer active
+      // Verify the key is deleted
       const selectResult = await clientA
         .from("user_api_keys")
-        .select("is_active")
-        .eq("id", keyData.id)
-        .single();
+        .select("id")
+        .eq("id", keyData.id);
 
       expectSuccess(selectResult);
-      const key = selectResult.data as ApiKeyRecord;
-      expect(key.is_active).toBe(false);
+      expect(selectResult.data).toHaveLength(0);
     });
 
     it("user can DELETE their own API keys directly", async () => {
