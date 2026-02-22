@@ -1,5 +1,5 @@
 {
-  "name": "matrummet-web",
+  "name": "@matrummet/web",
   "version": "0.1.0",
   "private": true,
   "type": "module",
