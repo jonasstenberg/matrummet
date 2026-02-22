@@ -1,5 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { deleteCookie } from '@tanstack/react-start/server'
+import { logger as rootLogger } from '@/lib/logger'
+
+const logger = rootLogger.child({ module: 'api:auth:logout' })
 
 export const Route = createFileRoute('/api/auth/logout')({
   server: {
@@ -9,7 +12,7 @@ export const Route = createFileRoute('/api/auth/logout')({
           deleteCookie('auth-token')
           return Response.json({ success: true })
         } catch (error) {
-          console.error('Logout error:', error)
+          logger.error({ err: error }, 'Logout error')
           return Response.json(
             { error: 'Ett fel uppstod vid utloggning' },
             { status: 500 },

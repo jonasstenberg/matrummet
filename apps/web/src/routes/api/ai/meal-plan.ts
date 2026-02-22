@@ -12,6 +12,8 @@ import {
   MealPlanGenerationError,
 } from '@/lib/meal-plan/service'
 import type { MealPlanPreferencesInput } from '@/lib/meal-plan/service'
+import { logger as rootLogger } from '@/lib/logger'
+const logger = rootLogger.child({ module: 'api:ai:meal-plan' })
 
 export const Route = createFileRoute('/api/ai/meal-plan')({
   server: {
@@ -113,7 +115,7 @@ export const Route = createFileRoute('/api/ai/meal-plan')({
             )
           }
 
-          console.error('Meal plan generation error:', error)
+          logger.error({ err: error, email: userEmail }, 'Meal plan generation error')
           if (creditDeducted && userEmail) {
             await refundCredit(userEmail, 'Återbetalning: serverfel').catch(() => {})
           }

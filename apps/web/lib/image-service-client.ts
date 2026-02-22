@@ -1,5 +1,8 @@
 import { SignJWT } from 'jose'
 import { env } from './env'
+import { logger as rootLogger } from '@/lib/logger'
+
+const logger = rootLogger.child({ module: 'image-service' })
 
 function getImageServiceUrl(): string {
   return env.IMAGE_SERVICE_URL ?? 'http://localhost:4006'
@@ -50,9 +53,9 @@ export async function deleteImageFromService(
     })
     if (!response.ok) {
       const body = await response.json().catch(() => ({}))
-      console.warn(`Image delete failed for ${imageId}: ${response.status}`, body)
+      logger.warn({ imageId, status: response.status, body }, 'Image delete failed')
     }
   } catch (error) {
-    console.warn(`Image delete request failed for ${imageId}:`, error)
+    logger.warn({ err: error, imageId }, 'Image delete request failed')
   }
 }

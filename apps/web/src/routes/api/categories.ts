@@ -1,5 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { env } from '@/lib/env'
+import { logger as rootLogger } from '@/lib/logger'
+const logger = rootLogger.child({ module: 'api:categories' })
 
 export const Route = createFileRoute('/api/categories')({
   server: {
@@ -46,7 +48,7 @@ export const Route = createFileRoute('/api/categories')({
 
           return Response.json(grouped)
         } catch (error) {
-          console.error('Error fetching categories:', error)
+          logger.error({ err: error }, 'Error fetching categories')
           return Response.json(
             { error: 'Failed to fetch categories' },
             { status: 500 },

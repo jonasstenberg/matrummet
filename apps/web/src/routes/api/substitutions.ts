@@ -1,6 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { apiAuthMiddleware } from '@/lib/middleware'
 import { getSubstitutionSuggestions } from '@/lib/substitutions'
+import { logger as rootLogger } from '@/lib/logger'
+const logger = rootLogger.child({ module: 'api:substitutions' })
 
 export const Route = createFileRoute('/api/substitutions')({
   server: {
@@ -26,7 +28,7 @@ export const Route = createFileRoute('/api/substitutions')({
 
           return Response.json(result)
         } catch (error) {
-          console.error('Substitution API error:', error)
+          logger.error({ err: error }, 'Substitution API error')
           return Response.json(
             { error: 'Ett ovantad fel uppstod' },
             { status: 500 },

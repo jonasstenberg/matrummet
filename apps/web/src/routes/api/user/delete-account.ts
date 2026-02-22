@@ -2,6 +2,8 @@ import { createFileRoute } from '@tanstack/react-router'
 import { deleteCookie } from '@tanstack/react-start/server'
 import { apiAuthMiddleware } from '@/lib/middleware'
 import { env } from '@/lib/env'
+import { logger as rootLogger } from '@/lib/logger'
+const logger = rootLogger.child({ module: 'api:user:delete-account' })
 
 interface DeleteAccountBody {
   password: string | null
@@ -45,7 +47,7 @@ export const Route = createFileRoute('/api/user/delete-account')({
 
             try {
               const errorData = await postgrestResponse.json()
-              console.error('PostgREST delete_account error:', postgrestResponse.status, JSON.stringify(errorData))
+              logger.error({ status: postgrestResponse.status, errorData, email: context.session?.email }, 'PostgREST delete_account error')
               const dbMessage = errorData?.message || ''
 
               if (dbMessage.includes('not-authenticated')) {
@@ -58,7 +60,7 @@ export const Route = createFileRoute('/api/user/delete-account')({
                 errorMessage = 'Lösenord krävs'
               }
             } catch (parseError) {
-              console.error('PostgREST delete_account error (non-JSON):', postgrestResponse.status, parseError)
+              logger.error({ status: postgrestResponse.status, err: parseError, email: context.session?.email }, 'PostgREST delete_account error (non-JSON)')
             }
 
             return Response.json(
@@ -72,7 +74,7 @@ export const Route = createFileRoute('/api/user/delete-account')({
 
           return Response.json({ success: true })
         } catch (error) {
-          console.error('Account deletion error:', error)
+          logger.error({ err: error, email: context.session?.email }, 'Account deletion error')
           return Response.json(
             { error: 'Ett fel uppstod vid radering av konto' },
             { status: 500 },

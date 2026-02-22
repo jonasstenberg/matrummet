@@ -2,6 +2,9 @@ import { createFileRoute } from '@tanstack/react-router'
 import { getCookie, setCookie, deleteCookie } from '@tanstack/react-start/server'
 import { signToken } from '@/lib/auth'
 import { env } from '@/lib/env'
+import { logger as rootLogger } from '@/lib/logger'
+
+const logger = rootLogger.child({ module: 'api:auth:google-callback' })
 
 interface GoogleTokenResponse {
   access_token: string
@@ -48,7 +51,7 @@ export const Route = createFileRoute('/api/auth/callback/google')({
         }
 
         if (error) {
-          console.error('Google OAuth error:', error)
+          logger.error({ err: error }, 'Google OAuth error')
           return new Response(null, {
             status: 302,
             headers: { Location: `${origin}/login?error=oauth_error` },
@@ -66,7 +69,7 @@ export const Route = createFileRoute('/api/auth/callback/google')({
         const clientSecret = env.GOOGLE_SECRET
 
         if (!clientId || !clientSecret) {
-          console.error('Google OAuth credentials not configured')
+          logger.error('Google OAuth credentials not configured')
           return new Response(null, {
             status: 302,
             headers: { Location: `${origin}/login?error=config_error` },
@@ -91,7 +94,7 @@ export const Route = createFileRoute('/api/auth/callback/google')({
 
           if (!tokenResponse.ok) {
             const errorData = await tokenResponse.text()
-            console.error('Token exchange failed:', errorData)
+            logger.error({ err: errorData }, 'Token exchange failed')
             return new Response(null, {
               status: 302,
               headers: { Location: `${origin}/login?error=token_error` },
@@ -107,7 +110,7 @@ export const Route = createFileRoute('/api/auth/callback/google')({
           )
 
           if (!userInfoResponse.ok) {
-            console.error('Failed to get user info')
+            logger.error('Failed to get user info')
             return new Response(null, {
               status: 302,
               headers: { Location: `${origin}/login?error=userinfo_error` },
@@ -132,7 +135,7 @@ export const Route = createFileRoute('/api/auth/callback/google')({
 
           if (!postgrestResponse.ok) {
             const errorText = await postgrestResponse.text()
-            console.error('signup_provider failed:', errorText)
+            logger.error({ err: errorText, email: googleUser.email }, 'signup_provider failed')
             return new Response(null, {
               status: 302,
               headers: { Location: `${origin}/login?error=signup_error` },
@@ -162,7 +165,7 @@ export const Route = createFileRoute('/api/auth/callback/google')({
             headers: { Location: `${origin}${returnUrl}` },
           })
         } catch (error) {
-          console.error('Google OAuth callback error:', error)
+          logger.error({ err: error }, 'Google OAuth callback error')
           return new Response(null, {
             status: 302,
             headers: { Location: `${origin}/login?error=unknown_error` },

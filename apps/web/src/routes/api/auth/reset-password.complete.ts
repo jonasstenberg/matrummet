@@ -1,5 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { env } from '@/lib/env'
+import { logger as rootLogger } from '@/lib/logger'
+
+const logger = rootLogger.child({ module: 'api:auth:reset-password' })
 
 interface PostgRESTError {
   code: string
@@ -63,17 +66,14 @@ export const Route = createFileRoute('/api/auth/reset-password/complete')({
             try {
               errorData = await postgrestResponse.json()
             } catch {
-              console.error(
-                'Password reset completion failed with non-JSON response:',
-                postgrestResponse.status,
-              )
+              logger.error({ status: postgrestResponse.status }, 'Password reset completion failed with non-JSON response')
               return Response.json(
                 { error: 'Kunde inte återställa lösenordet' },
                 { status: 500 },
               )
             }
 
-            console.error('Password reset completion failed:', errorData)
+            logger.error({ err: errorData }, 'Password reset completion failed')
 
             if (errorData?.message && isKnownErrorCode(errorData.message)) {
               return Response.json(
@@ -90,7 +90,7 @@ export const Route = createFileRoute('/api/auth/reset-password/complete')({
 
           return Response.json({ success: true })
         } catch (error) {
-          console.error('Password reset completion error:', error)
+          logger.error({ err: error }, 'Password reset completion error')
           return Response.json({ error: 'Ett fel uppstod' }, { status: 500 })
         }
       },

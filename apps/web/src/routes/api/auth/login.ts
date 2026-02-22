@@ -2,6 +2,9 @@ import { createFileRoute } from '@tanstack/react-router'
 import { setCookie } from '@tanstack/react-start/server'
 import { signToken } from '@/lib/auth'
 import { env } from '@/lib/env'
+import { logger as rootLogger } from '@/lib/logger'
+
+const logger = rootLogger.child({ module: 'api:auth:login' })
 
 export const Route = createFileRoute('/api/auth/login')({
   server: {
@@ -65,7 +68,7 @@ export const Route = createFileRoute('/api/auth/login')({
             },
           })
         } catch (error) {
-          console.error('Login error:', error)
+          logger.error({ err: error }, 'Login error')
           return Response.json(
             { error: 'Ett fel uppstod vid inloggning' },
             { status: 500 },

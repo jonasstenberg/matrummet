@@ -1,6 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { apiAdminMiddleware } from '@/lib/middleware'
 import { env } from '@/lib/env'
+import { logger as rootLogger } from '@/lib/logger'
+
+const logger = rootLogger.child({ module: 'api:admin:ai-review-apply' })
 
 const VALID_DECISIONS = ['approve_alias', 'approve_new', 'reject_food', 'delete_food', 'skip']
 
@@ -56,7 +59,7 @@ export const Route = createFileRoute('/api/admin/ai-review/runs/$id/apply')({
             )
             if (!patchRes.ok) {
               const errText = await patchRes.text()
-              console.error(`[AI Review Apply] Failed to set alias target on ${suggestionId}: ${errText}`)
+              logger.error({ err: errText, suggestionId, runId }, 'Failed to set alias target')
               results.errors++
               continue
             }
@@ -78,7 +81,7 @@ export const Route = createFileRoute('/api/admin/ai-review/runs/$id/apply')({
             }
           } else {
             const errText = await res.text()
-            console.error(`[AI Review Apply] Failed ${action} on ${suggestionId}: ${errText}`)
+            logger.error({ err: errText, action, suggestionId, runId }, 'Failed to apply suggestion')
             results.errors++
           }
         }

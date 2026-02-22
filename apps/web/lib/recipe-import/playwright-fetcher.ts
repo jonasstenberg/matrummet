@@ -1,6 +1,9 @@
 import { chromium, Browser } from "playwright"
 import { JsonLdRecipe } from "./types"
 import { jsonLdRecipeSchema } from "../schemas"
+import { logger as rootLogger } from '@/lib/logger'
+
+const logger = rootLogger.child({ module: 'recipe-import' })
 
 /**
  * Browser singleton for Playwright.
@@ -82,7 +85,7 @@ function parseJsonLdFromScripts(scripts: (string | null)[]): JsonLdRecipe | null
         if (result.success) {
           return result.data as JsonLdRecipe
         }
-        console.warn("JSON-LD Recipe validation failed:", result.error.message)
+        logger.warn({ err: result.error.message }, 'JSON-LD Recipe validation failed')
         return null
       }
 
@@ -99,7 +102,7 @@ function parseJsonLdFromScripts(scripts: (string | null)[]): JsonLdRecipe | null
           if (result.success) {
             return result.data as JsonLdRecipe
           }
-          console.warn("JSON-LD Recipe validation failed:", result.error.message)
+          logger.warn({ err: result.error.message }, 'JSON-LD Recipe validation failed')
           return null
         }
       }
@@ -117,7 +120,7 @@ function parseJsonLdFromScripts(scripts: (string | null)[]): JsonLdRecipe | null
           if (result.success) {
             return result.data as JsonLdRecipe
           }
-          console.warn("JSON-LD Recipe validation failed:", result.error.message)
+          logger.warn({ err: result.error.message }, 'JSON-LD Recipe validation failed')
           return null
         }
       }
@@ -145,7 +148,7 @@ export async function fetchWithPlaywright(
   try {
     browser = await getBrowser()
   } catch (error) {
-    console.error("Failed to get browser:", error)
+    logger.error({ err: error }, 'Failed to get browser')
     return { jsonLd: null, pageText: null }
   }
 
@@ -325,7 +328,7 @@ export async function fetchWithPlaywright(
 
     return { jsonLd, pageText: pageText || null }
   } catch (error) {
-    console.error("Playwright fetch failed:", url, error)
+    logger.error({ err: error, url }, 'Playwright fetch failed')
     return { jsonLd: null, pageText: null }
   } finally {
     await context.close().catch(() => {})

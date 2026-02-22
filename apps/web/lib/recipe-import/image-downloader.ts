@@ -1,4 +1,7 @@
 import { uploadImageBuffer } from '@/lib/image-service-client'
+import { logger as rootLogger } from '@/lib/logger'
+
+const logger = rootLogger.child({ module: 'recipe-import' })
 
 const MAX_IMAGE_SIZE = 20 * 1024 * 1024 // 20MB
 
@@ -78,7 +81,7 @@ export async function downloadImage(imageUrl: string): Promise<DownloadResult> {
 
     return { success: true, filename }
   } catch (error) {
-    console.error('Image download error:', error)
+    logger.error({ err: error, imageUrl }, 'Image download error')
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Download failed',

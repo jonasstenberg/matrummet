@@ -4,6 +4,9 @@ import { getSession, signPostgrestToken, signSystemPostgrestToken } from '@/lib/
 import { env } from '@/lib/env'
 import { createMistralClient, MISTRAL_MODEL } from '@/lib/ai-client'
 import { Mistral } from '@mistralai/mistralai'
+import { logger as rootLogger } from '@/lib/logger'
+
+const logger = rootLogger.child({ module: 'api:admin:foods-ai-review' })
 
 const AI_BATCH_SIZE = 20
 const DEFAULT_LIMIT = 500
@@ -194,7 +197,7 @@ async function saveBatch(
     })
     if (!insertRes.ok) {
       const errText = await insertRes.text()
-      console.error(`[AI Review] Failed to store batch: ${errText}`)
+      logger.error({ err: errText, runId }, 'Failed to store batch')
     }
   }
 
@@ -282,7 +285,7 @@ async function processInBackground(
           }
         }
       } catch (error) {
-        console.error(`[AI Review] Batch ${batchStart} FAILED:`, error)
+        logger.error({ err: error, runId, batchStart }, 'AI review batch failed')
         totalProcessed += batch.length
       }
 
@@ -308,9 +311,9 @@ async function processInBackground(
       }),
     })
 
-    console.log(`[AI Review] Run ${runId} completed. ${totalProcessed} processed, ${allSuggestions.length} suggestions.`)
+    logger.info({ runId, totalProcessed, suggestions: allSuggestions.length }, 'AI review run completed')
   } catch (error) {
-    console.error(`[AI Review] Run ${runId} FAILED:`, error)
+    logger.error({ err: error, runId }, 'AI review run failed')
     await fetch(`${env.POSTGREST_URL}/ai_review_runs?id=eq.${runId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -426,7 +429,7 @@ export const Route = createFileRoute('/api/admin/foods/ai-review')({
 
           return Response.json({ runId: run.id, status: 'running' })
         } catch (error) {
-          console.error('AI review error:', error)
+          logger.error({ err: error }, 'AI review error')
           return Response.json(
             { error: error instanceof Error ? error.message : 'Internal server error' },
             { status: 500 }

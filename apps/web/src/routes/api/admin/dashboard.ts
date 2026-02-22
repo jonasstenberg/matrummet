@@ -1,6 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { apiAdminMiddleware } from '@/lib/middleware'
 import { env } from '@/lib/env'
+import { logger as rootLogger } from '@/lib/logger'
+const logger = rootLogger.child({ module: 'api:admin:dashboard' })
 
 interface DashboardStats {
   pendingFoods: number
@@ -96,7 +98,7 @@ export const Route = createFileRoute('/api/admin/dashboard')({
 
           return Response.json(stats)
         } catch (error) {
-          console.error('Dashboard stats error:', error)
+          logger.error({ err: error }, 'Dashboard stats error')
           return Response.json(
             { error: 'Failed to fetch dashboard stats' },
             { status: 500 }

@@ -4,6 +4,9 @@ import { getSession, signPostgrestToken, signSystemPostgrestToken } from '@/lib/
 import { env } from '@/lib/env'
 import { createMistralClient, MISTRAL_MODEL } from '@/lib/ai-client'
 import { Mistral } from '@mistralai/mistralai'
+import { logger as rootLogger } from '@/lib/logger'
+
+const logger = rootLogger.child({ module: 'api:admin:ai-review-stream' })
 
 const AI_BATCH_SIZE = 20
 const DEFAULT_LIMIT = 500
@@ -197,7 +200,7 @@ async function saveBatch(
     })
     if (!insertRes.ok) {
       const errText = await insertRes.text()
-      console.error(`[AI Review] Failed to store batch: ${errText}`)
+      logger.error({ err: errText, runId }, 'Failed to store batch')
     }
   }
 
@@ -343,7 +346,7 @@ export const Route = createFileRoute('/api/admin/ai-review/stream')({
         }
 
         const pendingFoods: PendingFood[] = await pendingResponse.json()
-        console.log(`[AI Review] Run ${runId}: ${pendingFoods.length} pending foods for ${reviewerEmail}`)
+        logger.info({ runId, pendingCount: pendingFoods.length, email: reviewerEmail }, 'AI review run started')
 
         // Stream the processing as SSE
         const encoder = new TextEncoder()
@@ -466,7 +469,7 @@ export const Route = createFileRoute('/api/admin/ai-review/stream')({
                     }
                   }
                 } catch (error) {
-                  console.error(`[AI Review] Batch ${batchStart} FAILED:`, error)
+                  logger.error({ err: error, runId, batchStart }, 'AI review batch failed')
                   totalProcessed += batch.length
                 }
 
@@ -501,9 +504,9 @@ export const Route = createFileRoute('/api/admin/ai-review/stream')({
               })
 
               send('done', { runId, processed: totalProcessed, suggestions: allSuggestions.length, summary })
-              console.log(`[AI Review] Run ${runId} completed. ${totalProcessed} processed, ${allSuggestions.length} suggestions.`)
+              logger.info({ runId, totalProcessed, suggestions: allSuggestions.length }, 'AI review run completed')
             } catch (error) {
-              console.error(`[AI Review] Run ${runId} FAILED:`, error)
+              logger.error({ err: error, runId }, 'AI review run failed')
 
               await fetch(`${env.POSTGREST_URL}/ai_review_runs?id=eq.${runId}`, {
                 method: 'PATCH',
