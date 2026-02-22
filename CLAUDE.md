@@ -4,9 +4,8 @@
 
 Matrummet is a Swedish recipe management app. Monorepo with:
 
-- `apps/frontend` — Next.js 16, React 19, Tailwind v4, Radix UI
-- `apps/mobile` — React Native/Expo mobile app (shared API client)
 - `apps/web` — TanStack Start (Vite + Nitro SSR), React 19, Tailwind v4, Radix UI
+- `apps/mobile` — React Native/Expo mobile app (shared API client)
 - `apps/email-service` — Email notifications
 - `apps/events-service` — Event processing
 - `packages/types` — Shared TypeScript types and Zod schemas
@@ -23,7 +22,7 @@ Personal recipe collection with Swedish full-text search, JWT auth, and row-leve
 ### Quick Commands
 
 ```bash
-pnpm dev                    # Start all apps (frontend uses Turbopack)
+pnpm dev                    # Start all apps
 ./start-postgrest.sh        # Start PostgREST API on port 4444
 ./start-nginx.sh            # Start nginx image server on port 4446
 ./flyway/run-flyway.sh info # Check migration status
@@ -34,11 +33,11 @@ pnpm dev                    # Start all apps (frontend uses Turbopack)
 
 | Service | Command | Port | Purpose |
 |---------|---------|------|---------|
-| Next.js | `pnpm dev` | 3000 | Frontend + email service (Turbopack) |
+| TanStack Start | `pnpm dev` | 3000 | Frontend + email service |
 | PostgREST | `./start-postgrest.sh` | 4444 | REST API layer |
 | Nginx images | `./start-nginx.sh` | 4446 | Serves `/uploads/{id}/{size}.webp` |
 
-Nginx mirrors production config — serves recipe images from `apps/frontend/public/uploads/`. Config: `nginx/dev.conf`, runtime conf generated to `/tmp/matrummet-nginx-dev.conf`.
+Nginx mirrors production config — serves recipe images from `apps/web/public/uploads/`. Config: `nginx/dev.conf`, runtime conf generated to `/tmp/matrummet-nginx-dev.conf`.
 
 ### Build/Lint/Test (use check:* commands)
 
@@ -113,19 +112,19 @@ Env files on server: `.matrummet.env`, `.email-service.env`, `.events-service.en
 
 Business logic lives in `lib/`, API routes are thin HTTP handlers.
 
-**API routes** (`app/api/*/route.ts`) handle only:
-- Auth checks (`getSession()`)
+**Server functions** (`lib/*-actions.ts`) use `createServerFn()`:
+- Get PostgREST tokens via middleware (`actionAuthMiddleware`)
+- Call business logic in lib
+- Invalidate router cache via `router.invalidate()`
+- Return `{ success, data }` or `{ error }` objects
+
+**API routes** (`src/routes/api/**/*.ts`) handle only:
+- Auth via route-level middleware (`apiAuthMiddleware`, `apiAdminMiddleware`)
 - Request parsing
 - Calling lib functions
 - Formatting HTTP responses
 
-**Server actions** (`lib/*-actions.ts`) are `'use server'` files that:
-- Get PostgREST tokens via `getPostgrestToken()` from `action-utils.ts`
-- Call business logic in lib
-- Revalidate Next.js cache paths
-- Return `{ success, data }` or `{ error }` objects
-
-**Pure lib modules** (no `'use server'`) contain reusable business logic:
+**Pure lib modules** contain reusable business logic:
 - `lib/auth-operations.ts` — Login, signup, password reset, account deletion (PostgREST + JWT)
 - `lib/credits.ts` — Check/deduct/refund AI credits
 - `lib/ingredient-matching.ts` — Match ingredients to food/unit database
@@ -136,28 +135,24 @@ Business logic lives in `lib/`, API routes are thin HTTP handlers.
 
 ### Environment Variables
 
-`lib/env.ts` exports a lazy-validated `env` object with getters. Use `env.POSTGREST_URL`, `env.JWT_SECRET`, etc. — never `process.env.*` directly (except `NEXT_PUBLIC_*` client vars).
-
-`lib/env.ts` also exports `BASE_URL` for the public site URL (`NEXT_PUBLIC_URL`).
+`lib/env.ts` exports a lazy-validated `env` object with getters. Use `env.POSTGREST_URL`, `env.JWT_SECRET`, etc. — never `process.env.*` directly.
 
 ### Cookie Handling
 
-`lib/cookie-utils.ts` centralizes auth cookie operations:
-- Server actions: `setAuthCookie(token)`, `deleteAuthCookie()` — use `cookies()` from `next/headers`
-- API routes: `setAuthCookieOnResponse(res, token)`, `deleteAuthCookieOnResponse(res)` — use `response.cookies`
-- `COOKIE_NAME` constant exported from here (imported by `auth.ts`, `action-utils.ts`, `proxy.ts`)
+Cookies via `setCookie()` / `deleteCookie()` from `@tanstack/react-start/server`.
+`COOKIE_NAME` constant exported from `lib/cookie-utils.ts`.
 
 ### PostgREST Helpers
 
-- `lib/action-utils.ts` (`'use server'`) — `getPostgrestToken()`, `postgrestHeaders(token, homeId?)`, `getCurrentUserEmail()`
+- `lib/action-utils.ts` — `postgrestHeaders(token, homeId?)`, `getCurrentUserEmail()`
 - `lib/postgrest-helpers.ts` (pure) — `isDuplicateKeyError(errorText)`, `parsePostgrestError(errorText)`
 
 ### Auth
 
 - `lib/auth.ts` — JWT signing/verification (`signToken`, `verifyToken`, `signPostgrestToken`, `getSession`)
 - `lib/auth-operations.ts` — Pure auth business logic (`performLogin`, `performSignup`, `performChangePassword`, `performDeleteAccount`, `performRequestPasswordReset`)
-- `lib/auth-actions.ts` — Server actions wrapping auth-operations + cookie manipulation
-- `app/api/auth/*/route.ts` — Thin API route handlers for auth (used by auth-provider.tsx and mobile)
+- `lib/auth-actions.ts` — Server functions wrapping auth-operations + cookie manipulation
+- `lib/middleware.ts` — Auth middleware (`authMiddleware`, `actionAuthMiddleware`, `apiAuthMiddleware`, `apiAdminMiddleware`)
 
 ### AI Integration
 
@@ -170,13 +165,13 @@ Uses Mistral AI via `@mistralai/mistralai`:
 **AI-powered features:**
 | Feature | Lib | API Route |
 |---------|-----|-----------|
-| Recipe generation (text + image) | `lib/recipe-parser/` | `app/api/ai/generate/route.ts` |
-| Meal plan generation | `lib/meal-plan/service.ts` | `app/api/ai/meal-plan/route.ts` |
-| Recipe refinement | `lib/recipe-refinement.ts` | `app/api/admin/ai/refine/route.ts` |
-| Ingredient restructuring | `lib/ingredient-restructure/` | `app/api/admin/restructure/*/route.ts` |
-| Ingredient substitutions | `lib/substitutions.ts` | `app/api/substitutions/route.ts` |
-| Food name AI review | `lib/ai-review/food-normalization.ts` | `app/api/admin/ai-review/stream/route.ts`, `app/api/admin/foods/ai-review/route.ts` |
-| Recipe import from URL | `lib/recipe-import/` | `app/api/recipes/import/route.ts` |
+| Recipe generation (text + image) | `lib/recipe-parser/` | `src/routes/api/ai/generate.ts` |
+| Meal plan generation | `lib/meal-plan/service.ts` | `src/routes/api/ai/meal-plan.ts` |
+| Recipe refinement | `lib/recipe-refinement.ts` | `src/routes/api/admin/ai/refine.ts` |
+| Ingredient restructuring | `lib/ingredient-restructure/` | `src/routes/api/admin/restructure/*.ts` |
+| Ingredient substitutions | `lib/substitutions.ts` | `src/routes/api/substitutions.ts` |
+| Food name AI review | `lib/ai-review/food-normalization.ts` | `src/routes/api/admin/ai-review/stream.ts`, `src/routes/api/admin/foods/ai-review.ts` |
+| Recipe import from URL | `lib/recipe-import/` | `src/routes/api/recipes/import.ts` |
 
 ### Credit System
 
@@ -234,7 +229,7 @@ Expo/React Native app in `apps/mobile/`. Uses shared packages:
 - **SSR**: Nitro — `src/ssr.tsx` → `createStartHandler(defaultStreamHandler)`
 - **Client**: `src/client.tsx` → `hydrateRoot(document, <StartClient />)`
 - **Router**: `src/router.tsx` → `getRouter()` with type registration via `declare module`
-- **Dev port**: 3002 (production runs Nitro build on 3001)
+- **Dev port**: 3000 (production runs Nitro build on 3001)
 
 ### Routing (File-based)
 
@@ -255,7 +250,7 @@ export const Route = createFileRoute('/_main/')({
 })
 ```
 
-### Server Functions (replace Next.js server actions)
+### Server Functions
 
 ```ts
 const myFn = createServerFn({ method: 'POST' })
@@ -289,20 +284,7 @@ export const Route = createFileRoute('/api/my-endpoint')({
 - Cookies via `setCookie()` / `deleteCookie()` from `@tanstack/react-start/server`
 - Middleware in `lib/middleware.ts`: `apiAuthMiddleware`, `apiAdminMiddleware`
 
-### Key Differences from apps/frontend (Next.js)
-
-| Concept | Next.js (`apps/frontend`) | TanStack Start (`apps/web`) |
-|---------|--------------------------|----------------------------|
-| Server logic | `'use server'` actions | `createServerFn().handler()` |
-| Auth middleware | `getSession()` in each action | `createMiddleware()` chains |
-| Route guards | Middleware file | `beforeLoad` + `checkAuth()` |
-| Data loading | Server components | Route `loader` + `useLoaderData()` |
-| Cookies | `cookies()` from next/headers | `setCookie()` from react-start/server |
-| Cache | `revalidatePath()` | `router.invalidate()` |
-| Head/SEO | `generateMetadata()` | `head()` on route config |
-| Search params | `useSearchParams()` | `validateSearch` + `Route.useSearch()` |
-
-## Server Actions Reference (apps/frontend)
+## Server Functions Reference (apps/web)
 
 | File | Purpose |
 |------|---------|

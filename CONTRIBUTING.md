@@ -8,7 +8,7 @@ Thanks for your interest in contributing! Here's how to get started.
 2. Install dependencies: `pnpm install`
 3. Copy environment files:
    ```bash
-   cp apps/frontend/.env.example apps/frontend/.env.local
+   cp apps/web/.env.example apps/web/.env.local
    cp apps/email-service/.env.example apps/email-service/.env.local
    ```
 4. Start the database and run migrations (see README.md)

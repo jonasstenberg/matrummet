@@ -9,7 +9,7 @@
 
 set -euo pipefail
 
-UPLOADS_DIR="${UPLOADS_DIR:-/opt/matrummet/apps/frontend/public/uploads}"
+UPLOADS_DIR="${UPLOADS_DIR:-/opt/matrummet/apps/web/public/uploads}"
 GRACE_HOURS="${GRACE_HOURS:-24}"
 DB_NAME="${DB_NAME:-matrummet}"
 DB_USER="${DB_USER:-matrummet}"
@@ -28,7 +28,7 @@ Options:
   --help      Show this help message
 
 Environment variables:
-  UPLOADS_DIR   Path to uploads directory (default: /opt/matrummet/apps/frontend/public/uploads)
+  UPLOADS_DIR   Path to uploads directory (default: /opt/matrummet/apps/web/public/uploads)
   GRACE_HOURS   Skip orphans newer than this many hours (default: 24)
   DB_NAME       PostgreSQL database name (default: matrummet)
   DB_USER       PostgreSQL user (default: matrummet)

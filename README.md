@@ -1,6 +1,6 @@
 # Matrummet
 
-A Swedish recipe management application built with Next.js, PostgreSQL, and PostgREST.
+A Swedish recipe management application built with TanStack Start, PostgreSQL, and PostgREST.
 
 ## Features
 
@@ -28,7 +28,7 @@ A Swedish recipe management application built with Next.js, PostgreSQL, and Post
 ```
 matrummet/
 ├── apps/
-│   ├── frontend/          # Next.js web application
+│   ├── web/               # TanStack Start web application
 │   └── email-service/     # Email notification service
 ├── packages/
 │   ├── shared/            # Shared utilities (JWT, config, logger)
@@ -72,7 +72,7 @@ The frontend runs on http://localhost:3000, PostgREST on http://localhost:4444.
 
 ## Environment Variables
 
-### Frontend (`apps/frontend/.env.local`)
+### Web App (`apps/web/.env.local`)
 
 ```bash
 POSTGREST_URL=http://localhost:4444
@@ -235,7 +235,7 @@ Shared Vitest configuration and test setup with exports for both `node` and `jsd
 GitHub Actions (`.github/workflows/deploy.yml`) handles automated deployment on push to `main` or via manual workflow dispatch:
 
 - **Database migrations** with automatic backups before applying
-- **Frontend** build and deployment
+- **Web app** build and deployment
 - **Email service** Docker deployment
 
 Each component can be toggled independently via workflow dispatch inputs.

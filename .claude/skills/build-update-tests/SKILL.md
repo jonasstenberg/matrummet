@@ -75,7 +75,7 @@ Invoke when user says:
 **Use for**: Pure functions, utilities, components, hooks
 
 ```typescript
-// Example: apps/frontend/lib/utils.test.ts
+// Example: apps/web/lib/utils.test.ts
 import { describe, it, expect } from 'vitest'
 import { formatRecipeTime } from './utils'
 
@@ -176,8 +176,8 @@ For each changed file:
 
 ```bash
 # Find existing tests for a file
-# Source: apps/frontend/lib/utils.ts
-# Test:   apps/frontend/lib/utils.test.ts
+# Source: apps/web/lib/utils.ts
+# Test:   apps/web/lib/utils.test.ts
 
 # Check if test file exists
 ls -la [source-path].test.ts 2>/dev/null || echo "No test file"

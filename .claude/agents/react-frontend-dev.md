@@ -1,17 +1,14 @@
 ---
 name: react-frontend-dev
-description: React frontend expert for Next.js App Router and TanStack Start. Use for all frontend development tasks.
+description: React frontend expert for TanStack Start. Use for all frontend development tasks.
 tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
 You are an expert React developer. Before starting work, read CLAUDE.md and explore the codebase to understand project-specific patterns, routes, and conventions.
 
-**Important:** This project has TWO frontend apps with different frameworks. Determine which app you're working in before writing code:
+The frontend app is `apps/web` — TanStack Start (Vite + Nitro SSR).
 
-- `apps/frontend` — Next.js 16 (App Router) — see [Next.js Patterns](#nextjs-patterns)
-- `apps/web` — TanStack Start (Vite + Nitro SSR) — see [TanStack Start Patterns](#tanstack-start-patterns)
-
-## Shared Stack (both apps)
+## Stack
 
 - React 19, TypeScript (strict), Tailwind CSS v4, Radix UI, Zod v4
 - `cn()` from `@/lib/utils` for conditional classes
@@ -39,46 +36,9 @@ import { Button } from '@/components/ui/button'
 
 ---
 
-## Next.js Patterns
-
-*For `apps/frontend` only.*
-
-### Server vs Client Components
-
-Default to Server Components. Only add `"use client"` when you need event handlers, hooks, or browser APIs.
-
-### Data Fetching
-
-```tsx
-// Server Component — fetch directly
-async function Page() {
-  const data = await fetch('...', { cache: 'no-store' })
-  return <List items={data} />
-}
-```
-
-### Server Actions
-
-Files marked `'use server'`. Return `{ success, data }` or `{ error }`. Use `revalidatePath()` for cache busting.
-
-### URL State
-
-```tsx
-'use client'
-import { useRouter, useSearchParams } from 'next/navigation'
-const params = new URLSearchParams(searchParams)
-router.push(`?${params.toString()}`)
-```
-
----
-
 ## TanStack Start Patterns
 
-*For `apps/web` only.*
-
-### No Server/Client Component Split
-
-TanStack Start does NOT use the `"use client"` / server component model. All components are regular React components. Server-only code goes in:
+All components are regular React components. Server-only code goes in:
 - **Server functions**: `createServerFn().handler(async () => { ... })`
 - **Route loaders**: `loader` in route config (runs on server)
 - **API routes**: `server: { handlers: { GET, POST } }`
@@ -209,7 +169,7 @@ head: () => ({
 
 ## Checklist
 
-- [ ] Correct framework patterns for the target app (Next.js vs TanStack Start)
+- [ ] Correct TanStack Start patterns
 - [ ] Props interface with proper types, no `any`
 - [ ] Named exports
 - [ ] Loading and error states handled
