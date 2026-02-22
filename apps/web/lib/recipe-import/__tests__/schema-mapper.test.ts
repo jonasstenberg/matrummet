@@ -42,7 +42,6 @@ describe("schema-mapper", () => {
 
         const result = mapJsonLdToRecipeInput(recipe, "https://example.com");
         expect(result.data.image).toBe("https://example.com/image.jpg");
-        expect(result.data.thumbnail).toBe("https://example.com/image.jpg");
       });
 
       it("should extract image URL from array", () => {

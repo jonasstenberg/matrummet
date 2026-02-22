@@ -84,7 +84,6 @@ export interface Recipe {
   cook_time: number | null
   cuisine: string | null
   image: string | null
-  thumbnail: string | null
   date_published: string | null
   date_modified: string | null
   categories: string[]
@@ -118,7 +117,6 @@ export interface CreateRecipeInput {
   cook_time?: number | null
   cuisine?: string | null
   image?: string | null
-  thumbnail?: string | null
   date_published?: string | null
   categories?: string[]
   ingredients: Array<
@@ -148,7 +146,6 @@ export interface UpdateRecipeInput {
   cook_time?: number | null
   cuisine?: string | null
   image?: string | null
-  thumbnail?: string | null
   date_published?: string | null
   categories?: string[]
   ingredients?: Array<
@@ -317,7 +314,6 @@ export interface SharedRecipe {
   cook_time: number | null
   cuisine: string | null
   image: string | null
-  thumbnail: string | null
   date_published: string | null
   date_modified: string | null
   categories: string[]

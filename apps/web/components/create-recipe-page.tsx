@@ -53,7 +53,6 @@ export function CreateRecipePage() {
         cook_time: data.cookTime.trim() ? parseInt(data.cookTime.trim(), 10) : null,
         cuisine: data.cuisine.trim() || null,
         image,
-        thumbnail: image,
         categories: data.categories,
         ingredients,
         instructions,

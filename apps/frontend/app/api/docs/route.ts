@@ -93,7 +93,6 @@ curl -s https://api.matrummet.se/rpc/insert_recipe \\
 | p_instructions | jsonb[] | yes | Instruction objects (see data model below) |
 | p_cuisine | text | no | Cuisine type |
 | p_image | text | no | Image path |
-| p_thumbnail | text | no | Thumbnail path |
 
 ### update_recipe
 
