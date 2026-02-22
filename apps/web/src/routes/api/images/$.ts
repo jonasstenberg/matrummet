@@ -27,7 +27,7 @@ export const Route = createFileRoute('/api/images/$')({
             headers: response.headers,
           })
         } catch (error) {
-          logger.error({ err: error }, 'Image proxy error')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Image proxy error')
           return new Response('Internal server error', { status: 500 })
         }
       },

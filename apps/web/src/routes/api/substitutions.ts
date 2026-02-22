@@ -28,7 +28,7 @@ export const Route = createFileRoute('/api/substitutions')({
 
           return Response.json(result)
         } catch (error) {
-          logger.error({ err: error }, 'Substitution API error')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Substitution API error')
           return Response.json(
             { error: 'Ett ovantad fel uppstod' },
             { status: 500 },

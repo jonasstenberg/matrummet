@@ -45,7 +45,7 @@ const addRecipeToShoppingListFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ err: errorText, email: context.session?.email, recipeId: data.recipeId }, 'Failed to add recipe to shopping list')
+        logger.error({ responseBody: errorText, email: context.session?.email, recipeId: data.recipeId }, 'Failed to add recipe to shopping list')
         return { error: 'Kunde inte lägga till i inköpslistan' }
       }
 
@@ -57,7 +57,7 @@ const addRecipeToShoppingListFn = createServerFn({ method: 'POST' })
         addedCount: result.added_count,
       }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email, recipeId: data.recipeId }, 'Error adding recipe to shopping list')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, recipeId: data.recipeId }, 'Error adding recipe to shopping list')
       return { error: 'Ett oväntat fel uppstod' }
     }
   })
@@ -81,7 +81,7 @@ const toggleShoppingListItemFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ err: errorText, email: context.session?.email, itemId: data.itemId }, 'Failed to toggle shopping list item')
+        logger.error({ responseBody: errorText, email: context.session?.email, itemId: data.itemId }, 'Failed to toggle shopping list item')
         return { error: 'Kunde inte uppdatera objektet' }
       }
 
@@ -89,7 +89,7 @@ const toggleShoppingListItemFn = createServerFn({ method: 'POST' })
 
       return { checked: result.checked }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email, itemId: data.itemId }, 'Error toggling shopping list item')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, itemId: data.itemId }, 'Error toggling shopping list item')
       return { error: 'Kunde inte uppdatera objektet' }
     }
   })
@@ -113,7 +113,7 @@ const clearCheckedItemsFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ err: errorText, email: context.session?.email, listId: data.listId }, 'Failed to clear checked items')
+        logger.error({ responseBody: errorText, email: context.session?.email, listId: data.listId }, 'Failed to clear checked items')
         return { error: 'Kunde inte rensa avbockade objekt' }
       }
 
@@ -121,7 +121,7 @@ const clearCheckedItemsFn = createServerFn({ method: 'POST' })
 
       return { success: true, cleared: result.cleared ?? result }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email, listId: data.listId }, 'Error clearing checked items')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, listId: data.listId }, 'Error clearing checked items')
       return { error: 'Kunde inte rensa avbockade objekt' }
     }
   })
@@ -145,7 +145,7 @@ const getUserShoppingListsFn = createServerFn({ method: 'GET' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ err: errorText, email: context.session?.email }, 'Failed to get shopping lists')
+        logger.error({ responseBody: errorText, email: context.session?.email }, 'Failed to get shopping lists')
         return { error: 'Kunde inte hämta inköpslistor' }
       }
 
@@ -153,13 +153,13 @@ const getUserShoppingListsFn = createServerFn({ method: 'GET' })
 
       const result = shoppingListsArraySchema.safeParse(rawResult)
       if (!result.success) {
-        logger.error({ err: result.error.message, email: context.session?.email }, 'Shopping lists validation failed')
+        logger.error({ detail: result.error.message, email: context.session?.email }, 'Shopping lists validation failed')
         return { error: 'Ogiltigt svar från servern' }
       }
 
       return result.data as ShoppingList[]
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email }, 'Error getting shopping lists')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error getting shopping lists')
       return { error: 'Kunde inte hämta inköpslistor' }
     }
   })
@@ -183,7 +183,7 @@ const createShoppingListFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ err: errorText, email: context.session?.email }, 'Failed to create shopping list')
+        logger.error({ responseBody: errorText, email: context.session?.email }, 'Failed to create shopping list')
 
         if (errorText.includes('duplicate key') || errorText.includes('unique constraint')) {
           return { error: 'En lista med det namnet finns redan' }
@@ -196,7 +196,7 @@ const createShoppingListFn = createServerFn({ method: 'POST' })
 
       return { id: result }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email }, 'Error creating shopping list')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error creating shopping list')
       return { error: 'Kunde inte skapa inköpslistan' }
     }
   })
@@ -220,7 +220,7 @@ const renameShoppingListFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ err: errorText, email: context.session?.email, listId: data.listId }, 'Failed to rename shopping list')
+        logger.error({ responseBody: errorText, email: context.session?.email, listId: data.listId }, 'Failed to rename shopping list')
 
         if (errorText.includes('duplicate key') || errorText.includes('unique constraint')) {
           return { error: 'En lista med det namnet finns redan' }
@@ -231,7 +231,7 @@ const renameShoppingListFn = createServerFn({ method: 'POST' })
 
       return { success: true }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email, listId: data.listId }, 'Error renaming shopping list')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, listId: data.listId }, 'Error renaming shopping list')
       return { error: 'Kunde inte byta namn på listan' }
     }
   })
@@ -255,13 +255,13 @@ const deleteShoppingListFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ err: errorText, email: context.session?.email, listId: data.listId }, 'Failed to delete shopping list')
+        logger.error({ responseBody: errorText, email: context.session?.email, listId: data.listId }, 'Failed to delete shopping list')
         return { error: 'Kunde inte ta bort listan' }
       }
 
       return { success: true }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email, listId: data.listId }, 'Error deleting shopping list')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, listId: data.listId }, 'Error deleting shopping list')
       return { error: 'Kunde inte ta bort listan' }
     }
   })
@@ -294,7 +294,7 @@ const addCustomShoppingListItemFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ err: errorText, email: context.session?.email, listId: data.listId }, 'Failed to add custom item')
+        logger.error({ responseBody: errorText, email: context.session?.email, listId: data.listId }, 'Failed to add custom item')
         return { error: 'Kunde inte lägga till varan' }
       }
 
@@ -306,7 +306,7 @@ const addCustomShoppingListItemFn = createServerFn({ method: 'POST' })
         listId: result.list_id,
       }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email, listId: data.listId }, 'Error adding custom item')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, listId: data.listId }, 'Error adding custom item')
       return { error: 'Ett oväntat fel uppstod' }
     }
   })
@@ -330,13 +330,13 @@ const setDefaultShoppingListFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ err: errorText, email: context.session?.email, listId: data.listId }, 'Failed to set default shopping list')
+        logger.error({ responseBody: errorText, email: context.session?.email, listId: data.listId }, 'Failed to set default shopping list')
         return { error: 'Kunde inte ändra standardlista' }
       }
 
       return { success: true }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email, listId: data.listId }, 'Error setting default shopping list')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, listId: data.listId }, 'Error setting default shopping list')
       return { error: 'Kunde inte ändra standardlista' }
     }
   })

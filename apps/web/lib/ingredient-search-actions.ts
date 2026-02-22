@@ -58,14 +58,14 @@ const findRecipesByIngredientsFn = createServerFn({ method: 'GET' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ err: errorText, email: context.session?.email }, 'Failed to find recipes by ingredients')
+        logger.error({ responseBody: errorText, email: context.session?.email }, 'Failed to find recipes by ingredients')
         return { error: 'Kunde inte hitta recept. Försök igen.' }
       }
 
       const results: RecipeMatch[] = await response.json()
       return results
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email }, 'Error finding recipes by ingredients')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error finding recipes by ingredients')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -89,14 +89,14 @@ const getUserPantryFn = createServerFn({ method: 'GET' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ err: errorText, email: context.session?.email }, 'Failed to get user pantry')
+        logger.error({ responseBody: errorText, email: context.session?.email }, 'Failed to get user pantry')
         return { error: 'Kunde inte hämta ditt skafferi' }
       }
 
       const items: PantryItem[] = await response.json()
       return items
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email }, 'Error getting user pantry')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error getting user pantry')
       return { error: 'Ett oväntat fel uppstod' }
     }
   })
@@ -131,14 +131,14 @@ const addToPantryFn = createServerFn({ method: 'POST' })
         })
 
         if (!response.ok) {
-          logger.error({ err: await response.text(), email: context.session?.email, foodId }, 'Failed to add to pantry')
+          logger.error({ responseBody: await response.text(), email: context.session?.email, foodId }, 'Failed to add to pantry')
           return { error: 'Kunde inte spara till skafferiet' }
         }
       }
 
       return { success: true }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email }, 'Error adding to pantry')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error adding to pantry')
       return { error: 'Ett oväntat fel uppstod' }
     }
   })
@@ -164,13 +164,13 @@ const updatePantryItemExpiryFn = createServerFn({ method: 'POST' })
       })
 
       if (!response.ok) {
-        logger.error({ err: await response.text(), email: context.session?.email, foodId: data.foodId }, 'Failed to update pantry item expiry')
+        logger.error({ responseBody: await response.text(), email: context.session?.email, foodId: data.foodId }, 'Failed to update pantry item expiry')
         return { error: 'Kunde inte uppdatera utgångsdatum' }
       }
 
       return { success: true }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email, foodId: data.foodId }, 'Error updating pantry item expiry')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, foodId: data.foodId }, 'Error updating pantry item expiry')
       return { error: 'Ett oväntat fel uppstod' }
     }
   })
@@ -195,13 +195,13 @@ const removeFromPantryFn = createServerFn({ method: 'POST' })
       })
 
       if (!response.ok) {
-        logger.error({ err: await response.text(), email: context.session?.email, foodId: data.foodId }, 'Failed to remove from pantry')
+        logger.error({ responseBody: await response.text(), email: context.session?.email, foodId: data.foodId }, 'Failed to remove from pantry')
         return { error: 'Kunde inte ta bort från skafferiet' }
       }
 
       return { success: true }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email, foodId: data.foodId }, 'Error removing from pantry')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, foodId: data.foodId }, 'Error removing from pantry')
       return { error: 'Ett oväntat fel uppstod' }
     }
   })
@@ -233,14 +233,14 @@ const deductFromPantryFn = createServerFn({ method: 'POST' })
       })
 
       if (!response.ok) {
-        logger.error({ err: await response.text(), email: context.session?.email }, 'Failed to deduct from pantry')
+        logger.error({ responseBody: await response.text(), email: context.session?.email }, 'Failed to deduct from pantry')
         return { error: 'Kunde inte uppdatera skafferiet' }
       }
 
       const count: number = await response.json()
       return { success: true, count }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email }, 'Error deducting from pantry')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error deducting from pantry')
       return { error: 'Ett oväntat fel uppstod' }
     }
   })
@@ -263,13 +263,13 @@ const getSubstitutionSuggestionsFn = createServerFn({ method: 'POST' })
       })
 
       if ('error' in result) {
-        logger.error({ err: result.error, email: context.session?.email, recipeId: data.recipeId }, 'Failed to get substitution suggestions')
+        logger.error({ detail: result.error, email: context.session?.email, recipeId: data.recipeId }, 'Failed to get substitution suggestions')
         return { error: result.error }
       }
 
       return result
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email, recipeId: data.recipeId }, 'Error getting substitution suggestions')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, recipeId: data.recipeId }, 'Error getting substitution suggestions')
       return { error: 'Ett oväntat fel uppstod' }
     }
   })
@@ -305,7 +305,7 @@ const searchFoodsWithIdsFn = createServerFn({ method: 'GET' })
       const results: Array<{ id: string; name: string; rank: number }> = await response.json()
       return results.map((food) => ({ id: food.id, name: food.name }))
     } catch (error) {
-      logger.error({ err: error }, 'Error searching foods with IDs')
+      logger.error({ err: error instanceof Error ? error : String(error) }, 'Error searching foods with IDs')
       return []
     }
   })
@@ -342,7 +342,7 @@ const getCommonPantryItemsFn = createServerFn({ method: 'GET' })
       const items: CommonPantryItem[] = await response.json()
       return items
     } catch (error) {
-      logger.error({ err: error }, 'Error getting common pantry items')
+      logger.error({ err: error instanceof Error ? error : String(error) }, 'Error getting common pantry items')
       return []
     }
   })

@@ -74,7 +74,7 @@ export const Route = createFileRoute('/api/admin/users')({
             totalPages: Math.ceil(total / pageSize),
           })
         } catch (error) {
-          logger.error({ err: error }, 'Get users error')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Get users error')
           return Response.json(
             { error: 'Kunde inte hämta användare' },
             { status: 500 }
@@ -119,7 +119,7 @@ export const Route = createFileRoute('/api/admin/users')({
 
           return Response.json({ success: true })
         } catch (error) {
-          logger.error({ err: error }, 'Update user error')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Update user error')
           return Response.json(
             { error: error instanceof Error ? error.message : 'Kunde inte uppdatera användare' },
             { status: 500 }
@@ -160,7 +160,7 @@ export const Route = createFileRoute('/api/admin/users')({
 
           return Response.json({ success: true })
         } catch (error) {
-          logger.error({ err: error }, 'Delete user error')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Delete user error')
           return Response.json(
             { error: error instanceof Error ? error.message : 'Kunde inte ta bort användare' },
             { status: 500 }

@@ -48,7 +48,7 @@ export const Route = createFileRoute('/api/categories')({
 
           return Response.json(grouped)
         } catch (error) {
-          logger.error({ err: error }, 'Error fetching categories')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Error fetching categories')
           return Response.json(
             { error: 'Failed to fetch categories' },
             { status: 500 },

@@ -33,7 +33,7 @@ const createBookShareLinkFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ err: errorText, email: context.session?.email }, 'Failed to create book share link')
+        logger.error({ responseBody: errorText, email: context.session?.email }, 'Failed to create book share link')
         return { error: 'Kunde inte skapa delningslänk. Försök igen.' }
       }
 
@@ -53,7 +53,7 @@ const createBookShareLinkFn = createServerFn({ method: 'POST' })
         expires_at: row.expires_at ?? null,
       }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email }, 'Error creating book share link')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error creating book share link')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -87,7 +87,7 @@ const getBookShareInfoFn = createServerFn({ method: 'GET' })
 
       return row as BookShareInfo
     } catch (error) {
-      logger.error({ err: error, shareToken: data.shareToken }, 'Error getting book share info')
+      logger.error({ err: error instanceof Error ? error : String(error), shareToken: data.shareToken }, 'Error getting book share info')
       return null
     }
   })
@@ -114,7 +114,7 @@ const acceptBookShareFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ err: errorText, email: context.session?.email, shareToken: data.shareToken }, 'Failed to accept book share')
+        logger.error({ responseBody: errorText, email: context.session?.email, shareToken: data.shareToken }, 'Failed to accept book share')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -136,7 +136,7 @@ const acceptBookShareFn = createServerFn({ method: 'POST' })
 
       return { sharer_name: row.sharer_name, sharer_id: row.sharer_id }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email, shareToken: data.shareToken }, 'Error accepting book share')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, shareToken: data.shareToken }, 'Error accepting book share')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -168,7 +168,7 @@ const revokeBookShareLinkFn = createServerFn({ method: 'POST' })
       const result = await response.json()
       return { success: result === true }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email, shareToken: data.shareToken }, 'Error revoking book share link')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, shareToken: data.shareToken }, 'Error revoking book share link')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -198,7 +198,7 @@ const getSharedBooksFn = createServerFn({ method: 'GET' })
 
       return await response.json()
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email }, 'Error getting shared books')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error getting shared books')
       return []
     }
   })
@@ -231,7 +231,7 @@ const removeBookShareConnectionFn = createServerFn({ method: 'POST' })
 
       return { success: result === true }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email, connectionId: data.connectionId }, 'Error removing book share connection')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, connectionId: data.connectionId }, 'Error removing book share connection')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })

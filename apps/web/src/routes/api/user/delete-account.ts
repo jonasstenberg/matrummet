@@ -60,7 +60,7 @@ export const Route = createFileRoute('/api/user/delete-account')({
                 errorMessage = 'Lösenord krävs'
               }
             } catch (parseError) {
-              logger.error({ status: postgrestResponse.status, err: parseError, email: context.session?.email }, 'PostgREST delete_account error (non-JSON)')
+              logger.error({ status: postgrestResponse.status, err: parseError instanceof Error ? parseError : String(parseError), email: context.session?.email }, 'PostgREST delete_account error (non-JSON)')
             }
 
             return Response.json(
@@ -74,7 +74,7 @@ export const Route = createFileRoute('/api/user/delete-account')({
 
           return Response.json({ success: true })
         } catch (error) {
-          logger.error({ err: error, email: context.session?.email }, 'Account deletion error')
+          logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Account deletion error')
           return Response.json(
             { error: 'Ett fel uppstod vid radering av konto' },
             { status: 500 },

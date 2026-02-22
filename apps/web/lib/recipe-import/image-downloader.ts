@@ -81,7 +81,7 @@ export async function downloadImage(imageUrl: string): Promise<DownloadResult> {
 
     return { success: true, filename }
   } catch (error) {
-    logger.error({ err: error, imageUrl }, 'Image download error')
+    logger.error({ err: error instanceof Error ? error : String(error), imageUrl }, 'Image download error')
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Download failed',

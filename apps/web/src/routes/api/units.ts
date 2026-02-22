@@ -63,7 +63,7 @@ export const Route = createFileRoute('/api/units')({
 
           return Response.json(formattedData)
         } catch (error) {
-          logger.error({ err: error }, 'Error fetching units')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Error fetching units')
           return Response.json([])
         }
       },

@@ -64,13 +64,13 @@ const getCreditsDataFn = createServerFn({ method: 'GET' })
 
       if (!balanceRes.ok) {
         const errorText = await balanceRes.text()
-        logger.error({ err: errorText, email: context.session?.email }, 'Failed to fetch credits balance')
+        logger.error({ responseBody: errorText, email: context.session?.email }, 'Failed to fetch credits balance')
         return { error: 'Kunde inte hämta saldo' }
       }
 
       if (!historyRes.ok) {
         const errorText = await historyRes.text()
-        logger.error({ err: errorText, email: context.session?.email }, 'Failed to fetch credit history')
+        logger.error({ responseBody: errorText, email: context.session?.email }, 'Failed to fetch credit history')
         return { error: 'Kunde inte hämta transaktionshistorik' }
       }
 
@@ -80,13 +80,13 @@ const getCreditsDataFn = createServerFn({ method: 'GET' })
       // Validate transactions with Zod
       const transactionsResult = creditTransactionsArraySchema.safeParse(rawTransactions)
       if (!transactionsResult.success) {
-        logger.error({ err: transactionsResult.error.message, email: context.session?.email }, 'Credit transactions validation failed')
+        logger.error({ detail: transactionsResult.error.message, email: context.session?.email }, 'Credit transactions validation failed')
         return { error: 'Ogiltigt svar från servern' }
       }
 
       return { balance, transactions: transactionsResult.data }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email }, 'Error fetching credits data')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error fetching credits data')
       return { error: 'Ett fel uppstod' }
     }
   })
@@ -125,14 +125,14 @@ const getCreditBalanceFn = createServerFn({ method: 'GET' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ err: errorText, email: context.session?.email }, 'Failed to fetch credits balance')
+        logger.error({ responseBody: errorText, email: context.session?.email }, 'Failed to fetch credits balance')
         return { error: 'Kunde inte hämta saldo' }
       }
 
       const balance = await response.json()
       return { balance }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email }, 'Error fetching credit balance')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error fetching credit balance')
       return { error: 'Ett fel uppstod' }
     }
   })

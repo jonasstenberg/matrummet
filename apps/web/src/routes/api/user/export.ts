@@ -22,7 +22,7 @@ export const Route = createFileRoute('/api/user/export')({
             },
           })
         } catch (error) {
-          logger.error({ err: error, email: context.session?.email }, 'Export error')
+          logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Export error')
           return Response.json(
             { error: 'Ett fel uppstod vid export' },
             { status: 500 },

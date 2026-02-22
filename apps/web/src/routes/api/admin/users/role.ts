@@ -49,7 +49,7 @@ export const Route = createFileRoute('/api/admin/users/role')({
 
           return Response.json({ success: true })
         } catch (error) {
-          logger.error({ err: error }, 'Update user role error')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Update user role error')
           return Response.json(
             { error: error instanceof Error ? error.message : 'Kunde inte uppdatera användarroll' },
             { status: 500 }

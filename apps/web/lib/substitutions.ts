@@ -181,7 +181,7 @@ Foresla ersattningar for varje saknad ingrediens.`
   const generatedText = response.choices?.[0]?.message?.content
 
   if (!generatedText || typeof generatedText !== 'string') {
-    logger.error({ err: response }, 'No content in AI response')
+    logger.error({ detail: response }, 'No content in AI response')
     return { error: 'Ingen ersattning kunde genereras', status: 422 }
   }
 
@@ -190,12 +190,12 @@ Foresla ersattningar for varje saknad ingrediens.`
   try {
     parsedResponse = JSON.parse(generatedText)
   } catch (error) {
-    logger.error({ err: error, response: generatedText }, 'JSON parse error')
+    logger.error({ err: error instanceof Error ? error : String(error), response: generatedText }, 'JSON parse error')
     return { error: 'AI-svaret kunde inte tolkas', status: 422 }
   }
 
   if (!parsedResponse.substitutions || !Array.isArray(parsedResponse.substitutions)) {
-    logger.error({ err: parsedResponse }, 'Invalid response structure')
+    logger.error({ detail: parsedResponse }, 'Invalid response structure')
     return { error: 'AI-svaret har fel format', status: 422 }
   }
 

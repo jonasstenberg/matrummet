@@ -33,7 +33,7 @@ async function addCreditsViaPostgrest(
 
   if (!response.ok) {
     const errorBody = await response.text()
-    logger.error({ err: errorBody, status: response.status, userEmail }, 'PostgREST add_credits failed')
+    logger.error({ responseBody: errorBody, status: response.status, userEmail }, 'PostgREST add_credits failed')
   }
 
   return response.ok

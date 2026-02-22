@@ -51,7 +51,7 @@ export const Route = createFileRoute('/api/auth/callback/google')({
         }
 
         if (error) {
-          logger.error({ err: error }, 'Google OAuth error')
+          logger.error({ detail: error }, 'Google OAuth error')
           return new Response(null, {
             status: 302,
             headers: { Location: `${origin}/login?error=oauth_error` },
@@ -94,7 +94,7 @@ export const Route = createFileRoute('/api/auth/callback/google')({
 
           if (!tokenResponse.ok) {
             const errorData = await tokenResponse.text()
-            logger.error({ err: errorData }, 'Token exchange failed')
+            logger.error({ responseBody: errorData }, 'Token exchange failed')
             return new Response(null, {
               status: 302,
               headers: { Location: `${origin}/login?error=token_error` },
@@ -135,7 +135,7 @@ export const Route = createFileRoute('/api/auth/callback/google')({
 
           if (!postgrestResponse.ok) {
             const errorText = await postgrestResponse.text()
-            logger.error({ err: errorText, email: googleUser.email }, 'signup_provider failed')
+            logger.error({ responseBody: errorText, email: googleUser.email }, 'signup_provider failed')
             return new Response(null, {
               status: 302,
               headers: { Location: `${origin}/login?error=signup_error` },
@@ -165,7 +165,7 @@ export const Route = createFileRoute('/api/auth/callback/google')({
             headers: { Location: `${origin}${returnUrl}` },
           })
         } catch (error) {
-          logger.error({ err: error }, 'Google OAuth callback error')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Google OAuth callback error')
           return new Response(null, {
             status: 302,
             headers: { Location: `${origin}/login?error=unknown_error` },

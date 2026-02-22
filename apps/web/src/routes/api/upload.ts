@@ -28,7 +28,7 @@ export const Route = createFileRoute('/api/upload')({
           const data = await response.json()
           return Response.json(data, { status: response.status })
         } catch (error) {
-          logger.error({ err: error }, 'Upload proxy error')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Upload proxy error')
           return Response.json(
             { error: 'Uppladdning misslyckades' },
             { status: 500 },

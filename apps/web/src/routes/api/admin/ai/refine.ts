@@ -285,7 +285,7 @@ export const Route = createFileRoute('/api/admin/ai/refine')({
           try {
             parsedJson = JSON.parse(generatedText)
           } catch (error) {
-            logger.error({ err: error, response: generatedText.substring(0, 500) }, 'JSON parse error')
+            logger.error({ err: error instanceof Error ? error : String(error), detail: generatedText.substring(0, 500) }, 'JSON parse error')
             return Response.json(
               {
                 error: 'LLM returned invalid JSON',
@@ -312,7 +312,7 @@ export const Route = createFileRoute('/api/admin/ai/refine')({
               },
             })
           } catch (error) {
-            logger.error({ err: error, rawResponse: parsedJson }, 'Refine validation error')
+            logger.error({ err: error instanceof Error ? error : String(error), detail: parsedJson }, 'Refine validation error')
             return Response.json(
               {
                 error: 'LLM response failed validation',
@@ -322,7 +322,7 @@ export const Route = createFileRoute('/api/admin/ai/refine')({
             )
           }
         } catch (error) {
-          logger.error({ err: error }, 'Refine recipe error')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Refine recipe error')
           return Response.json(
             { error: 'Internal server error' },
             { status: 500 }

@@ -197,7 +197,7 @@ async function saveBatch(
     })
     if (!insertRes.ok) {
       const errText = await insertRes.text()
-      logger.error({ err: errText, runId }, 'Failed to store batch')
+      logger.error({ responseBody: errText, runId }, 'Failed to store batch')
     }
   }
 
@@ -285,7 +285,7 @@ async function processInBackground(
           }
         }
       } catch (error) {
-        logger.error({ err: error, runId, batchStart }, 'AI review batch failed')
+        logger.error({ err: error instanceof Error ? error : String(error), runId, batchStart }, 'AI review batch failed')
         totalProcessed += batch.length
       }
 
@@ -313,7 +313,7 @@ async function processInBackground(
 
     logger.info({ runId, totalProcessed, suggestions: allSuggestions.length }, 'AI review run completed')
   } catch (error) {
-    logger.error({ err: error, runId }, 'AI review run failed')
+    logger.error({ err: error instanceof Error ? error : String(error), runId }, 'AI review run failed')
     await fetch(`${env.POSTGREST_URL}/ai_review_runs?id=eq.${runId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -429,7 +429,7 @@ export const Route = createFileRoute('/api/admin/foods/ai-review')({
 
           return Response.json({ runId: run.id, status: 'running' })
         } catch (error) {
-          logger.error({ err: error }, 'AI review error')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'AI review error')
           return Response.json(
             { error: error instanceof Error ? error.message : 'Internal server error' },
             { status: 500 }

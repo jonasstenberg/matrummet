@@ -40,7 +40,7 @@ export const Route = createFileRoute('/api/admin/categories')({
 
           return Response.json(categoriesWithCount)
         } catch (error) {
-          logger.error({ err: error }, 'Get categories error')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Get categories error')
           return Response.json(
             { error: 'Kunde inte hämta kategorier' },
             { status: 500 }
@@ -153,7 +153,7 @@ export const Route = createFileRoute('/api/admin/categories')({
 
           return Response.json({ success: true })
         } catch (error) {
-          logger.error({ err: error }, 'Create category error')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Create category error')
           return Response.json(
             { error: error instanceof Error ? error.message : 'Kunde inte skapa kategori' },
             { status: 500 }
@@ -205,7 +205,7 @@ export const Route = createFileRoute('/api/admin/categories')({
 
           return Response.json({ success: true })
         } catch (error) {
-          logger.error({ err: error }, 'Update category error')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Update category error')
           return Response.json(
             { error: error instanceof Error ? error.message : 'Kunde inte uppdatera kategori' },
             { status: 500 }
@@ -239,7 +239,7 @@ export const Route = createFileRoute('/api/admin/categories')({
 
           return Response.json({ success: true })
         } catch (error) {
-          logger.error({ err: error }, 'Delete category error')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Delete category error')
           return Response.json(
             { error: error instanceof Error ? error.message : 'Kunde inte ta bort kategori' },
             { status: 500 }

@@ -43,7 +43,7 @@ const listMealPlansFn = createServerFn({ method: 'GET' })
       const result = await response.json()
       return Array.isArray(result) ? result : []
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email }, 'Error listing meal plans')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error listing meal plans')
       return []
     }
   })
@@ -118,7 +118,7 @@ const getMealPlanFn = createServerFn({ method: 'GET' })
         })),
       } as MealPlan
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email, planId: data.planId }, 'Error fetching meal plan')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, planId: data.planId }, 'Error fetching meal plan')
       return null
     }
   })
@@ -162,7 +162,7 @@ const swapMealPlanEntryFn = createServerFn({ method: 'POST' })
 
       return { success: true }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email, entryId: data.entryId }, 'Error swapping meal plan entry')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, entryId: data.entryId }, 'Error swapping meal plan entry')
       return { error: 'Ett fel uppstod. Försök igen.' }
     }
   })
@@ -252,7 +252,7 @@ const addMealPlanToShoppingListFn = createServerFn({ method: 'POST' })
       const result = await response.json()
       return result
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email, planId: data.planId }, 'Error adding meal plan to shopping list')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, planId: data.planId }, 'Error adding meal plan to shopping list')
       return { error: 'Ett fel uppstod. Försök igen.' }
     }
   })
@@ -327,7 +327,7 @@ const saveEntryAsRecipeFn = createServerFn({ method: 'POST' })
 
       return { recipe_id: result.id }
     } catch (error) {
-      logger.error({ err: error, entryId: data.entryId }, 'Error saving entry as recipe')
+      logger.error({ err: error instanceof Error ? error : String(error), entryId: data.entryId }, 'Error saving entry as recipe')
       return { error: 'Kunde inte spara receptet. Försök igen.' }
     }
   })
