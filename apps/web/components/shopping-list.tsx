@@ -1,8 +1,8 @@
 
-import { useState, useTransition, useEffect } from 'react'
+import { useState, useTransition, useEffect, useCallback } from 'react'
 import { AddCustomItemInput } from '@/components/add-custom-item-input'
 import { ShoppingListItem } from '@/components/shopping-list-item'
-import { clearCheckedItems } from '@/lib/actions'
+import { clearCheckedItems, toggleShoppingListItem } from '@/lib/actions'
 import type { ShoppingListItem as ShoppingListItemType } from '@/lib/types'
 import { ChevronDown } from '@/lib/icons'
 import { cn } from '@/lib/utils'
@@ -17,6 +17,7 @@ interface ShoppingListProps {
 export function ShoppingList({ items, listId, pantryMap, homeId }: ShoppingListProps) {
   const [localItems, setLocalItems] = useState(items)
   const [isPending, startTransition] = useTransition()
+  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set())
   const [checkedCollapsed, setCheckedCollapsed] = useState(false)
 
   useEffect(() => {
@@ -25,6 +26,30 @@ export function ShoppingList({ items, listId, pantryMap, homeId }: ShoppingListP
 
   const uncheckedItems = localItems.filter((item) => !item.is_checked)
   const checkedItems = localItems.filter((item) => item.is_checked)
+
+  const handleToggle = useCallback(async (itemId: string) => {
+    setLocalItems((prev) =>
+      prev.map((item) =>
+        item.id === itemId ? { ...item, is_checked: !item.is_checked } : item
+      )
+    )
+    setTogglingIds((prev) => new Set(prev).add(itemId))
+
+    const result = await toggleShoppingListItem(itemId, homeId)
+    setTogglingIds((prev) => {
+      const next = new Set(prev)
+      next.delete(itemId)
+      return next
+    })
+
+    if ('error' in result) {
+      setLocalItems((prev) =>
+        prev.map((item) =>
+          item.id === itemId ? { ...item, is_checked: !item.is_checked } : item
+        )
+      )
+    }
+  }, [homeId])
 
   function handleAddItem(item: ShoppingListItemType) {
     setLocalItems((prev) => [...prev, item])
@@ -50,7 +75,7 @@ export function ShoppingList({ items, listId, pantryMap, homeId }: ShoppingListP
         {uncheckedItems.length > 0 && (
           <div className="divide-y divide-border/40">
             {uncheckedItems.map((item) => (
-              <ShoppingListItem key={item.id} item={item} homeId={homeId} />
+              <ShoppingListItem key={item.id} item={item} checked={item.is_checked} toggling={togglingIds.has(item.id)} onToggle={() => handleToggle(item.id)} homeId={homeId} />
             ))}
           </div>
         )}
@@ -107,7 +132,7 @@ export function ShoppingList({ items, listId, pantryMap, homeId }: ShoppingListP
           {!checkedCollapsed && (
             <div className="divide-y divide-border/40 border-t border-border/40">
               {checkedItems.map((item) => (
-                <ShoppingListItem key={item.id} item={item} pantryMap={pantryMap} homeId={homeId} />
+                <ShoppingListItem key={item.id} item={item} checked={item.is_checked} toggling={togglingIds.has(item.id)} onToggle={() => handleToggle(item.id)} pantryMap={pantryMap} homeId={homeId} />
               ))}
             </div>
           )}

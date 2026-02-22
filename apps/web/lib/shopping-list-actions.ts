@@ -87,7 +87,7 @@ const toggleShoppingListItemFn = createServerFn({ method: 'POST' })
 
       const result = await response.json()
 
-      return { checked: result.checked }
+      return { checked: result.is_checked }
     } catch (error) {
       logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, itemId: data.itemId }, 'Error toggling shopping list item')
       return { error: 'Kunde inte uppdatera objektet' }
