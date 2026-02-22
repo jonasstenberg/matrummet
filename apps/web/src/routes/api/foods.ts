@@ -63,7 +63,7 @@ export const Route = createFileRoute('/api/foods')({
 
           return Response.json(formattedData)
         } catch (error) {
-          logger.error({ err: error }, 'Error fetching foods')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Error fetching foods')
           return Response.json([])
         }
       },

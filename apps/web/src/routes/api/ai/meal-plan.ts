@@ -115,7 +115,7 @@ export const Route = createFileRoute('/api/ai/meal-plan')({
             )
           }
 
-          logger.error({ err: error, email: userEmail }, 'Meal plan generation error')
+          logger.error({ err: error instanceof Error ? error : String(error), email: userEmail }, 'Meal plan generation error')
           if (creditDeducted && userEmail) {
             await refundCredit(userEmail, 'Återbetalning: serverfel').catch(() => {})
           }

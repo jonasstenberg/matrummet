@@ -84,7 +84,7 @@ export const Route = createFileRoute('/api/auth/registrera')({
             },
           })
         } catch (error) {
-          logger.error({ err: error }, 'Signup error')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Signup error')
           return Response.json(
             { error: 'Ett fel uppstod vid registrering' },
             { status: 500 },

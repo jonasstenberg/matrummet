@@ -62,7 +62,7 @@ export const Route = createFileRoute('/api/admin/foods/recipes')({
 
           return Response.json(recipes)
         } catch (error) {
-          logger.error({ err: error }, 'Get recipes for food error')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Get recipes for food error')
           return Response.json(
             { error: 'Failed to fetch recipes' },
             { status: 500 }

@@ -73,7 +73,7 @@ export const Route = createFileRoute('/api/auth/reset-password/complete')({
               )
             }
 
-            logger.error({ err: errorData }, 'Password reset completion failed')
+            logger.error({ detail: errorData }, 'Password reset completion failed')
 
             if (errorData?.message && isKnownErrorCode(errorData.message)) {
               return Response.json(
@@ -90,7 +90,7 @@ export const Route = createFileRoute('/api/auth/reset-password/complete')({
 
           return Response.json({ success: true })
         } catch (error) {
-          logger.error({ err: error }, 'Password reset completion error')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Password reset completion error')
           return Response.json({ error: 'Ett fel uppstod' }, { status: 500 })
         }
       },

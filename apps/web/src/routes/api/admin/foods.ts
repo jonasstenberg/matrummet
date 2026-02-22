@@ -75,7 +75,7 @@ export const Route = createFileRoute('/api/admin/foods')({
             totalPages: Math.ceil(total / pageSize),
           })
         } catch (error) {
-          logger.error({ err: error }, 'Get foods error')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Get foods error')
           return Response.json(
             { error: 'Kunde inte hämta matvaror' },
             { status: 500 }
@@ -121,7 +121,7 @@ export const Route = createFileRoute('/api/admin/foods')({
 
           return Response.json({ success: true })
         } catch (error) {
-          logger.error({ err: error }, 'Create food error')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Create food error')
 
           if (error instanceof Error && error.message.includes('matvara med detta namn')) {
             return Response.json(
@@ -177,7 +177,7 @@ export const Route = createFileRoute('/api/admin/foods')({
 
           return Response.json({ success: true })
         } catch (error) {
-          logger.error({ err: error }, 'Update food error')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Update food error')
 
           if (error instanceof Error && error.message.includes('matvara med detta namn')) {
             return Response.json(
@@ -219,7 +219,7 @@ export const Route = createFileRoute('/api/admin/foods')({
 
           return Response.json({ success: true })
         } catch (error) {
-          logger.error({ err: error }, 'Delete food error')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Delete food error')
           return Response.json(
             { error: error instanceof Error ? error.message : 'Kunde inte ta bort matvara' },
             { status: 500 }

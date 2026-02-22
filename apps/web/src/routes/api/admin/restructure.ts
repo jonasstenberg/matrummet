@@ -113,7 +113,7 @@ export const Route = createFileRoute('/api/admin/restructure')({
           )
 
           if (!response.ok) {
-            logger.error({ err: await response.text() }, 'PostgREST error')
+            logger.error({ responseBody: await response.text() }, 'PostgREST error')
             return Response.json(
               { error: "Failed to fetch recipes" },
               { status: 500 }
@@ -167,7 +167,7 @@ export const Route = createFileRoute('/api/admin/restructure')({
             totalPages,
           })
         } catch (error) {
-          logger.error({ err: error }, 'Error listing recipes for restructure')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Error listing recipes for restructure')
           return Response.json(
             { error: "Internal server error" },
             { status: 500 }

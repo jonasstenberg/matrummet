@@ -12,7 +12,7 @@ export const Route = createFileRoute('/api/auth/logout')({
           deleteCookie('auth-token')
           return Response.json({ success: true })
         } catch (error) {
-          logger.error({ err: error }, 'Logout error')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Logout error')
           return Response.json(
             { error: 'Ett fel uppstod vid utloggning' },
             { status: 500 },

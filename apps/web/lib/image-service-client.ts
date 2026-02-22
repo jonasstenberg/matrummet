@@ -56,6 +56,6 @@ export async function deleteImageFromService(
       logger.warn({ imageId, status: response.status, body }, 'Image delete failed')
     }
   } catch (error) {
-    logger.warn({ err: error, imageId }, 'Image delete request failed')
+    logger.warn({ err: error instanceof Error ? error : String(error), imageId }, 'Image delete request failed')
   }
 }

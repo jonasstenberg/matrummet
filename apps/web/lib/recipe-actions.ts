@@ -207,7 +207,7 @@ const deductAiCreditFn = createServerFn({ method: 'POST' })
       const remainingCredits = await response.json()
       return { remainingCredits }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email }, 'Error deducting AI credit')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error deducting AI credit')
       return { error: 'Något gick fel. Försök igen.' }
     }
   })
@@ -250,7 +250,7 @@ const createRecipeFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ err: errorText, email: context.session?.email }, 'Failed to create recipe')
+        logger.error({ responseBody: errorText, email: context.session?.email }, 'Failed to create recipe')
         return { error: 'Kunde inte skapa receptet. Försök igen.' }
       }
 
@@ -258,7 +258,7 @@ const createRecipeFn = createServerFn({ method: 'POST' })
 
       return { id: result }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email }, 'Error creating recipe')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error creating recipe')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -303,13 +303,13 @@ const updateRecipeFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ err: errorText, email: context.session?.email, recipeId: input.id }, 'Failed to update recipe')
+        logger.error({ responseBody: errorText, email: context.session?.email, recipeId: input.id }, 'Failed to update recipe')
         return { error: 'Kunde inte uppdatera receptet. Försök igen.' }
       }
 
       return { success: true }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email, recipeId: input.id }, 'Error updating recipe')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, recipeId: input.id }, 'Error updating recipe')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -350,13 +350,13 @@ const deleteRecipeFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ err: errorText, email: context.session?.email, recipeId: data.id }, 'Failed to delete recipe')
+        logger.error({ responseBody: errorText, email: context.session?.email, recipeId: data.id }, 'Failed to delete recipe')
         return { error: 'Kunde inte ta bort receptet. Försök igen.' }
       }
 
       return { success: true }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email, recipeId: data.id }, 'Error deleting recipe')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, recipeId: data.id }, 'Error deleting recipe')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -383,7 +383,7 @@ const copyRecipeFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ err: errorText, email: context.session?.email, recipeId: data.recipeId }, 'Failed to copy recipe')
+        logger.error({ responseBody: errorText, email: context.session?.email, recipeId: data.recipeId }, 'Failed to copy recipe')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -406,7 +406,7 @@ const copyRecipeFn = createServerFn({ method: 'POST' })
 
       return { newRecipeId: result }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email, recipeId: data.recipeId }, 'Error copying recipe')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, recipeId: data.recipeId }, 'Error copying recipe')
       return { error: 'Kunde inte kopiera receptet. Försök igen.' }
     }
   })
@@ -433,7 +433,7 @@ const toggleRecipeLikeFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ err: errorText, email: context.session?.email, recipeId: data.recipeId }, 'Failed to toggle recipe like')
+        logger.error({ responseBody: errorText, email: context.session?.email, recipeId: data.recipeId }, 'Failed to toggle recipe like')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -456,7 +456,7 @@ const toggleRecipeLikeFn = createServerFn({ method: 'POST' })
 
       return { liked: result.liked }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email, recipeId: data.recipeId }, 'Error toggling recipe like')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, recipeId: data.recipeId }, 'Error toggling recipe like')
       return { error: 'Kunde inte uppdatera gillning' }
     }
   })
@@ -570,7 +570,7 @@ const importRecipeFromUrlFn = createServerFn({ method: 'POST' })
         sourceUrl: data.url,
       }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email, url: data.url }, 'Error importing recipe from URL')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, url: data.url }, 'Error importing recipe from URL')
       return {
         success: false,
         error: 'Ett oväntat fel uppstod vid import. Försök igen.',
@@ -620,7 +620,7 @@ const fetchUrlPageTextFn = createServerFn({ method: 'POST' })
       }
       return { pageText: result.pageText }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email, url: data.url }, 'Error fetching page text')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, url: data.url }, 'Error fetching page text')
       return { pageText: null, error: 'Ett oväntat fel uppstod' }
     }
   })
@@ -637,7 +637,7 @@ const downloadAndSaveImageFn = createServerFn({ method: 'POST' })
 
       return { filename: result.filename }
     } catch (error) {
-      logger.error({ err: error, imageUrl: data.imageUrl }, 'Error downloading image')
+      logger.error({ err: error instanceof Error ? error : String(error), imageUrl: data.imageUrl }, 'Error downloading image')
       return { error: 'Ett fel uppstod vid nedladdning av bilden' }
     }
   })
@@ -667,7 +667,7 @@ const createShareLinkFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ err: errorText, email: context.session?.email, recipeId: data.recipeId }, 'Failed to create share link')
+        logger.error({ responseBody: errorText, email: context.session?.email, recipeId: data.recipeId }, 'Failed to create share link')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -697,7 +697,7 @@ const createShareLinkFn = createServerFn({ method: 'POST' })
         expires_at: row.expires_at ?? null,
       }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email, recipeId: data.recipeId }, 'Error creating share link')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, recipeId: data.recipeId }, 'Error creating share link')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -724,7 +724,7 @@ const revokeShareLinkFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ err: errorText, email: context.session?.email, shareToken: data.shareToken }, 'Failed to revoke share link')
+        logger.error({ responseBody: errorText, email: context.session?.email, shareToken: data.shareToken }, 'Failed to revoke share link')
         return { error: 'Kunde inte återkalla delningslänken' }
       }
 
@@ -732,7 +732,7 @@ const revokeShareLinkFn = createServerFn({ method: 'POST' })
 
       return { success: result === true }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email, shareToken: data.shareToken }, 'Error revoking share link')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, shareToken: data.shareToken }, 'Error revoking share link')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -759,7 +759,7 @@ const getShareLinksFn = createServerFn({ method: 'GET' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ err: errorText, email: context.session?.email, recipeId: data.recipeId }, 'Failed to get share links')
+        logger.error({ responseBody: errorText, email: context.session?.email, recipeId: data.recipeId }, 'Failed to get share links')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -777,7 +777,7 @@ const getShareLinksFn = createServerFn({ method: 'GET' })
 
       return { links }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email, recipeId: data.recipeId }, 'Error getting share links')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, recipeId: data.recipeId }, 'Error getting share links')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -804,7 +804,7 @@ const copySharedRecipeFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ err: errorText, email: context.session?.email, shareToken: data.shareToken }, 'Failed to copy shared recipe')
+        logger.error({ responseBody: errorText, email: context.session?.email, shareToken: data.shareToken }, 'Failed to copy shared recipe')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -822,7 +822,7 @@ const copySharedRecipeFn = createServerFn({ method: 'POST' })
 
       return { newRecipeId: result }
     } catch (error) {
-      logger.error({ err: error, email: context.session?.email, shareToken: data.shareToken }, 'Error copying shared recipe')
+      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, shareToken: data.shareToken }, 'Error copying shared recipe')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })

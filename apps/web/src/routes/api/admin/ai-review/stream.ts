@@ -200,7 +200,7 @@ async function saveBatch(
     })
     if (!insertRes.ok) {
       const errText = await insertRes.text()
-      logger.error({ err: errText, runId }, 'Failed to store batch')
+      logger.error({ responseBody: errText, runId }, 'Failed to store batch')
     }
   }
 
@@ -469,7 +469,7 @@ export const Route = createFileRoute('/api/admin/ai-review/stream')({
                     }
                   }
                 } catch (error) {
-                  logger.error({ err: error, runId, batchStart }, 'AI review batch failed')
+                  logger.error({ err: error instanceof Error ? error : String(error), runId, batchStart }, 'AI review batch failed')
                   totalProcessed += batch.length
                 }
 
@@ -506,7 +506,7 @@ export const Route = createFileRoute('/api/admin/ai-review/stream')({
               send('done', { runId, processed: totalProcessed, suggestions: allSuggestions.length, summary })
               logger.info({ runId, totalProcessed, suggestions: allSuggestions.length }, 'AI review run completed')
             } catch (error) {
-              logger.error({ err: error, runId }, 'AI review run failed')
+              logger.error({ err: error instanceof Error ? error : String(error), runId }, 'AI review run failed')
 
               await fetch(`${env.POSTGREST_URL}/ai_review_runs?id=eq.${runId}`, {
                 method: 'PATCH',

@@ -98,7 +98,7 @@ export const Route = createFileRoute('/api/admin/dashboard')({
 
           return Response.json(stats)
         } catch (error) {
-          logger.error({ err: error }, 'Dashboard stats error')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Dashboard stats error')
           return Response.json(
             { error: 'Failed to fetch dashboard stats' },
             { status: 500 }

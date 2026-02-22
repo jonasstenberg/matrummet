@@ -68,7 +68,7 @@ export const Route = createFileRoute('/api/auth/login')({
             },
           })
         } catch (error) {
-          logger.error({ err: error }, 'Login error')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Login error')
           return Response.json(
             { error: 'Ett fel uppstod vid inloggning' },
             { status: 500 },

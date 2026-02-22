@@ -59,7 +59,7 @@ export const Route = createFileRoute('/api/admin/ai-review/runs/$id/apply')({
             )
             if (!patchRes.ok) {
               const errText = await patchRes.text()
-              logger.error({ err: errText, suggestionId, runId }, 'Failed to set alias target')
+              logger.error({ responseBody: errText, suggestionId, runId }, 'Failed to set alias target')
               results.errors++
               continue
             }
@@ -81,7 +81,7 @@ export const Route = createFileRoute('/api/admin/ai-review/runs/$id/apply')({
             }
           } else {
             const errText = await res.text()
-            logger.error({ err: errText, action, suggestionId, runId }, 'Failed to apply suggestion')
+            logger.error({ responseBody: errText, action, suggestionId, runId }, 'Failed to apply suggestion')
             results.errors++
           }
         }

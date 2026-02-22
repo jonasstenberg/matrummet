@@ -15,5 +15,5 @@ export const logger = pino({
   },
   transport: isProduction
     ? undefined
-    : { target: 'pino/file', options: { destination: 1 } },
+    : { target: 'pino-pretty' },
 })

@@ -28,8 +28,7 @@ export const createLogger = (options: ServiceLoggerOptions): Logger => {
 
   if (pretty) {
     pinoOptions.transport = {
-      target: "pino/file",
-      options: { destination: 1 },
+      target: "pino-pretty",
     };
   }
 

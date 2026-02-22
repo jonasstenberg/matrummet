@@ -248,7 +248,7 @@ export const Route = createFileRoute('/api/ai/generate')({
               remainingCredits: deductResult.success ? deductResult.remainingCredits : creditCheck.balance - 1,
             })
           } catch (error) {
-            logger.error({ err: error, email: context.session?.email }, 'Recipe validation error')
+            logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Recipe validation error')
             return Response.json(
               {
                 error: 'AI-svaret kunde inte valideras',
@@ -258,7 +258,7 @@ export const Route = createFileRoute('/api/ai/generate')({
             )
           }
         } catch (error) {
-          logger.error({ err: error, email: context.session?.email }, 'AI generate error')
+          logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'AI generate error')
           return Response.json(
             { error: 'Internal server error' },
             { status: 500 },

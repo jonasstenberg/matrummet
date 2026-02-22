@@ -85,7 +85,7 @@ function parseJsonLdFromScripts(scripts: (string | null)[]): JsonLdRecipe | null
         if (result.success) {
           return result.data as JsonLdRecipe
         }
-        logger.warn({ err: result.error.message }, 'JSON-LD Recipe validation failed')
+        logger.warn({ detail: result.error.message }, 'JSON-LD Recipe validation failed')
         return null
       }
 
@@ -102,7 +102,7 @@ function parseJsonLdFromScripts(scripts: (string | null)[]): JsonLdRecipe | null
           if (result.success) {
             return result.data as JsonLdRecipe
           }
-          logger.warn({ err: result.error.message }, 'JSON-LD Recipe validation failed')
+          logger.warn({ detail: result.error.message }, 'JSON-LD Recipe validation failed')
           return null
         }
       }
@@ -120,7 +120,7 @@ function parseJsonLdFromScripts(scripts: (string | null)[]): JsonLdRecipe | null
           if (result.success) {
             return result.data as JsonLdRecipe
           }
-          logger.warn({ err: result.error.message }, 'JSON-LD Recipe validation failed')
+          logger.warn({ detail: result.error.message }, 'JSON-LD Recipe validation failed')
           return null
         }
       }
@@ -148,7 +148,7 @@ export async function fetchWithPlaywright(
   try {
     browser = await getBrowser()
   } catch (error) {
-    logger.error({ err: error }, 'Failed to get browser')
+    logger.error({ err: error instanceof Error ? error : String(error) }, 'Failed to get browser')
     return { jsonLd: null, pageText: null }
   }
 
@@ -328,7 +328,7 @@ export async function fetchWithPlaywright(
 
     return { jsonLd, pageText: pageText || null }
   } catch (error) {
-    logger.error({ err: error, url }, 'Playwright fetch failed')
+    logger.error({ err: error instanceof Error ? error : String(error), url }, 'Playwright fetch failed')
     return { jsonLd: null, pageText: null }
   } finally {
     await context.close().catch(() => {})

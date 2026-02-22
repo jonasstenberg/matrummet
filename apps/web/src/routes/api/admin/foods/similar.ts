@@ -42,7 +42,7 @@ export const Route = createFileRoute('/api/admin/foods/similar')({
           const data = await response.json()
           return Response.json(data)
         } catch (error) {
-          logger.error({ err: error }, 'Find similar foods error')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Find similar foods error')
           return Response.json(
             { error: error instanceof Error ? error.message : 'Failed to find similar foods' },
             { status: 500 }

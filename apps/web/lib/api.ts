@@ -44,7 +44,7 @@ export async function getRecipes(options?: {
 
     if (!res.ok) {
       const errorText = await res.text();
-      logger.error({ err: errorText, status: res.status }, 'Failed to search recipes');
+      logger.error({ responseBody: errorText, status: res.status }, 'Failed to search recipes');
       throw new Error(`Failed to search recipes: ${res.status} ${errorText}`);
     }
     let recipes: Recipe[] = await res.json();
@@ -100,7 +100,7 @@ export async function getRecipes(options?: {
 
   if (!res.ok) {
     const errorText = await res.text();
-    logger.error({ err: errorText, status: res.status }, 'Failed to fetch recipes');
+    logger.error({ responseBody: errorText, status: res.status }, 'Failed to fetch recipes');
     throw new Error(`Failed to fetch recipes: ${res.status} ${errorText}`);
   }
   return res.json();
@@ -115,7 +115,7 @@ export async function getRecipe(id: string, token?: string): Promise<Recipe | nu
     });
 
     if (!res.ok) {
-      logger.error({ err: res.statusText, status: res.status, recipeId: id }, 'Failed to fetch recipe');
+      logger.error({ detail: res.statusText, status: res.status, recipeId: id }, 'Failed to fetch recipe');
       return null;
     }
     const data = await res.json();
@@ -128,7 +128,7 @@ export async function getRecipe(id: string, token?: string): Promise<Recipe | nu
   });
 
   if (!res.ok) {
-    logger.error({ err: res.statusText, status: res.status, recipeId: id }, 'Failed to fetch featured recipe');
+    logger.error({ detail: res.statusText, status: res.status, recipeId: id }, 'Failed to fetch featured recipe');
     return null;
   }
   const data = await res.json();
@@ -174,7 +174,7 @@ export async function getCategories(): Promise<CategoryGroup[]> {
         categories: categories.sort((a, b) => a.localeCompare(b, 'sv')),
       }));
   } catch (error) {
-    logger.error({ err: error }, 'Error fetching categories');
+    logger.error({ err: error instanceof Error ? error : String(error) }, 'Error fetching categories');
     return [];
   }
 }
@@ -201,7 +201,7 @@ export async function validatePasswordResetToken(token: string): Promise<TokenVa
     );
 
     if (!res.ok) {
-      logger.error({ err: await res.text() }, 'Token validation request failed');
+      logger.error({ responseBody: await res.text() }, 'Token validation request failed');
       return { valid: false, error: 'Kunde inte validera token' };
     }
 
@@ -216,7 +216,7 @@ export async function validatePasswordResetToken(token: string): Promise<TokenVa
       };
     }
   } catch (error) {
-    logger.error({ err: error }, 'Token validation error');
+    logger.error({ err: error instanceof Error ? error : String(error) }, 'Token validation error');
     return { valid: false, error: 'Ett fel uppstod vid validering' };
   }
 }
@@ -393,7 +393,7 @@ export async function getRecipesWithCount(options?: {
 
   if (!res.ok) {
     const errorText = await res.text();
-    logger.error({ err: errorText, status: res.status }, 'Failed to fetch recipes with count');
+    logger.error({ responseBody: errorText, status: res.status }, 'Failed to fetch recipes with count');
     throw new Error(`Failed to fetch recipes with count: ${res.status} ${errorText}`);
   }
 
@@ -445,7 +445,7 @@ export async function getLikedRecipesWithCount(
 
   if (!res.ok) {
     const errorText = await res.text();
-    logger.error({ err: errorText, status: res.status }, 'Failed to fetch liked recipes with count');
+    logger.error({ responseBody: errorText, status: res.status }, 'Failed to fetch liked recipes with count');
     throw new Error(`Failed to fetch liked recipes with count: ${res.status} ${errorText}`);
   }
 
@@ -475,7 +475,7 @@ export async function getFeaturedRecipes(limit = 4): Promise<Recipe[]> {
 
     return res.json();
   } catch (error) {
-    logger.error({ err: error }, 'Error fetching featured recipes');
+    logger.error({ err: error instanceof Error ? error : String(error) }, 'Error fetching featured recipes');
     return [];
   }
 }
@@ -492,7 +492,7 @@ export async function getSharedRecipe(token: string): Promise<SharedRecipe | nul
     });
 
     if (!res.ok) {
-      logger.error({ err: res.statusText, status: res.status }, 'Failed to fetch shared recipe');
+      logger.error({ detail: res.statusText, status: res.status }, 'Failed to fetch shared recipe');
       return null;
     }
 
@@ -508,7 +508,7 @@ export async function getSharedRecipe(token: string): Promise<SharedRecipe | nul
 
     return recipe;
   } catch (error) {
-    logger.error({ err: error }, 'Error fetching shared recipe');
+    logger.error({ err: error instanceof Error ? error : String(error) }, 'Error fetching shared recipe');
     return null;
   }
 }

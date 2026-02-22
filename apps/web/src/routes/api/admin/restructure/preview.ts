@@ -165,7 +165,7 @@ export const Route = createFileRoute('/api/admin/restructure/preview')({
             try {
               parsedJson = JSON.parse(generatedText)
             } catch (error) {
-              logger.error({ err: error, recipeId, response: generatedText.substring(0, 500) }, 'JSON parse error for ingredients')
+              logger.error({ err: error instanceof Error ? error : String(error), recipeId, detail: generatedText.substring(0, 500) }, 'JSON parse error for ingredients')
               return Response.json(
                 {
                   error: 'LLM returned invalid JSON for ingredients',
@@ -181,7 +181,7 @@ export const Route = createFileRoute('/api/admin/restructure/preview')({
               responseData.restructured = restructured
               responseData.updateFormat = updateFormat
             } catch (error) {
-              logger.error({ err: error, recipeId, rawResponse: parsedJson }, 'Ingredients validation error')
+              logger.error({ err: error instanceof Error ? error : String(error), recipeId, detail: parsedJson }, 'Ingredients validation error')
               return Response.json(
                 {
                   error: 'LLM response failed validation for ingredients',
@@ -238,7 +238,7 @@ export const Route = createFileRoute('/api/admin/restructure/preview')({
             try {
               parsedJson = JSON.parse(generatedText)
             } catch (error) {
-              logger.error({ err: error, recipeId, response: generatedText.substring(0, 500) }, 'JSON parse error for instructions')
+              logger.error({ err: error instanceof Error ? error : String(error), recipeId, detail: generatedText.substring(0, 500) }, 'JSON parse error for instructions')
               return Response.json(
                 {
                   error: 'LLM returned invalid JSON for instructions',
@@ -254,7 +254,7 @@ export const Route = createFileRoute('/api/admin/restructure/preview')({
               responseData.improvedInstructions = improvedInstructions
               responseData.instructionsUpdateFormat = instructionsUpdateFormat
             } catch (error) {
-              logger.error({ err: error, recipeId, rawResponse: parsedJson }, 'Instructions validation error')
+              logger.error({ err: error instanceof Error ? error : String(error), recipeId, detail: parsedJson }, 'Instructions validation error')
               return Response.json(
                 {
                   error: 'LLM response failed validation for instructions',
@@ -268,7 +268,7 @@ export const Route = createFileRoute('/api/admin/restructure/preview')({
 
           return Response.json(responseData)
         } catch (error) {
-          logger.error({ err: error }, 'Preview restructure error')
+          logger.error({ err: error instanceof Error ? error : String(error) }, 'Preview restructure error')
           return Response.json(
             { error: 'Internal server error' },
             { status: 500 }
