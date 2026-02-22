@@ -73,6 +73,33 @@ Migrations: `flyway/sql/V{version}__{description}.sql`
 Seed data: `data/data.sql`
 Backups: `flyway/run-flyway.sh backup|restore|list-backups`
 
+### Infrastructure (`infra/`)
+
+Production configs are version-controlled in `infra/` and deployed via CI.
+
+**Nginx** (`infra/nginx/`) — auto-deployed when files change:
+
+| File | Deploys to | Purpose |
+|------|-----------|---------|
+| `production.conf` | `/etc/nginx/sites-enabled/recept` | Main site (mat.stenberg.io, matrummet.se) |
+| `api.conf` | `/etc/nginx/sites-enabled/api.matrummet.se` | Public PostgREST API with CORS |
+| `proxy-cache.conf` | `/etc/nginx/conf.d/proxy-cache.conf` | Cache zone for static assets/images |
+
+**Systemd** (`infra/systemd/`) — reference copies, not auto-deployed:
+
+| Service | Runtime | Purpose |
+|---------|---------|---------|
+| `matrummet.service` | Node.js | TanStack Start app (port 3001) |
+| `matrummet-email.service` | Bun | Email notifications |
+| `matrummet-events.service` | Bun | Event processing |
+| `matrummet-image.service` | Bun | Image service |
+| `postgrest-matrummet.service` | PostgREST | REST API (port 4444) |
+| `backup-matrummet.service/.timer` | pg_dump | DB + photos backup every 4h (30-day retention) |
+| `backup-matrummet-weekly.service/.timer` | pg_dump | Weekly DB backup Sundays 03:00 (6-month retention) |
+
+Production host: `37.27.181.252`, deploy user: `deploy_recept`, deploy path: `/opt/matrummet`.
+Env files on server: `.matrummet.env`, `.email-service.env`, `.events-service.env`, `.image-service.env`, `.backup.env`.
+
 ## Architecture
 
 ### Separation of Concerns
