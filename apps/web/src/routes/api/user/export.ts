@@ -2,6 +2,8 @@ import { createFileRoute } from '@tanstack/react-router'
 import { apiAuthMiddleware } from '@/lib/middleware'
 import { getRecipes } from '@/lib/api'
 import { recipesToMarkdown } from '@/lib/export-markdown'
+import { logger as rootLogger } from '@/lib/logger'
+const logger = rootLogger.child({ module: 'api:user:export' })
 
 export const Route = createFileRoute('/api/user/export')({
   server: {
@@ -20,7 +22,7 @@ export const Route = createFileRoute('/api/user/export')({
             },
           })
         } catch (error) {
-          console.error('Export error:', error)
+          logger.error({ err: error, email: context.session?.email }, 'Export error')
           return Response.json(
             { error: 'Ett fel uppstod vid export' },
             { status: 500 },

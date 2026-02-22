@@ -1,6 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { apiAdminMiddleware } from '@/lib/middleware'
 import { env } from '@/lib/env'
+import { logger as rootLogger } from '@/lib/logger'
+
+const logger = rootLogger.child({ module: 'api:admin:restructure' })
 
 const PAGE_SIZE = 20
 
@@ -110,7 +113,7 @@ export const Route = createFileRoute('/api/admin/restructure')({
           )
 
           if (!response.ok) {
-            console.error("PostgREST error:", await response.text())
+            logger.error({ err: await response.text() }, 'PostgREST error')
             return Response.json(
               { error: "Failed to fetch recipes" },
               { status: 500 }
@@ -164,7 +167,7 @@ export const Route = createFileRoute('/api/admin/restructure')({
             totalPages,
           })
         } catch (error) {
-          console.error("Error listing recipes for restructure:", error)
+          logger.error({ err: error }, 'Error listing recipes for restructure')
           return Response.json(
             { error: "Internal server error" },
             { status: 500 }

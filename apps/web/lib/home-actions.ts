@@ -4,6 +4,8 @@ import { HomeInfo, HomeInvitation, UserHome } from '@/lib/types'
 import { postgrestHeaders } from '@/lib/action-utils'
 import { actionAuthMiddleware } from './middleware'
 import { env } from '@/lib/env'
+import { logger as rootLogger } from '@/lib/logger'
+const logger = rootLogger.child({ module: 'home' })
 
 // ============================================================================
 // Server Functions
@@ -31,7 +33,7 @@ const createHomeFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('Failed to create home:', errorText)
+        logger.error({ err: errorText, email: context.session?.email }, 'Failed to create home')
         return { error: 'Kunde inte skapa hushållet. Försök igen.' }
       }
 
@@ -39,7 +41,7 @@ const createHomeFn = createServerFn({ method: 'POST' })
 
       return { id: result }
     } catch (error) {
-      console.error('Error creating home:', error)
+      logger.error({ err: error, email: context.session?.email }, 'Error creating home')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -63,7 +65,7 @@ const updateHomeNameFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('Failed to update home name:', errorText)
+        logger.error({ err: errorText, email: context.session?.email, homeId: data.homeId }, 'Failed to update home name')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -79,7 +81,7 @@ const updateHomeNameFn = createServerFn({ method: 'POST' })
 
       return { success: true }
     } catch (error) {
-      console.error('Error updating home name:', error)
+      logger.error({ err: error, email: context.session?.email, homeId: data.homeId }, 'Error updating home name')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -108,7 +110,7 @@ const leaveHomeFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('Failed to leave home:', errorText)
+        logger.error({ err: errorText, email: context.session?.email, homeId: data.homeId }, 'Failed to leave home')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -124,7 +126,7 @@ const leaveHomeFn = createServerFn({ method: 'POST' })
 
       return { success: true }
     } catch (error) {
-      console.error('Error leaving home:', error)
+      logger.error({ err: error, email: context.session?.email, homeId: data.homeId }, 'Error leaving home')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -153,7 +155,7 @@ const generateJoinCodeFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('Failed to generate join code:', errorText)
+        logger.error({ err: errorText, email: context.session?.email, homeId: data.homeId }, 'Failed to generate join code')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -174,7 +176,7 @@ const generateJoinCodeFn = createServerFn({ method: 'POST' })
 
       return { code, expires_at: expiresAt }
     } catch (error) {
-      console.error('Error generating join code:', error)
+      logger.error({ err: error, email: context.session?.email, homeId: data.homeId }, 'Error generating join code')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -198,7 +200,7 @@ const disableJoinCodeFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('Failed to disable join code:', errorText)
+        logger.error({ err: errorText, email: context.session?.email, homeId: data.homeId }, 'Failed to disable join code')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -214,7 +216,7 @@ const disableJoinCodeFn = createServerFn({ method: 'POST' })
 
       return { success: true }
     } catch (error) {
-      console.error('Error disabling join code:', error)
+      logger.error({ err: error, email: context.session?.email, homeId: data.homeId }, 'Error disabling join code')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -241,7 +243,7 @@ const joinHomeByCodeFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('Failed to join home by code:', errorText)
+        logger.error({ err: errorText, email: context.session?.email }, 'Failed to join home by code')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -259,7 +261,7 @@ const joinHomeByCodeFn = createServerFn({ method: 'POST' })
 
       return { home_id: result }
     } catch (error) {
-      console.error('Error joining home by code:', error)
+      logger.error({ err: error, email: context.session?.email }, 'Error joining home by code')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -283,7 +285,7 @@ const inviteToHomeFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('Failed to invite to home:', errorText)
+        logger.error({ err: errorText, email: context.session?.email, homeId: data.homeId }, 'Failed to invite to home')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -310,7 +312,7 @@ const inviteToHomeFn = createServerFn({ method: 'POST' })
 
       return { id: result }
     } catch (error) {
-      console.error('Error inviting to home:', error)
+      logger.error({ err: error, email: context.session?.email, homeId: data.homeId }, 'Error inviting to home')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -337,7 +339,7 @@ const acceptInvitationFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('Failed to accept invitation:', errorText)
+        logger.error({ err: errorText, email: context.session?.email }, 'Failed to accept invitation')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -358,7 +360,7 @@ const acceptInvitationFn = createServerFn({ method: 'POST' })
 
       return { home_id: result }
     } catch (error) {
-      console.error('Error accepting invitation:', error)
+      logger.error({ err: error, email: context.session?.email }, 'Error accepting invitation')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -385,7 +387,7 @@ const declineInvitationFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('Failed to decline invitation:', errorText)
+        logger.error({ err: errorText, email: context.session?.email }, 'Failed to decline invitation')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -404,7 +406,7 @@ const declineInvitationFn = createServerFn({ method: 'POST' })
 
       return { success: true }
     } catch (error) {
-      console.error('Error declining invitation:', error)
+      logger.error({ err: error, email: context.session?.email }, 'Error declining invitation')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -428,7 +430,7 @@ const getHomeInfoFn = createServerFn({ method: 'GET' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('Failed to get home info:', errorText)
+        logger.error({ err: errorText, email: context.session?.email, homeId: data.homeId }, 'Failed to get home info')
         return null
       }
 
@@ -447,7 +449,7 @@ const getHomeInfoFn = createServerFn({ method: 'GET' })
         members: result.members || [],
       }
     } catch (error) {
-      console.error('Error getting home info:', error)
+      logger.error({ err: error, email: context.session?.email, homeId: data.homeId }, 'Error getting home info')
       return null
     }
   })
@@ -473,7 +475,7 @@ const getPendingInvitationsFn = createServerFn({ method: 'GET' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('Failed to get pending invitations:', errorText)
+        logger.error({ err: errorText, email: context.session?.email }, 'Failed to get pending invitations')
         return []
       }
 
@@ -481,7 +483,7 @@ const getPendingInvitationsFn = createServerFn({ method: 'GET' })
 
       return result as HomeInvitation[]
     } catch (error) {
-      console.error('Error getting pending invitations:', error)
+      logger.error({ err: error, email: context.session?.email }, 'Error getting pending invitations')
       return []
     }
   })
@@ -505,7 +507,7 @@ const removeMemberFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('Failed to remove member:', errorText)
+        logger.error({ err: errorText, email: context.session?.email, homeId: data.homeId }, 'Failed to remove member')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -527,7 +529,7 @@ const removeMemberFn = createServerFn({ method: 'POST' })
 
       return { success: true }
     } catch (error) {
-      console.error('Error removing member:', error)
+      logger.error({ err: error, email: context.session?.email, homeId: data.homeId }, 'Error removing member')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -551,7 +553,7 @@ const cancelInvitationFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('Failed to cancel invitation:', errorText)
+        logger.error({ err: errorText, email: context.session?.email, homeId: data.homeId, invitationId: data.invitationId }, 'Failed to cancel invitation')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -570,7 +572,7 @@ const cancelInvitationFn = createServerFn({ method: 'POST' })
 
       return { success: true }
     } catch (error) {
-      console.error('Error cancelling invitation:', error)
+      logger.error({ err: error, email: context.session?.email, homeId: data.homeId, invitationId: data.invitationId }, 'Error cancelling invitation')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -593,7 +595,7 @@ const getUserHomesFn = createServerFn({ method: 'GET' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('Failed to get user homes:', errorText)
+        logger.error({ err: errorText, email: context.session?.email }, 'Failed to get user homes')
         return { error: 'Kunde inte hämta hushåll' }
       }
 
@@ -601,7 +603,7 @@ const getUserHomesFn = createServerFn({ method: 'GET' })
 
       return result as UserHome[]
     } catch (error) {
-      console.error('Error getting user homes:', error)
+      logger.error({ err: error, email: context.session?.email }, 'Error getting user homes')
       return { error: 'Ett oväntat fel uppstod' }
     }
   })

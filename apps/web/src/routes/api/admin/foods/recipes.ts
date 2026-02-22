@@ -1,6 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { apiAdminMiddleware } from '@/lib/middleware'
 import { env } from '@/lib/env'
+import { logger as rootLogger } from '@/lib/logger'
+
+const logger = rootLogger.child({ module: 'api:admin:foods-recipes' })
 
 export const Route = createFileRoute('/api/admin/foods/recipes')({
   server: {
@@ -59,7 +62,7 @@ export const Route = createFileRoute('/api/admin/foods/recipes')({
 
           return Response.json(recipes)
         } catch (error) {
-          console.error('Get recipes for food error:', error)
+          logger.error({ err: error }, 'Get recipes for food error')
           return Response.json(
             { error: 'Failed to fetch recipes' },
             { status: 500 }

@@ -1,6 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { apiAdminMiddleware } from '@/lib/middleware'
 import { env } from '@/lib/env'
+import { logger as rootLogger } from '@/lib/logger'
+
+const logger = rootLogger.child({ module: 'api:admin:foods-similar' })
 
 export const Route = createFileRoute('/api/admin/foods/similar')({
   server: {
@@ -39,7 +42,7 @@ export const Route = createFileRoute('/api/admin/foods/similar')({
           const data = await response.json()
           return Response.json(data)
         } catch (error) {
-          console.error('Find similar foods error:', error)
+          logger.error({ err: error }, 'Find similar foods error')
           return Response.json(
             { error: error instanceof Error ? error.message : 'Failed to find similar foods' },
             { status: 500 }

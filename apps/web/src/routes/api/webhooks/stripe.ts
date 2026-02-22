@@ -3,6 +3,9 @@ import { signSystemPostgrestToken } from '@/lib/auth'
 import { env } from '@/lib/env'
 import { getStripe } from '@/lib/stripe'
 import Stripe from 'stripe'
+import { logger as rootLogger } from '@/lib/logger'
+
+const logger = rootLogger.child({ module: 'api:webhooks:stripe' })
 
 async function addCreditsViaPostgrest(
   userEmail: string,
@@ -30,11 +33,7 @@ async function addCreditsViaPostgrest(
 
   if (!response.ok) {
     const errorBody = await response.text()
-    console.error(
-      'PostgREST add_credits failed:',
-      response.status,
-      errorBody,
-    )
+    logger.error({ err: errorBody, status: response.status, userEmail }, 'PostgREST add_credits failed')
   }
 
   return response.ok
@@ -46,7 +45,7 @@ export const Route = createFileRoute('/api/webhooks/stripe')({
       POST: async ({ request }) => {
         const webhookSecret = env.STRIPE_WEBHOOK_SECRET
         if (!webhookSecret) {
-          console.error('STRIPE_WEBHOOK_SECRET not configured')
+          logger.error('STRIPE_WEBHOOK_SECRET not configured')
           return Response.json(
             { error: 'Webhook not configured' },
             { status: 500 },
@@ -65,23 +64,19 @@ export const Route = createFileRoute('/api/webhooks/stripe')({
           const stripe = getStripe()
           event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
         } catch (err) {
-          console.error(
-            'Webhook signature verification failed:',
-            err instanceof Error ? err.message : err,
-          )
+          logger.error({ err: err instanceof Error ? err : String(err) }, 'Webhook signature verification failed')
           return Response.json({ error: 'Invalid signature' }, { status: 400 })
         }
 
-        console.log('Stripe webhook received:', event.type)
+        logger.info({ eventType: event.type }, 'Stripe webhook received')
 
         if (event.type === 'checkout.session.completed') {
           const session = event.data.object as Stripe.Checkout.Session
           const metadata = session.metadata
-          console.log('Checkout session metadata:', metadata)
-          console.log('Payment intent:', session.payment_intent)
+          logger.info({ metadata, paymentIntent: session.payment_intent }, 'Checkout session received')
 
           if (!metadata?.user_email || !metadata?.credits) {
-            console.error('Missing metadata in checkout session:', session.id)
+            logger.error({ sessionId: session.id }, 'Missing metadata in checkout session')
             return Response.json(
               { error: 'Missing metadata' },
               { status: 400 },
@@ -105,12 +100,7 @@ export const Route = createFileRoute('/api/webhooks/stripe')({
           )
 
           if (!success) {
-            console.error(
-              'Failed to add credits for:',
-              userEmail,
-              'session:',
-              session.id,
-            )
+            logger.error({ email: userEmail, sessionId: session.id }, 'Failed to add credits')
             // Return 500 so Stripe retries
             return Response.json(
               { error: 'Failed to add credits' },
@@ -118,7 +108,7 @@ export const Route = createFileRoute('/api/webhooks/stripe')({
             )
           }
 
-          console.log('Credits added successfully for:', userEmail, 'amount:', credits)
+          logger.info({ email: userEmail, credits }, 'Credits added successfully')
         }
 
         return Response.json({ received: true })

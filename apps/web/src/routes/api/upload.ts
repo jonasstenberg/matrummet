@@ -1,5 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { apiAuthMiddleware } from '@/lib/middleware'
+import { logger as rootLogger } from '@/lib/logger'
+const logger = rootLogger.child({ module: 'api:upload' })
 
 export const Route = createFileRoute('/api/upload')({
   server: {
@@ -26,7 +28,7 @@ export const Route = createFileRoute('/api/upload')({
           const data = await response.json()
           return Response.json(data, { status: response.status })
         } catch (error) {
-          console.error('Upload proxy error:', error)
+          logger.error({ err: error }, 'Upload proxy error')
           return Response.json(
             { error: 'Uppladdning misslyckades' },
             { status: 500 },

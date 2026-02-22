@@ -1,6 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { apiAdminMiddleware } from '@/lib/middleware'
 import { env } from '@/lib/env'
+import { logger as rootLogger } from '@/lib/logger'
+const logger = rootLogger.child({ module: 'api:admin:categories' })
 
 export const Route = createFileRoute('/api/admin/categories')({
   server: {
@@ -38,7 +40,7 @@ export const Route = createFileRoute('/api/admin/categories')({
 
           return Response.json(categoriesWithCount)
         } catch (error) {
-          console.error('Get categories error:', error)
+          logger.error({ err: error }, 'Get categories error')
           return Response.json(
             { error: 'Kunde inte hämta kategorier' },
             { status: 500 }
@@ -151,7 +153,7 @@ export const Route = createFileRoute('/api/admin/categories')({
 
           return Response.json({ success: true })
         } catch (error) {
-          console.error('Create category error:', error)
+          logger.error({ err: error }, 'Create category error')
           return Response.json(
             { error: error instanceof Error ? error.message : 'Kunde inte skapa kategori' },
             { status: 500 }
@@ -203,7 +205,7 @@ export const Route = createFileRoute('/api/admin/categories')({
 
           return Response.json({ success: true })
         } catch (error) {
-          console.error('Update category error:', error)
+          logger.error({ err: error }, 'Update category error')
           return Response.json(
             { error: error instanceof Error ? error.message : 'Kunde inte uppdatera kategori' },
             { status: 500 }
@@ -237,7 +239,7 @@ export const Route = createFileRoute('/api/admin/categories')({
 
           return Response.json({ success: true })
         } catch (error) {
-          console.error('Delete category error:', error)
+          logger.error({ err: error }, 'Delete category error')
           return Response.json(
             { error: error instanceof Error ? error.message : 'Kunde inte ta bort kategori' },
             { status: 500 }

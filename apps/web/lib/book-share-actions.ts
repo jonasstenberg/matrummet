@@ -3,6 +3,9 @@ import { z } from 'zod'
 import type { BookShareConnection, BookShareInfo } from '@/lib/types'
 import { actionAuthMiddleware } from './middleware'
 import { env } from '@/lib/env'
+import { logger as rootLogger } from '@/lib/logger'
+
+const logger = rootLogger.child({ module: 'book-share' })
 
 // ============================================================================
 // Server Functions
@@ -30,7 +33,7 @@ const createBookShareLinkFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('Failed to create book share link:', errorText)
+        logger.error({ err: errorText, email: context.session?.email }, 'Failed to create book share link')
         return { error: 'Kunde inte skapa delningslänk. Försök igen.' }
       }
 
@@ -50,7 +53,7 @@ const createBookShareLinkFn = createServerFn({ method: 'POST' })
         expires_at: row.expires_at ?? null,
       }
     } catch (error) {
-      console.error('Error creating book share link:', error)
+      logger.error({ err: error, email: context.session?.email }, 'Error creating book share link')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -84,7 +87,7 @@ const getBookShareInfoFn = createServerFn({ method: 'GET' })
 
       return row as BookShareInfo
     } catch (error) {
-      console.error('Error getting book share info:', error)
+      logger.error({ err: error, shareToken: data.shareToken }, 'Error getting book share info')
       return null
     }
   })
@@ -111,7 +114,7 @@ const acceptBookShareFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('Failed to accept book share:', errorText)
+        logger.error({ err: errorText, email: context.session?.email, shareToken: data.shareToken }, 'Failed to accept book share')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -133,7 +136,7 @@ const acceptBookShareFn = createServerFn({ method: 'POST' })
 
       return { sharer_name: row.sharer_name, sharer_id: row.sharer_id }
     } catch (error) {
-      console.error('Error accepting book share:', error)
+      logger.error({ err: error, email: context.session?.email, shareToken: data.shareToken }, 'Error accepting book share')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -165,7 +168,7 @@ const revokeBookShareLinkFn = createServerFn({ method: 'POST' })
       const result = await response.json()
       return { success: result === true }
     } catch (error) {
-      console.error('Error revoking book share link:', error)
+      logger.error({ err: error, email: context.session?.email, shareToken: data.shareToken }, 'Error revoking book share link')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -195,7 +198,7 @@ const getSharedBooksFn = createServerFn({ method: 'GET' })
 
       return await response.json()
     } catch (error) {
-      console.error('Error getting shared books:', error)
+      logger.error({ err: error, email: context.session?.email }, 'Error getting shared books')
       return []
     }
   })
@@ -228,7 +231,7 @@ const removeBookShareConnectionFn = createServerFn({ method: 'POST' })
 
       return { success: result === true }
     } catch (error) {
-      console.error('Error removing book share connection:', error)
+      logger.error({ err: error, email: context.session?.email, connectionId: data.connectionId }, 'Error removing book share connection')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })

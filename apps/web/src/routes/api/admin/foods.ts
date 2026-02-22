@@ -1,6 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { apiAdminMiddleware } from '@/lib/middleware'
 import { env } from '@/lib/env'
+import { logger as rootLogger } from '@/lib/logger'
+
+const logger = rootLogger.child({ module: 'api:admin:foods' })
 
 export const Route = createFileRoute('/api/admin/foods')({
   server: {
@@ -72,7 +75,7 @@ export const Route = createFileRoute('/api/admin/foods')({
             totalPages: Math.ceil(total / pageSize),
           })
         } catch (error) {
-          console.error('Get foods error:', error)
+          logger.error({ err: error }, 'Get foods error')
           return Response.json(
             { error: 'Kunde inte hämta matvaror' },
             { status: 500 }
@@ -118,7 +121,7 @@ export const Route = createFileRoute('/api/admin/foods')({
 
           return Response.json({ success: true })
         } catch (error) {
-          console.error('Create food error:', error)
+          logger.error({ err: error }, 'Create food error')
 
           if (error instanceof Error && error.message.includes('matvara med detta namn')) {
             return Response.json(
@@ -174,7 +177,7 @@ export const Route = createFileRoute('/api/admin/foods')({
 
           return Response.json({ success: true })
         } catch (error) {
-          console.error('Update food error:', error)
+          logger.error({ err: error }, 'Update food error')
 
           if (error instanceof Error && error.message.includes('matvara med detta namn')) {
             return Response.json(
@@ -216,7 +219,7 @@ export const Route = createFileRoute('/api/admin/foods')({
 
           return Response.json({ success: true })
         } catch (error) {
-          console.error('Delete food error:', error)
+          logger.error({ err: error }, 'Delete food error')
           return Response.json(
             { error: error instanceof Error ? error.message : 'Kunde inte ta bort matvara' },
             { status: 500 }

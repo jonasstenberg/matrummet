@@ -6,6 +6,9 @@ import { signToken } from '@/lib/auth'
 import { actionAuthMiddleware } from './middleware'
 import { apiKeysArraySchema } from './schemas'
 import { env } from '@/lib/env'
+import { logger as rootLogger } from '@/lib/logger'
+
+const logger = rootLogger.child({ module: 'settings' })
 
 // ============================================================================
 // Server Functions
@@ -32,7 +35,7 @@ const getApiKeysFn = createServerFn({ method: 'GET' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('Failed to get API keys:', errorText)
+        logger.error({ err: errorText, email: context.session?.email }, 'Failed to get API keys')
         return { error: 'Kunde inte hämta API-nycklar' }
       }
 
@@ -48,13 +51,13 @@ const getApiKeysFn = createServerFn({ method: 'GET' })
 
       const result = apiKeysArraySchema.safeParse(mapped)
       if (!result.success) {
-        console.error('API keys validation failed:', result.error.message)
+        logger.error({ err: result.error.message, email: context.session?.email }, 'API keys validation failed')
         return { error: 'Ogiltigt svar från servern' }
       }
 
       return result.data
     } catch (error) {
-      console.error('Error getting API keys:', error)
+      logger.error({ err: error, email: context.session?.email }, 'Error getting API keys')
       return { error: 'Kunde inte hämta API-nycklar' }
     }
   })
@@ -81,7 +84,7 @@ const createApiKeyFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('Failed to create API key:', errorText)
+        logger.error({ err: errorText, email: context.session?.email }, 'Failed to create API key')
 
         if (errorText.includes('duplicate key') || errorText.includes('unique constraint')) {
           return { error: 'En nyckel med det namnet finns redan' }
@@ -98,7 +101,7 @@ const createApiKeyFn = createServerFn({ method: 'POST' })
         id: result.id,
       }
     } catch (error) {
-      console.error('Error creating API key:', error)
+      logger.error({ err: error, email: context.session?.email }, 'Error creating API key')
       return { error: 'Kunde inte skapa nyckel' }
     }
   })
@@ -125,13 +128,13 @@ const revokeApiKeyFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('Failed to revoke API key:', errorText)
+        logger.error({ err: errorText, email: context.session?.email }, 'Failed to revoke API key')
         return { error: 'Kunde inte ta bort nyckel' }
       }
 
       return { success: true }
     } catch (error) {
-      console.error('Error revoking API key:', error)
+      logger.error({ err: error, email: context.session?.email }, 'Error revoking API key')
       return { error: 'Kunde inte ta bort nyckel' }
     }
   })
@@ -172,7 +175,7 @@ const updateProfileFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('Failed to update profile:', errorText)
+        logger.error({ err: errorText, email: context.session?.email }, 'Failed to update profile')
         return { error: 'Kunde inte uppdatera profil. Försök igen.' }
       }
 
@@ -199,7 +202,7 @@ const updateProfileFn = createServerFn({ method: 'POST' })
 
       return { success: true }
     } catch (error) {
-      console.error('Error updating profile:', error)
+      logger.error({ err: error, email: context.session?.email }, 'Error updating profile')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })

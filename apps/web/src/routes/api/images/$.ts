@@ -1,4 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { logger as rootLogger } from '@/lib/logger'
+const logger = rootLogger.child({ module: 'api:images' })
 
 export const Route = createFileRoute('/api/images/$')({
   server: {
@@ -25,7 +27,7 @@ export const Route = createFileRoute('/api/images/$')({
             headers: response.headers,
           })
         } catch (error) {
-          console.error('Image proxy error:', error)
+          logger.error({ err: error }, 'Image proxy error')
           return new Response('Internal server error', { status: 500 })
         }
       },

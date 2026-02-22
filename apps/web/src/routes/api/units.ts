@@ -1,6 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { getSession, signPostgrestToken } from '@/lib/auth'
 import { env } from '@/lib/env'
+import { logger as rootLogger } from '@/lib/logger'
+const logger = rootLogger.child({ module: 'api:units' })
 
 type Unit = {
   id: string
@@ -45,7 +47,7 @@ export const Route = createFileRoute('/api/units')({
           })
 
           if (!response.ok) {
-            console.error('PostgREST error:', response.status, response.statusText)
+            logger.error({ status: response.status, statusText: response.statusText }, 'PostgREST error')
             return Response.json([])
           }
 
@@ -61,7 +63,7 @@ export const Route = createFileRoute('/api/units')({
 
           return Response.json(formattedData)
         } catch (error) {
-          console.error('Error fetching units:', error)
+          logger.error({ err: error }, 'Error fetching units')
           return Response.json([])
         }
       },

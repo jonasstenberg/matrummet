@@ -20,7 +20,7 @@ export default defineConfig({
   },
   nitro: {
     rollupConfig: {
-      external: ['playwright', 'playwright-core', 'playwright/index.mjs'],
+      external: ['pino', 'playwright', 'playwright-core', 'playwright/index.mjs'],
       onwarn(warning, defaultHandler) {
         if (
           warning.code === 'MODULE_LEVEL_DIRECTIVE' &&

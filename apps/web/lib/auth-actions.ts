@@ -5,6 +5,8 @@ import { signToken } from '@/lib/auth'
 import { env } from '@/lib/env'
 import { loginInputSchema, emailSchema, changePasswordSchema, signupInputSchema } from '@/lib/schemas'
 import { actionAuthMiddleware } from './middleware'
+import { logger as rootLogger } from '@/lib/logger'
+const logger = rootLogger.child({ module: 'auth' })
 
 export interface LoginState {
   error?: string
@@ -93,15 +95,15 @@ export const requestPasswordResetFn = createServerFn({ method: 'POST' })
       )
 
       if (!postgrestResponse.ok) {
-        console.error(
-          'Password reset request failed:',
-          await postgrestResponse.text(),
+        logger.error(
+          { err: await postgrestResponse.text() },
+          'Password reset request failed',
         )
       }
 
       return { success: true }
     } catch (error) {
-      console.error('Password reset error:', error)
+      logger.error({ err: error }, 'Password reset error')
       return { success: true }
     }
   })
@@ -150,14 +152,14 @@ export const completeResetPasswordFn = createServerFn({ method: 'POST' })
         try {
           errorData = await postgrestResponse.json()
         } catch {
-          console.error(
-            'Password reset completion failed with non-JSON response:',
-            postgrestResponse.status,
+          logger.error(
+            { err: postgrestResponse.status },
+            'Password reset completion failed with non-JSON response',
           )
           return { error: 'Kunde inte återställa lösenordet' }
         }
 
-        console.error('Password reset completion failed:', errorData)
+        logger.error({ err: errorData }, 'Password reset completion failed')
 
         if (errorData?.message && errorData.message in RESET_ERROR_MESSAGES) {
           return { error: RESET_ERROR_MESSAGES[errorData.message] }
@@ -168,7 +170,7 @@ export const completeResetPasswordFn = createServerFn({ method: 'POST' })
 
       return { success: true }
     } catch (error) {
-      console.error('Password reset completion error:', error)
+      logger.error({ err: error }, 'Password reset completion error')
       return { error: 'Ett fel uppstod' }
     }
   })
@@ -281,7 +283,7 @@ export const changePasswordFn = createServerFn({ method: 'POST' })
 
       if (!postgrestResponse.ok) {
         const errorText = await postgrestResponse.text()
-        console.error('Password change failed:', errorText)
+        logger.error({ err: errorText, email: context.session?.email }, 'Password change failed')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -302,7 +304,7 @@ export const changePasswordFn = createServerFn({ method: 'POST' })
 
       return { success: true }
     } catch (error) {
-      console.error('Password change error:', error)
+      logger.error({ err: error, email: context.session?.email }, 'Password change error')
       return { error: 'Ett oväntat fel uppstod' }
     }
   })
@@ -374,7 +376,7 @@ export const deleteAccountFn = createServerFn({ method: 'POST' })
 
       return { success: true }
     } catch (error) {
-      console.error('Account deletion error:', error)
+      logger.error({ err: error, email: context.session?.email }, 'Account deletion error')
       return { error: 'Ett oväntat fel uppstod' }
     }
   })

@@ -1,6 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { apiAdminMiddleware } from '@/lib/middleware'
 import { env } from '@/lib/env'
+import { logger as rootLogger } from '@/lib/logger'
+const logger = rootLogger.child({ module: 'api:admin:users-role' })
 
 export const Route = createFileRoute('/api/admin/users/role')({
   server: {
@@ -47,7 +49,7 @@ export const Route = createFileRoute('/api/admin/users/role')({
 
           return Response.json({ success: true })
         } catch (error) {
-          console.error('Update user role error:', error)
+          logger.error({ err: error }, 'Update user role error')
           return Response.json(
             { error: error instanceof Error ? error.message : 'Kunde inte uppdatera användarroll' },
             { status: 500 }

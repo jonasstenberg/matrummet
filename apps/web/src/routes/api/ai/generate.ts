@@ -7,6 +7,8 @@ import {
 } from '@/lib/recipe-parser/prompt'
 import { RECIPE_JSON_SCHEMA } from '@/lib/recipe-parser/types'
 import { createMistralClient, MISTRAL_MODEL } from '@/lib/ai-client'
+import { logger as rootLogger } from '@/lib/logger'
+const logger = rootLogger.child({ module: 'api:ai:generate' })
 
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024
 const ALLOWED_IMAGE_TYPES = [
@@ -246,7 +248,7 @@ export const Route = createFileRoute('/api/ai/generate')({
               remainingCredits: deductResult.success ? deductResult.remainingCredits : creditCheck.balance - 1,
             })
           } catch (error) {
-            console.error('Recipe validation error:', error)
+            logger.error({ err: error, email: context.session?.email }, 'Recipe validation error')
             return Response.json(
               {
                 error: 'AI-svaret kunde inte valideras',
@@ -256,7 +258,7 @@ export const Route = createFileRoute('/api/ai/generate')({
             )
           }
         } catch (error) {
-          console.error('AI generate error:', error)
+          logger.error({ err: error, email: context.session?.email }, 'AI generate error')
           return Response.json(
             { error: 'Internal server error' },
             { status: 500 },

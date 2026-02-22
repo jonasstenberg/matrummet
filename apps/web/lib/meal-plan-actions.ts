@@ -6,6 +6,9 @@ import { createRecipe } from './recipe-actions'
 import type { MealPlan, MealPlanSummary, SuggestedRecipe } from './meal-plan/types'
 import { SuggestedRecipeSchema } from './meal-plan/types'
 import type { CreateRecipeInput } from './types'
+import { logger as rootLogger } from '@/lib/logger'
+
+const logger = rootLogger.child({ module: 'meal-plan' })
 
 // ============================================================================
 // Server Functions
@@ -40,7 +43,7 @@ const listMealPlansFn = createServerFn({ method: 'GET' })
       const result = await response.json()
       return Array.isArray(result) ? result : []
     } catch (error) {
-      console.error('Error listing meal plans:', error)
+      logger.error({ err: error, email: context.session?.email }, 'Error listing meal plans')
       return []
     }
   })
@@ -115,7 +118,7 @@ const getMealPlanFn = createServerFn({ method: 'GET' })
         })),
       } as MealPlan
     } catch (error) {
-      console.error('Error fetching meal plan:', error)
+      logger.error({ err: error, email: context.session?.email, planId: data.planId }, 'Error fetching meal plan')
       return null
     }
   })
@@ -159,7 +162,7 @@ const swapMealPlanEntryFn = createServerFn({ method: 'POST' })
 
       return { success: true }
     } catch (error) {
-      console.error('Error swapping meal plan entry:', error)
+      logger.error({ err: error, email: context.session?.email, entryId: data.entryId }, 'Error swapping meal plan entry')
       return { error: 'Ett fel uppstod. Försök igen.' }
     }
   })
@@ -188,7 +191,7 @@ const getRecipeIngredientsByIdsFn = createServerFn({ method: 'GET' })
     try {
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
       if (!data.recipeIds.every((id) => uuidRegex.test(id))) {
-        console.error('Invalid recipe ID format detected')
+        logger.error('Invalid recipe ID format detected')
         return []
       }
 
@@ -249,7 +252,7 @@ const addMealPlanToShoppingListFn = createServerFn({ method: 'POST' })
       const result = await response.json()
       return result
     } catch (error) {
-      console.error('Error adding meal plan to shopping list:', error)
+      logger.error({ err: error, email: context.session?.email, planId: data.planId }, 'Error adding meal plan to shopping list')
       return { error: 'Ett fel uppstod. Försök igen.' }
     }
   })
@@ -324,7 +327,7 @@ const saveEntryAsRecipeFn = createServerFn({ method: 'POST' })
 
       return { recipe_id: result.id }
     } catch (error) {
-      console.error('Error saving entry as recipe:', error)
+      logger.error({ err: error, entryId: data.entryId }, 'Error saving entry as recipe')
       return { error: 'Kunde inte spara receptet. Försök igen.' }
     }
   })

@@ -1,6 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { apiAdminMiddleware } from '@/lib/middleware'
 import { env } from '@/lib/env'
+import { logger as rootLogger } from '@/lib/logger'
+const logger = rootLogger.child({ module: 'api:admin:users' })
 
 export const Route = createFileRoute('/api/admin/users')({
   server: {
@@ -72,7 +74,7 @@ export const Route = createFileRoute('/api/admin/users')({
             totalPages: Math.ceil(total / pageSize),
           })
         } catch (error) {
-          console.error('Get users error:', error)
+          logger.error({ err: error }, 'Get users error')
           return Response.json(
             { error: 'Kunde inte hämta användare' },
             { status: 500 }
@@ -117,7 +119,7 @@ export const Route = createFileRoute('/api/admin/users')({
 
           return Response.json({ success: true })
         } catch (error) {
-          console.error('Update user error:', error)
+          logger.error({ err: error }, 'Update user error')
           return Response.json(
             { error: error instanceof Error ? error.message : 'Kunde inte uppdatera användare' },
             { status: 500 }
@@ -158,7 +160,7 @@ export const Route = createFileRoute('/api/admin/users')({
 
           return Response.json({ success: true })
         } catch (error) {
-          console.error('Delete user error:', error)
+          logger.error({ err: error }, 'Delete user error')
           return Response.json(
             { error: error instanceof Error ? error.message : 'Kunde inte ta bort användare' },
             { status: 500 }

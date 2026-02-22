@@ -2,6 +2,9 @@ import { createFileRoute } from '@tanstack/react-router'
 import { setCookie } from '@tanstack/react-start/server'
 import { signToken } from '@/lib/auth'
 import { env } from '@/lib/env'
+import { logger as rootLogger } from '@/lib/logger'
+
+const logger = rootLogger.child({ module: 'api:auth:register' })
 
 export const Route = createFileRoute('/api/auth/registrera')({
   server: {
@@ -81,7 +84,7 @@ export const Route = createFileRoute('/api/auth/registrera')({
             },
           })
         } catch (error) {
-          console.error('Signup error:', error)
+          logger.error({ err: error }, 'Signup error')
           return Response.json(
             { error: 'Ett fel uppstod vid registrering' },
             { status: 500 },

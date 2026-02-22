@@ -1,6 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { apiAdminMiddleware } from '@/lib/middleware'
 import { env } from '@/lib/env'
+import { logger as rootLogger } from '@/lib/logger'
+
+const logger = rootLogger.child({ module: 'api:admin:restructure-apply' })
 
 interface FoodMatch {
   id: string
@@ -196,7 +199,7 @@ export const Route = createFileRoute('/api/admin/restructure/apply')({
 
           if (!updateResponse.ok) {
             const errorText = await updateResponse.text()
-            console.error('Failed to update recipe:', errorText)
+            logger.error({ err: errorText, recipeId }, 'Failed to update recipe')
             return Response.json(
               { error: 'Failed to update recipe', details: errorText },
               { status: 500 }
@@ -215,7 +218,7 @@ export const Route = createFileRoute('/api/admin/restructure/apply')({
             ...(hasInstructions && { updatedInstructions: finalInstructions }),
           })
         } catch (error) {
-          console.error('Apply restructure error:', error)
+          logger.error({ err: error }, 'Apply restructure error')
           return Response.json(
             { error: 'Internal server error' },
             { status: 500 }

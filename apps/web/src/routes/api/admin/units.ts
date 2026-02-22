@@ -1,6 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { apiAdminMiddleware } from '@/lib/middleware'
 import { env } from '@/lib/env'
+import { logger as rootLogger } from '@/lib/logger'
+
+const logger = rootLogger.child({ module: 'api:admin:units' })
 
 export const Route = createFileRoute('/api/admin/units')({
   server: {
@@ -78,7 +81,7 @@ export const Route = createFileRoute('/api/admin/units')({
             totalPages: filter === 'all' ? totalPages : 1,
           })
         } catch (error) {
-          console.error('Get units error:', error)
+          logger.error({ err: error }, 'Get units error')
           return Response.json(
             { error: 'Kunde inte hämta enheter' },
             { status: 500 }
@@ -170,7 +173,7 @@ export const Route = createFileRoute('/api/admin/units')({
 
           return Response.json({ success: true })
         } catch (error) {
-          console.error('Create unit error:', error)
+          logger.error({ err: error }, 'Create unit error')
           return Response.json(
             { error: error instanceof Error ? error.message : 'Kunde inte skapa enhet' },
             { status: 500 }
@@ -220,7 +223,7 @@ export const Route = createFileRoute('/api/admin/units')({
 
           return Response.json({ success: true })
         } catch (error) {
-          console.error('Update unit error:', error)
+          logger.error({ err: error }, 'Update unit error')
           return Response.json(
             { error: error instanceof Error ? error.message : 'Kunde inte uppdatera enhet' },
             { status: 500 }
@@ -254,7 +257,7 @@ export const Route = createFileRoute('/api/admin/units')({
 
           return Response.json({ success: true })
         } catch (error) {
-          console.error('Delete unit error:', error)
+          logger.error({ err: error }, 'Delete unit error')
           return Response.json(
             { error: error instanceof Error ? error.message : 'Kunde inte ta bort enhet' },
             { status: 500 }
