@@ -20,5 +20,5 @@ else
     # Truncate error output for JSON
     truncated=$(echo "$error_output" | head -50 | tr '\n' ' ' | cut -c1-500)
     echo '{"decision": "block", "reason": "✗ '"$description"': '"$truncated"'"}'
-    exit 0
+    exit 2
 fi
