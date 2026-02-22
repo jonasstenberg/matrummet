@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import jwt from "jsonwebtoken";
-import { authenticateRequest } from "../auth.js";
+import { authenticateRequest, authenticateServiceRequest } from "../auth.js";
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const SECRET = process.env.JWT_SECRET!;
@@ -13,18 +13,18 @@ function signToken(
 }
 
 describe("authenticateRequest", () => {
-  it("extracts Bearer token from Authorization header", () => {
+  it("extracts Bearer token from Authorization header", async () => {
     const token = signToken({ role: "authenticated", email: "test@test.com" });
     const request = new Request("http://localhost/upload", {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    const payload = authenticateRequest(request);
+    const payload = await authenticateRequest(request);
     expect(payload.role).toBe("authenticated");
     expect(payload.email).toBe("test@test.com");
   });
 
-  it("falls back to auth-token cookie", () => {
+  it("falls back to auth-token cookie", async () => {
     const token = signToken({
       role: "authenticated",
       email: "cookie@test.com",
@@ -33,22 +33,22 @@ describe("authenticateRequest", () => {
       headers: { Cookie: `auth-token=${token}` },
     });
 
-    const payload = authenticateRequest(request);
+    const payload = await authenticateRequest(request);
     expect(payload.role).toBe("authenticated");
     expect(payload.email).toBe("cookie@test.com");
   });
 
-  it("extracts auth-token cookie when other cookies are present", () => {
+  it("extracts auth-token cookie when other cookies are present", async () => {
     const token = signToken({ role: "authenticated", email: "multi@test.com" });
     const request = new Request("http://localhost/upload", {
       headers: { Cookie: `other=value; auth-token=${token}; foo=bar` },
     });
 
-    const payload = authenticateRequest(request);
+    const payload = await authenticateRequest(request);
     expect(payload.email).toBe("multi@test.com");
   });
 
-  it("prefers Authorization header over cookie", () => {
+  it("prefers Authorization header over cookie", async () => {
     const headerToken = signToken({
       role: "authenticated",
       email: "header@test.com",
@@ -64,37 +64,37 @@ describe("authenticateRequest", () => {
       },
     });
 
-    const payload = authenticateRequest(request);
+    const payload = await authenticateRequest(request);
     expect(payload.email).toBe("header@test.com");
   });
 
-  it("throws when no token is provided", () => {
+  it("rejects when no token is provided", async () => {
     const request = new Request("http://localhost/upload");
 
-    expect(() => authenticateRequest(request)).toThrow(
+    await expect(authenticateRequest(request)).rejects.toThrow(
       "No authentication token provided",
     );
   });
 
-  it("throws when Authorization header has no Bearer prefix", () => {
+  it("rejects when Authorization header has no Bearer prefix", async () => {
     const request = new Request("http://localhost/upload", {
       headers: { Authorization: "Basic abc123" },
     });
 
-    expect(() => authenticateRequest(request)).toThrow(
+    await expect(authenticateRequest(request)).rejects.toThrow(
       "No authentication token provided",
     );
   });
 
-  it("throws on invalid token", () => {
+  it("rejects invalid token", async () => {
     const request = new Request("http://localhost/upload", {
       headers: { Authorization: "Bearer not-a-valid-jwt" },
     });
 
-    expect(() => authenticateRequest(request)).toThrow();
+    await expect(authenticateRequest(request)).rejects.toThrow();
   });
 
-  it("throws on expired token", () => {
+  it("rejects expired token", async () => {
     const token = signToken(
       { role: "authenticated", email: "expired@test.com" },
       { expiresIn: -10 },
@@ -103,10 +103,10 @@ describe("authenticateRequest", () => {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    expect(() => authenticateRequest(request)).toThrow();
+    await expect(authenticateRequest(request)).rejects.toThrow();
   });
 
-  it("throws on token signed with wrong secret", () => {
+  it("rejects token signed with wrong secret", async () => {
     const token = jwt.sign(
       { role: "authenticated", email: "wrong@test.com" },
       "wrong-secret-that-is-also-long-enough",
@@ -116,6 +116,37 @@ describe("authenticateRequest", () => {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    expect(() => authenticateRequest(request)).toThrow();
+    await expect(authenticateRequest(request)).rejects.toThrow();
+  });
+});
+
+describe("authenticateServiceRequest", () => {
+  it("accepts service tokens", async () => {
+    const token = signToken({ role: "service", service: "web" });
+    const request = new Request("http://localhost/upload", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const payload = await authenticateServiceRequest(request);
+    expect(payload.role).toBe("service");
+  });
+
+  it("rejects user tokens", async () => {
+    const token = signToken({ role: "authenticated", email: "test@test.com" });
+    const request = new Request("http://localhost/upload", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    await expect(authenticateServiceRequest(request)).rejects.toThrow(
+      "Service token required",
+    );
+  });
+
+  it("rejects unauthenticated requests", async () => {
+    const request = new Request("http://localhost/upload");
+
+    await expect(authenticateServiceRequest(request)).rejects.toThrow(
+      "No authentication token provided",
+    );
   });
 });

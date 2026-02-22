@@ -9,9 +9,9 @@ export async function handleUpload(
   request: Request,
   logger: Logger,
 ): Promise<Response> {
-  // Authenticate
+  // Authenticate (cookie, Bearer JWT, or x-api-key)
   try {
-    authenticateRequest(request);
+    await authenticateRequest(request);
   } catch {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }

@@ -57,15 +57,26 @@ function createMockLogger() {
 
 let mockLogger: import("pino").Logger;
 
-function createAuthToken(email = "test@test.com"): string {
+function createServiceToken(): string {
+  return jwt.sign({ role: "service", service: "web" }, SECRET, {
+    algorithm: "HS256",
+    expiresIn: "5m",
+  });
+}
+
+function createUserToken(email = "test@test.com"): string {
   return jwt.sign({ role: "authenticated", email }, SECRET, {
     algorithm: "HS256",
     expiresIn: "1h",
   });
 }
 
-function authHeaders(email?: string): HeadersInit {
-  return { Authorization: `Bearer ${createAuthToken(email)}` };
+function serviceHeaders(): HeadersInit {
+  return { Authorization: `Bearer ${createServiceToken()}` };
+}
+
+function userHeaders(email?: string): HeadersInit {
+  return { Authorization: `Bearer ${createUserToken(email)}` };
 }
 
 async function createTestImageBuffer(): Promise<Buffer> {
@@ -128,11 +139,24 @@ describe("handleUpload", () => {
     expect(body.error).toBe("Unauthorized");
   });
 
+  it("accepts user tokens for upload", async () => {
+    const formData = new FormData();
+    const request = new Request("http://localhost/upload", {
+      method: "POST",
+      headers: userHeaders(),
+      body: formData,
+    });
+
+    const response = await handleUpload(request, mockLogger);
+    // 400 (no file), not 401 — proves auth passed
+    expect(response.status).toBe(400);
+  });
+
   it("returns 400 when no file is provided", async () => {
     const formData = new FormData();
     const request = new Request("http://localhost/upload", {
       method: "POST",
-      headers: authHeaders(),
+      headers: userHeaders(),
       body: formData,
     });
 
@@ -150,7 +174,7 @@ describe("handleUpload", () => {
 
     const request = new Request("http://localhost/upload", {
       method: "POST",
-      headers: authHeaders(),
+      headers: userHeaders(),
       body: formData,
     });
 
@@ -167,7 +191,7 @@ describe("handleUpload", () => {
 
     const request = new Request("http://localhost/upload", {
       method: "POST",
-      headers: authHeaders(),
+      headers: userHeaders(),
       body: formData,
     });
 
@@ -186,7 +210,7 @@ describe("handleUpload", () => {
 
     const request = new Request("http://localhost/upload", {
       method: "POST",
-      headers: authHeaders(),
+      headers: userHeaders(),
       body: formData,
     });
 
@@ -212,7 +236,7 @@ describe("handleUpload", () => {
 
     const request = new Request("http://localhost/upload", {
       method: "POST",
-      headers: authHeaders(),
+      headers: userHeaders(),
       body: formData,
     });
 
@@ -380,10 +404,20 @@ describe("handleDelete", () => {
     expect(body.error).toBe("Unauthorized");
   });
 
+  it("returns 401 with user token (requires service token)", async () => {
+    const request = new Request("http://localhost/images/some-id", {
+      method: "DELETE",
+      headers: userHeaders(),
+    });
+
+    const response = await handleDelete(request, "some-id", mockLogger);
+    expect(response.status).toBe(401);
+  });
+
   it("returns 400 for directory traversal imageId", async () => {
     const request = new Request("http://localhost/images/../etc", {
       method: "DELETE",
-      headers: authHeaders(),
+      headers: serviceHeaders(),
     });
 
     const response = await handleDelete(request, "../etc", mockLogger);
@@ -396,7 +430,7 @@ describe("handleDelete", () => {
   it("returns 400 for empty imageId", async () => {
     const request = new Request("http://localhost/images/", {
       method: "DELETE",
-      headers: authHeaders(),
+      headers: serviceHeaders(),
     });
 
     const response = await handleDelete(request, "", mockLogger);
@@ -415,7 +449,7 @@ describe("handleDelete", () => {
 
     const request = new Request(`http://localhost/images/${imageId}`, {
       method: "DELETE",
-      headers: authHeaders(),
+      headers: serviceHeaders(),
     });
 
     const response = await handleDelete(request, imageId, mockLogger);
@@ -431,7 +465,7 @@ describe("handleDelete", () => {
       "http://localhost/images/non-existent-image-id",
       {
         method: "DELETE",
-        headers: authHeaders(),
+        headers: serviceHeaders(),
       },
     );
 
@@ -450,7 +484,7 @@ describe("handleDelete", () => {
     const imageId = "log-delete-test";
     const request = new Request(`http://localhost/images/${imageId}`, {
       method: "DELETE",
-      headers: authHeaders(),
+      headers: serviceHeaders(),
     });
 
     await handleDelete(request, imageId, mockLogger);
