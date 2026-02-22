@@ -104,6 +104,9 @@ const connect = async () => {
       await verifyTransport(transporter);
       logger.info("SMTP connection verified");
     } catch (smtpError) {
+      if (process.env.NODE_ENV === "production") {
+        throw smtpError;
+      }
       logger.warn(
         { err: smtpError },
         "SMTP connection failed — emails will not be sent until the SMTP server is available"
