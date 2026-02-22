@@ -103,7 +103,7 @@ describe("Shopping List Scaling Behavior", () => {
       p_cook_time: 20,
       p_cuisine: "Swedish",
       p_image: null,
-      p_thumbnail: null,
+
       p_categories: ["Test"],
       p_ingredients: uniqueIngredients,
       p_instructions: [{ step: "Mix everything." }],
@@ -495,7 +495,7 @@ describe("Shopping List Scaling Behavior", () => {
         p_cook_time: 20,
         p_cuisine: "Swedish",
         p_image: null,
-        p_thumbnail: null,
+  
         p_categories: ["Test"],
         // Use "Salt" which maps to saltFoodId (created in beforeAll)
         p_ingredients: [{ name: "Salt", quantity: "2", measurement: "tsk" }],

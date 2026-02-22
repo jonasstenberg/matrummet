@@ -114,7 +114,7 @@ describe("Recipe Matching Behavior", () => {
       p_cook_time: 20,
       p_cuisine: "Swedish",
       p_image: null,
-      p_thumbnail: null,
+
       p_categories: ["Test"],
       p_ingredients: foods.map((food) => ({
         name: food.name,
@@ -555,7 +555,7 @@ describe("Recipe Matching Behavior", () => {
         p_cook_time: 20,
         p_cuisine: "Swedish",
         p_image: null,
-        p_thumbnail: null,
+  
         p_categories: ["Test"],
         p_ingredients: [{ name: "Something", quantity: "1", measurement: "st" }],
         p_instructions: [{ step: "Do something." }],
