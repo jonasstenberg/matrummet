@@ -36,6 +36,9 @@ export async function uploadImageBuffer(
   return data.filename
 }
 
+// Note: Image cleanup is now handled automatically by a database trigger when
+// recipes are deleted or when their image is replaced. This function is kept as
+// a belt-and-suspenders fallback but should rarely be needed in practice.
 export async function deleteImageFromService(
   imageId: string
 ): Promise<void> {

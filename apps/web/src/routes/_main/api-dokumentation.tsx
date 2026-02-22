@@ -281,13 +281,13 @@ function ApiDokumentationPage() {
                         name: 'p_image',
                         type: 'text',
                         required: 'nej',
-                        description: 'Bildsökväg',
+                        description: 'Bild-ID från /upload (UUID)',
                       },
                       {
                         name: 'p_thumbnail',
                         type: 'text',
                         required: 'nej',
-                        description: 'Miniatyrsökväg',
+                        description: 'Miniatyr-ID från /upload (UUID, kan vara samma som p_image)',
                       },
                     ]}
                   />
@@ -455,6 +455,134 @@ function ApiDokumentationPage() {
                     ]}
                   />
                 </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Images */}
+          <section>
+            <h2 className="text-xl font-semibold text-foreground mb-4">
+              Bilder
+            </h2>
+            <p className="mb-4">
+              Bilder hanteras av en separat bildtjänst på{' '}
+              <Code>api.matrummet.se</Code>. Ladda upp en bild, få tillbaka
+              ett UUID, och koppla det till ett recept via{' '}
+              <Code>p_image</Code> / <Code>p_thumbnail</Code>.
+            </p>
+
+            <div className="space-y-8">
+              <Endpoint name="POST /upload">
+                <p className="mb-3">
+                  Ladda upp en bild. Returnerar ett UUID som identifierar
+                  bilden. Tjänsten genererar automatiskt fem storlekar (thumb,
+                  small, medium, large, full) i WebP-format.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/upload \\
+  -H "x-api-key: sk_DIN_NYCKEL" \\
+  -F "file=@min-bild.jpg"`}</CodeBlock>
+                <CodeBlock title="svar">{`{"filename": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"}`}</CodeBlock>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Max filstorlek: 20 MB. Godkända format: JPEG, PNG, WebP och
+                  andra vanliga bildformat.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="GET /images/:id/:size">
+                <p className="mb-3">
+                  Hämta en bild i en specifik storlek. Storleken kan utelämnas
+                  (standard: <Code>full</Code>).
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/images/BILD_UUID/thumb -o thumb.webp`}</CodeBlock>
+                <div className="mt-3">
+                  <ParamTable
+                    params={[
+                      {
+                        name: 'thumb',
+                        type: '320x240',
+                        required: '',
+                        description: 'Miniatyrbild för listor och kort',
+                      },
+                      {
+                        name: 'small',
+                        type: '640x480',
+                        required: '',
+                        description: 'Liten bild för mobilvyer',
+                      },
+                      {
+                        name: 'medium',
+                        type: '960x720',
+                        required: '',
+                        description: 'Mellanstor bild för receptsidor',
+                      },
+                      {
+                        name: 'large',
+                        type: '1280x960',
+                        required: '',
+                        description: 'Stor bild för desktop',
+                      },
+                      {
+                        name: 'full',
+                        type: '1920x1440',
+                        required: 'standard',
+                        description: 'Originalbild i full upplösning',
+                      },
+                    ]}
+                  />
+                </div>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Bildvisning kräver ingen autentisering. Alla bilder serveras
+                  som <Code>image/webp</Code> med lång cache och ETag-stöd.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="DELETE /images/:id">
+                <p className="mb-3">
+                  Radera en bild och alla dess storlekar. Kräver en
+                  intern service-token och är inte tillgänglig via API-nyckel.
+                </p>
+                <p className="mb-3">
+                  Bilder rensas automatiskt via en databasutlösare (trigger) när
+                  ett recept raderas eller när bilden byts ut. Du behöver inte
+                  radera bilder manuellt när du använder API:et.
+                </p>
+                <p className="text-sm text-foreground/60">
+                  Operationen är idempotent — att radera en redan raderad bild
+                  returnerar fortfarande <Code>{`{"success": true}`}</Code>.
+                </p>
+              </Endpoint>
+
+              <div>
+                <h3 className="text-lg font-medium text-foreground mb-2">
+                  Koppla bild till recept
+                </h3>
+                <p className="mb-3">
+                  Använd UUID:t från uppladdningen som{' '}
+                  <Code>p_image</Code> och/eller <Code>p_thumbnail</Code>{' '}
+                  vid <Code>insert_recipe</Code> eller{' '}
+                  <Code>update_recipe</Code>:
+                </p>
+                <CodeBlock title="bash">{`# 1. Ladda upp bilden
+BILD_ID=$(curl -s https://api.matrummet.se/upload \\
+  -H "x-api-key: sk_DIN_NYCKEL" \\
+  -F "file=@pasta.jpg" | jq -r '.filename')
+
+# 2. Skapa recept med bilden
+curl -s https://api.matrummet.se/rpc/insert_recipe \\
+  -H "x-api-key: sk_DIN_NYCKEL" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "p_name": "Pasta Carbonara",
+    "p_image": "'$BILD_ID'",
+    "p_thumbnail": "'$BILD_ID'",
+    ...
+  }'`}</CodeBlock>
+                <p className="mt-3 text-sm text-foreground/60">
+                  Bilder rensas automatiskt när ett recept raderas eller när
+                  bilden ersätts — du behöver aldrig radera bilder manuellt.
+                  Vid kopiering (<Code>copy_recipe</Code>) delas samma bild och
+                  den raderas först när inget recept längre refererar till den.
+                </p>
               </div>
             </div>
           </section>
@@ -896,7 +1024,7 @@ curl -s "https://api.matrummet.se/user_recipes?select=id,name,categories&limit=5
         </div>
 
         <p className="text-sm text-muted-foreground mt-10">
-          Senast uppdaterad: 20 februari 2026
+          Senast uppdaterad: 22 februari 2026
         </p>
       </article>
     </div>
