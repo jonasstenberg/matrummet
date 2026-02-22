@@ -531,7 +531,7 @@ jobs:
       - name: Deploy nginx config
         run: |
           scp infra/nginx/production.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/etc/nginx/sites-enabled/recept
-          scp infra/nginx/api.matrummet.se.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/etc/nginx/sites-enabled/api.matrummet.se
+          scp infra/nginx/api.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/etc/nginx/sites-enabled/api.matrummet.se
           scp infra/nginx/proxy-cache.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/etc/nginx/conf.d/proxy-cache.conf
 
       - name: Test and reload nginx
