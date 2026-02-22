@@ -401,13 +401,46 @@ jobs:
 
           echo "Migrations deployed successfully"
 
+  deploy-postgrest:
+    needs: [setup, test, api-tests, deploy-migrations]
+    if: always() && (needs.setup.outputs.deploy_postgrest == 'true' || needs.setup.outputs.run_migrations == 'true') && (needs.test.result == 'success' || needs.test.result == 'skipped') && (needs.api-tests.result == 'success' || needs.api-tests.result == 'skipped') && (needs.deploy-migrations.result == 'success' || needs.deploy-migrations.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy PostgREST config
+        if: needs.setup.outputs.deploy_postgrest == 'true'
+        env:
+          POSTGREST_DB_PASSWORD: ${{ secrets.POSTGREST_DB_PASSWORD }}
+          POSTGREST_JWT_SECRET: ${{ secrets.POSTGREST_JWT_SECRET }}
+        run: |
+          REMOTE="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          STAGING="/tmp/postgrest-deploy"
+          envsubst '${POSTGREST_DB_PASSWORD} ${POSTGREST_JWT_SECRET}' < infra/postgrest/matrummet.conf > /tmp/matrummet.conf
+          ssh $REMOTE "mkdir -p $STAGING"
+          scp /tmp/matrummet.conf $REMOTE:$STAGING/matrummet.conf
+          ssh $REMOTE "
+            sudo cp $STAGING/matrummet.conf /etc/postgrest/matrummet.conf &&
+            sudo chown postgres:postgres /etc/postgrest/matrummet.conf &&
+            sudo chmod 600 /etc/postgrest/matrummet.conf &&
+            rm -rf $STAGING
+          "
+
       - name: Restart PostgREST
         run: |
           ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'sudo systemctl restart ${{ vars.SERVICE_POSTGREST }}'
 
   deploy-services:
-    needs: [setup, test, api-tests, deploy-migrations]
-    if: always() && (needs.setup.outputs.deploy_frontend == 'true' || needs.setup.outputs.deploy_email_service == 'true' || needs.setup.outputs.deploy_events_service == 'true' || needs.setup.outputs.deploy_image_service == 'true') && (needs.test.result == 'success' || needs.test.result == 'skipped') && (needs.api-tests.result == 'success' || needs.api-tests.result == 'skipped') && (needs.deploy-migrations.result == 'success' || needs.deploy-migrations.result == 'skipped')
+    needs: [setup, test, api-tests, deploy-migrations, deploy-postgrest, deploy-nginx]
+    if: always() && (needs.setup.outputs.deploy_frontend == 'true' || needs.setup.outputs.deploy_email_service == 'true' || needs.setup.outputs.deploy_events_service == 'true' || needs.setup.outputs.deploy_image_service == 'true') && (needs.test.result == 'success' || needs.test.result == 'skipped') && (needs.api-tests.result == 'success' || needs.api-tests.result == 'skipped') && (needs.deploy-migrations.result == 'success' || needs.deploy-migrations.result == 'skipped') && (needs.deploy-postgrest.result == 'success' || needs.deploy-postgrest.result == 'skipped') && (needs.deploy-nginx.result == 'success' || needs.deploy-nginx.result == 'skipped')
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -542,36 +575,6 @@ jobs:
         if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'image-service'
         run: |
           ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'sudo systemctl restart ${{ vars.SERVICE_IMAGE }}'
-
-  deploy-postgrest:
-    needs: [setup]
-    if: needs.setup.outputs.deploy_postgrest == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
-
-      - name: Deploy PostgREST config
-        env:
-          POSTGREST_DB_PASSWORD: ${{ secrets.POSTGREST_DB_PASSWORD }}
-          POSTGREST_JWT_SECRET: ${{ secrets.POSTGREST_JWT_SECRET }}
-        run: |
-          envsubst '${POSTGREST_DB_PASSWORD} ${POSTGREST_JWT_SECRET}' < infra/postgrest/matrummet.conf > /tmp/matrummet.conf
-          scp /tmp/matrummet.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/tmp/postgrest-matrummet.conf
-          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
-            sudo cp /tmp/postgrest-matrummet.conf /etc/postgrest/matrummet.conf &&
-            sudo chown postgres:postgres /etc/postgrest/matrummet.conf &&
-            sudo chmod 600 /etc/postgrest/matrummet.conf &&
-            rm /tmp/postgrest-matrummet.conf &&
-            sudo systemctl restart ${{ vars.SERVICE_POSTGREST }}
-          '
 
   deploy-nginx:
     needs: [setup, test, api-tests]
