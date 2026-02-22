@@ -11,17 +11,21 @@ interface ShoppingListItemProps {
   item: ShoppingListItemType
   pantryMap?: Record<string, string | null>
   homeId?: string
+  onToggle?: (itemId: string, newCheckedState: boolean) => void
 }
 
-export function ShoppingListItem({ item, pantryMap, homeId }: ShoppingListItemProps) {
+export function ShoppingListItem({ item, pantryMap, homeId, onToggle }: ShoppingListItemProps) {
   const [optimisticChecked, setOptimisticChecked] = useOptimistic(item.is_checked)
   const [isPending, startTransition] = useTransition()
   const [pantryExpanded, setPantryExpanded] = useState(false)
   const [pantryDate, setPantryDate] = useState<string | null>(null)
 
   function handleToggle() {
+    const newCheckedState = !optimisticChecked
+    // Notify parent immediately for optimistic list movement
+    onToggle?.(item.id, newCheckedState)
     startTransition(async () => {
-      setOptimisticChecked(!optimisticChecked)
+      setOptimisticChecked(newCheckedState)
       await toggleShoppingListItem(item.id, homeId)
     })
   }
