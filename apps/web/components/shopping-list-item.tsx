@@ -1,7 +1,6 @@
 
-import { useState, useOptimistic, useTransition } from 'react'
+import { useState } from 'react'
 import { Checkbox } from '@/components/ui/checkbox'
-import { toggleShoppingListItem } from '@/lib/actions'
 import { addToPantry } from '@/lib/ingredient-search-actions'
 import { cn } from '@/lib/utils'
 import { PackagePlus, X } from '@/lib/icons'
@@ -9,22 +8,16 @@ import type { ShoppingListItem as ShoppingListItemType } from '@/lib/types'
 
 interface ShoppingListItemProps {
   item: ShoppingListItemType
+  checked: boolean
+  toggling: boolean
+  onToggle: () => void
   pantryMap?: Record<string, string | null>
   homeId?: string
 }
 
-export function ShoppingListItem({ item, pantryMap, homeId }: ShoppingListItemProps) {
-  const [optimisticChecked, setOptimisticChecked] = useOptimistic(item.is_checked)
-  const [isPending, startTransition] = useTransition()
+export function ShoppingListItem({ item, checked, toggling, onToggle, pantryMap, homeId }: ShoppingListItemProps) {
   const [pantryExpanded, setPantryExpanded] = useState(false)
   const [pantryDate, setPantryDate] = useState<string | null>(null)
-
-  function handleToggle() {
-    startTransition(async () => {
-      setOptimisticChecked(!optimisticChecked)
-      await toggleShoppingListItem(item.id, homeId)
-    })
-  }
 
   function handleAddToPantry(expiresAt?: string) {
     if (!item.food_id) return
@@ -48,23 +41,23 @@ export function ShoppingListItem({ item, pantryMap, homeId }: ShoppingListItemPr
   const serverDate = item.food_id ? pantryMap?.[item.food_id] : undefined
   const inPantry = pantryDate !== null || serverDate !== undefined
   const displayDate = pantryDate ?? serverDate
-  const hasPantryAction = optimisticChecked && item.food_id
+  const hasPantryAction = checked && item.food_id
 
   return (
     <div>
       <label
         className={cn(
           'flex cursor-pointer items-center gap-4 px-5 py-3.5 transition-colors',
-          optimisticChecked ? 'bg-muted/20' : 'hover:bg-muted/30',
-          isPending && 'opacity-60'
+          checked ? 'bg-muted/20' : 'hover:bg-muted/30',
+          toggling && 'opacity-60'
         )}
       >
         <Checkbox
-          checked={optimisticChecked}
-          onCheckedChange={handleToggle}
-          disabled={isPending}
+          checked={checked}
+          onCheckedChange={onToggle}
+          disabled={toggling}
           className="h-[22px] w-[22px] shrink-0 rounded-full"
-          aria-label={optimisticChecked ? 'Markera som ej köpt' : 'Markera som köpt'}
+          aria-label={checked ? 'Markera som ej köpt' : 'Markera som köpt'}
         />
 
         <div className="flex-1 min-w-0">
@@ -72,7 +65,7 @@ export function ShoppingListItem({ item, pantryMap, homeId }: ShoppingListItemPr
             <span
               className={cn(
                 'text-[15px] font-medium transition-all',
-                optimisticChecked && 'text-muted-foreground line-through'
+                checked && 'text-muted-foreground line-through'
               )}
             >
               {item.item_name}
@@ -81,7 +74,7 @@ export function ShoppingListItem({ item, pantryMap, homeId }: ShoppingListItemPr
               <span
                 className={cn(
                   'text-sm text-muted-foreground transition-all',
-                  optimisticChecked && 'line-through opacity-60'
+                  checked && 'line-through opacity-60'
                 )}
               >
                 {quantityUnit}
@@ -93,7 +86,7 @@ export function ShoppingListItem({ item, pantryMap, homeId }: ShoppingListItemPr
             <p
               className={cn(
                 'mt-0.5 text-xs text-muted-foreground/60 truncate',
-                optimisticChecked && 'opacity-50'
+                checked && 'opacity-50'
               )}
             >
               {item.source_recipes.join(', ')}
