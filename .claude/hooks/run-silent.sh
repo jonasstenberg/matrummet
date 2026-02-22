@@ -17,8 +17,10 @@ else
     exit_code=$?
     error_output=$(cat "$tmp_file")
     rm -f "$tmp_file"
-    # Truncate error output for JSON
-    truncated=$(echo "$error_output" | head -50 | tr '\n' ' ' | cut -c1-500)
-    echo '{"decision": "block", "reason": "✗ '"$description"': '"$truncated"'"}'
+    # Strip ANSI codes, take the tail (failure summary), truncate, and JSON-escape
+    cleaned=$(echo "$error_output" | sed 's/\x1b\[[0-9;]*m//g' | tail -40 | tr '\n' ' ' | sed 's/  */ /g' | cut -c1-800)
+    escaped=$(echo "$cleaned" | jq -Rsa '.')
+    escaped=${escaped:1:${#escaped}-2}
+    echo '{"decision": "block", "reason": "✗ '"$description"': '"$escaped"'"}'
     exit 2
 fi
