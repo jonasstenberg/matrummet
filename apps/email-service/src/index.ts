@@ -100,8 +100,15 @@ const connect = async () => {
       await notificationClient.query(`LISTEN ${channel}`);
     }
 
-    await verifyTransport(transporter);
-    logger.info("SMTP connection verified");
+    try {
+      await verifyTransport(transporter);
+      logger.info("SMTP connection verified");
+    } catch (smtpError) {
+      logger.warn(
+        { err: smtpError },
+        "SMTP connection failed — emails will not be sent until the SMTP server is available"
+      );
+    }
     await logInitialQueueState();
 
     const seenNotifications = new Set<string>();
