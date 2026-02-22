@@ -121,7 +121,7 @@ describe("Food Alias Behavior", () => {
       p_cook_time: 20,
       p_cuisine: "Swedish",
       p_image: null,
-      p_thumbnail: null,
+
       p_categories: ["Test"],
       p_ingredients: foods.map((food) => ({
         name: food.name,

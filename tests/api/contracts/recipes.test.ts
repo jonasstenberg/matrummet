@@ -191,7 +191,7 @@ describe("Recipe RPC Contract Tests", () => {
         p_cook_time: 30,
         p_cuisine: "Swedish",
         p_image: null,
-        p_thumbnail: null,
+
         p_categories: ["Middag"],
         p_ingredients: [
           { name: "Salt", measurement: "tsk", quantity: "1" },
@@ -221,7 +221,7 @@ describe("Recipe RPC Contract Tests", () => {
         p_cook_time: 40,
         p_cuisine: "Swedish",
         p_image: null,
-        p_thumbnail: null,
+
         p_categories: ["Middag"],
         p_ingredients: [
           { group: "Sås" },
@@ -283,7 +283,7 @@ describe("Recipe RPC Contract Tests", () => {
         p_cook_time: 20,
         p_cuisine: null,
         p_image: null,
-        p_thumbnail: null,
+
         p_categories: [],
         p_ingredients: [
           { group: "Första gruppen" },
@@ -369,7 +369,7 @@ describe("Recipe RPC Contract Tests", () => {
         p_cook_time: 20,
         p_cuisine: null,
         p_image: null,
-        p_thumbnail: null,
+
         p_categories: [],
         p_ingredients: [
           { name: "Ungrouped First", measurement: "st", quantity: "1" },
@@ -426,7 +426,7 @@ describe("Recipe RPC Contract Tests", () => {
         p_cook_time: 20,
         p_cuisine: null,
         p_image: null,
-        p_thumbnail: null,
+
         p_categories: [],
         p_ingredients: [
           { name: "Vitlök", measurement: "klyftor", quantity: "3", form: "hackad" },
@@ -474,7 +474,7 @@ describe("Recipe RPC Contract Tests", () => {
         p_cook_time: null,
         p_cuisine: null,
         p_image: null,
-        p_thumbnail: null,
+
         p_categories: [],
         p_ingredients: [],
         p_instructions: [],
@@ -498,7 +498,7 @@ describe("Recipe RPC Contract Tests", () => {
         p_cook_time: null,
         p_cuisine: null,
         p_image: null,
-        p_thumbnail: null,
+
         p_categories: tooManyCategories,
         p_ingredients: [],
         p_instructions: [],
@@ -531,7 +531,7 @@ describe("Recipe RPC Contract Tests", () => {
         p_cook_time: 45,
         p_cuisine: "Italian",
         p_image: "https://example.com/image.jpg",
-        p_thumbnail: "https://example.com/thumb.jpg",
+
         p_categories: ["Efterrätt"],
         p_ingredients: [
           { name: "Socker", measurement: "dl", quantity: "2" },
@@ -576,7 +576,7 @@ describe("Recipe RPC Contract Tests", () => {
         p_cook_time: null,
         p_cuisine: null,
         p_image: null,
-        p_thumbnail: null,
+
         p_categories: [],
         p_ingredients: [],
         p_instructions: [],
@@ -600,7 +600,7 @@ describe("Recipe RPC Contract Tests", () => {
         p_cook_time: null,
         p_cuisine: null,
         p_image: null,
-        p_thumbnail: null,
+
         p_categories: [],
         p_ingredients: [],
         p_instructions: [],
@@ -623,7 +623,7 @@ describe("Recipe RPC Contract Tests", () => {
         p_cook_time: null,
         p_cuisine: null,
         p_image: null,
-        p_thumbnail: null,
+
         p_categories: [],
         p_ingredients: [],
         p_instructions: [],
@@ -1558,7 +1558,7 @@ describe("Recipe RPC Contract Tests", () => {
         p_cook_time: null,
         p_cuisine: null,
         p_image: null,
-        p_thumbnail: null,
+
         p_categories: [],
         p_ingredients: [
           { group: "First Group" },

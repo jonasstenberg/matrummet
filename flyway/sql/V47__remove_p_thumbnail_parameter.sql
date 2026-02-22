@@ -109,6 +109,8 @@ BEGIN
     END LOOP;
   END IF;
 
+  PERFORM compute_instruction_ingredient_matches(new_recipe_id);
+
   RETURN new_recipe_id;
 END;
 $$;
@@ -242,6 +244,8 @@ BEGIN
       END IF;
     END LOOP;
   END IF;
+
+  PERFORM compute_instruction_ingredient_matches(p_recipe_id);
 END;
 $$;
 

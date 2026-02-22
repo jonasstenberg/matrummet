@@ -7,20 +7,19 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 RUN_SILENT="$SCRIPT_DIR/run-silent.sh"
+COMPOSE="docker compose -f $PROJECT_DIR/docker-compose.test.yml"
 
-# Always recreate to pick up new migrations
-docker compose -f "$PROJECT_DIR/docker-compose.test.yml" down -v 2>/dev/null || true
+# Tear down completely (containers + volumes) and rebuild from scratch
+$COMPOSE down -v --remove-orphans 2>/dev/null || true
 
-if ! docker compose -f "$PROJECT_DIR/docker-compose.test.yml" up -d --wait 2>/dev/null; then
+if ! $COMPOSE up -d --force-recreate --wait 2>/dev/null; then
   echo '{"decision":"approve","reason":"✓ API Tests (skipped, Docker not available)"}'
   exit 0
 fi
 
 # Wait for PostgREST to be reachable (up to 30s)
-for i in $(seq 1 30); do
-  if curl -sf http://localhost:4445/ > /dev/null 2>&1; then
-    break
-  fi
+for _ in $(seq 1 30); do
+  curl -sf http://localhost:4445/ > /dev/null 2>&1 && break
   sleep 1
 done
 
@@ -29,5 +28,4 @@ if ! curl -sf http://localhost:4445/ > /dev/null 2>&1; then
   exit 0
 fi
 
-# Run the API tests
 exec "$RUN_SILENT" "API Tests" "pnpm test:api"

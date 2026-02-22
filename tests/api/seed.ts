@@ -147,7 +147,6 @@ export async function createTestRecipe(
     p_cook_time: overrides?.cook_time ?? 30,
     p_cuisine: "Swedish",
     p_image: null,
-    p_thumbnail: null,
     p_categories: overrides?.categories ?? ["Middag"],
     p_ingredients: overrides?.ingredients ?? [
       { name: "Salt", measurement: "tsk", quantity: "1" },
