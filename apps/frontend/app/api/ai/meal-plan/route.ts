@@ -51,7 +51,6 @@ interface CompactRecipe {
   id: string
   name: string
   image: string | null
-  thumbnail: string | null
   categories: string[]
   prep_time: number | null
   cook_time: number | null
@@ -71,7 +70,7 @@ async function fetchUserRecipes(
   }
 
   const response = await fetch(
-    `${env.POSTGREST_URL}/user_recipes?select=id,name,image,thumbnail,categories,prep_time,cook_time,recipe_yield&order=date_modified.desc&limit=300`,
+    `${env.POSTGREST_URL}/user_recipes?select=id,name,image,categories,prep_time,cook_time,recipe_yield&order=date_modified.desc&limit=300`,
     { headers, cache: "no-store" },
   )
 
@@ -412,7 +411,6 @@ export async function POST(request: NextRequest) {
             ...entry,
             recipe_name: recipe.name,
             recipe_image: recipe.image,
-            recipe_thumbnail: recipe.thumbnail,
             recipe_prep_time: recipe.prep_time,
             recipe_cook_time: recipe.cook_time,
             recipe_yield: recipe.recipe_yield,

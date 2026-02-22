@@ -74,7 +74,6 @@ export interface MealPlanEntry {
   // Joined recipe details
   recipe_name?: string
   recipe_image?: string
-  recipe_thumbnail?: string
   recipe_prep_time?: number
   recipe_cook_time?: number
   recipe_yield?: number

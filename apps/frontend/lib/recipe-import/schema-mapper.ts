@@ -274,7 +274,6 @@ export function mapJsonLdToRecipeInput(
     recipe_yield_name: yieldData.name,
     cuisine: cuisine,
     image: imageUrl,
-    thumbnail: imageUrl, // Use same image for thumbnail
     ingredients,
     instructions,
   }

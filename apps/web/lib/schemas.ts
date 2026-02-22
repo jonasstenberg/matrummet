@@ -51,7 +51,6 @@ export const recipeInputSchema = z.object({
     .optional(),
   cuisine: z.string().trim().nullable().optional(),
   image: z.string().nullable().optional(),
-  thumbnail: z.string().nullable().optional(),
   date_published: z.string().nullable().optional(),
   categories: z.array(z.string()).optional(),
   ingredients: z

@@ -180,7 +180,6 @@ export const Route = createFileRoute('/api/admin/restructure/apply')({
             p_cook_time: recipe.cook_time,
             p_cuisine: recipe.cuisine,
             p_image: recipe.image,
-            p_thumbnail: recipe.thumbnail,
             p_categories: recipe.categories || [],
             p_ingredients: matchedIngredients,
             p_instructions: finalInstructions,

@@ -46,6 +46,79 @@ curl -s https://api.matrummet.se/rpc/current_user_info \\
 
 Returns your user info (email, name, role).
 
+## Images
+
+Images are handled by a separate image service on \`api.matrummet.se\`. Upload an image, get back a UUID, and link it to a recipe via \`p_image\`.
+
+### POST /upload
+
+Upload an image. Returns a UUID identifying the image. The service automatically generates five sizes (thumb, small, medium, large, full) in WebP format.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/upload \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -F "file=@my-image.jpg"
+\`\`\`
+
+Response:
+
+\`\`\`json
+{"filename": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"}
+\`\`\`
+
+Max file size: 20 MB. Accepted formats: JPEG, PNG, WebP, and other common image formats.
+
+### GET /images/:id/:size
+
+Fetch an image in a specific size. Size can be omitted (defaults to \`full\`).
+
+\`\`\`bash
+curl -s https://api.matrummet.se/images/IMAGE_UUID/thumb -o thumb.webp
+\`\`\`
+
+**Available sizes:**
+
+| Size | Dimensions | Use case |
+|------|-----------|----------|
+| thumb | 320x240 | Thumbnails for lists and cards |
+| small | 640x480 | Small images for mobile views |
+| medium | 960x720 | Medium images for recipe pages |
+| large | 1280x960 | Large images for desktop |
+| full | 1920x1440 | Full resolution (default) |
+
+Image serving requires no authentication. All images are served as \`image/webp\` with long cache and ETag support.
+
+### DELETE /images/:id
+
+Delete an image and all its size variants. Requires an internal service token and is **not available via API key**.
+
+Images are automatically cleaned up via a database trigger when a recipe is deleted or when its image is replaced. No manual deletion is needed when using the API.
+
+The operation is idempotent — deleting an already-deleted image returns \`{"success": true}\`.
+
+### Linking images to recipes
+
+Use the UUID from upload as \`p_image\` when calling \`insert_recipe\` or \`update_recipe\`:
+
+\`\`\`bash
+# 1. Upload the image
+IMAGE_ID=$(curl -s https://api.matrummet.se/upload \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -F "file=@pasta.jpg" | jq -r '.filename')
+
+# 2. Create recipe with image
+curl -s https://api.matrummet.se/rpc/insert_recipe \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "p_name": "Pasta Carbonara",
+    "p_image": "'$IMAGE_ID'",
+    ...
+  }'
+\`\`\`
+
+Images are automatically cleaned up when a recipe is deleted or when the image is replaced — you never need to delete images manually. When using \`copy_recipe\`, the copy shares the same image and it won't be deleted until no recipe references it.
+
 ## Recipes
 
 ### insert_recipe
@@ -94,8 +167,7 @@ curl -s https://api.matrummet.se/rpc/insert_recipe \\
 | p_ingredients | jsonb[] | yes | Ingredient objects (see data model below) |
 | p_instructions | jsonb[] | yes | Instruction objects (see data model below) |
 | p_cuisine | text | no | Cuisine type |
-| p_image | text | no | Image ID from /upload (UUID) |
-| p_thumbnail | text | no | Thumbnail ID from /upload (UUID, can be same as p_image) |
+| p_image | text | no | Image ID from /upload (UUID, see Images above) |
 
 ### update_recipe
 
@@ -203,80 +275,6 @@ curl -s https://api.matrummet.se/rpc/toggle_recipe_like \\
 | Field | Type | Description |
 |-------|------|-------------|
 | step | string | Instruction text |
-
-## Images
-
-Images are handled by a separate image service on \`api.matrummet.se\`. Upload an image, get back a UUID, and link it to a recipe via \`p_image\` / \`p_thumbnail\`.
-
-### POST /upload
-
-Upload an image. Returns a UUID identifying the image. The service automatically generates five sizes (thumb, small, medium, large, full) in WebP format.
-
-\`\`\`bash
-curl -s https://api.matrummet.se/upload \\
-  -H "x-api-key: sk_YOUR_KEY" \\
-  -F "file=@my-image.jpg"
-\`\`\`
-
-Response:
-
-\`\`\`json
-{"filename": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"}
-\`\`\`
-
-Max file size: 20 MB. Accepted formats: JPEG, PNG, WebP, and other common image formats.
-
-### GET /images/:id/:size
-
-Fetch an image in a specific size. Size can be omitted (defaults to \`full\`).
-
-\`\`\`bash
-curl -s https://api.matrummet.se/images/IMAGE_UUID/thumb -o thumb.webp
-\`\`\`
-
-**Available sizes:**
-
-| Size | Dimensions | Use case |
-|------|-----------|----------|
-| thumb | 320x240 | Thumbnails for lists and cards |
-| small | 640x480 | Small images for mobile views |
-| medium | 960x720 | Medium images for recipe pages |
-| large | 1280x960 | Large images for desktop |
-| full | 1920x1440 | Full resolution (default) |
-
-Image serving requires no authentication. All images are served as \`image/webp\` with long cache and ETag support.
-
-### DELETE /images/:id
-
-Delete an image and all its size variants. Requires an internal service token and is **not available via API key**.
-
-Images are automatically cleaned up via a database trigger when a recipe is deleted or when its image is replaced. No manual deletion is needed when using the API.
-
-The operation is idempotent — deleting an already-deleted image returns \`{"success": true}\`.
-
-### Linking images to recipes
-
-Use the UUID from upload as \`p_image\` and/or \`p_thumbnail\` when calling \`insert_recipe\` or \`update_recipe\`:
-
-\`\`\`bash
-# 1. Upload the image
-IMAGE_ID=$(curl -s https://api.matrummet.se/upload \\
-  -H "x-api-key: sk_YOUR_KEY" \\
-  -F "file=@pasta.jpg" | jq -r '.filename')
-
-# 2. Create recipe with image
-curl -s https://api.matrummet.se/rpc/insert_recipe \\
-  -H "x-api-key: sk_YOUR_KEY" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "p_name": "Pasta Carbonara",
-    "p_image": "'$IMAGE_ID'",
-    "p_thumbnail": "'$IMAGE_ID'",
-    ...
-  }'
-\`\`\`
-
-Images are automatically cleaned up when a recipe is deleted or when the image is replaced — you never need to delete images manually. When using \`copy_recipe\`, the copy shares the same image and it won't be deleted until no recipe references it.
 
 ## Search Helpers
 

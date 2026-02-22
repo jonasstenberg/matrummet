@@ -196,7 +196,6 @@ export function RecipeForm({
       cook_time: formValues.cookTime.trim() ? parseInt(formValues.cookTime.trim(), 10) : null,
       cuisine: formValues.cuisine.trim() || null,
       image: finalImage,
-      thumbnail: finalImage,
       categories: formValues.categories,
       ingredients: transformedIngredients,
       instructions: transformedInstructions,

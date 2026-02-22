@@ -87,7 +87,6 @@ const getMealPlanFn = createServerFn({ method: 'GET' })
         recipe?: {
           name: string
           image: string | null
-          thumbnail: string | null
           prep_time: number | null
           cook_time: number | null
           recipe_yield: number | null
@@ -109,7 +108,6 @@ const getMealPlanFn = createServerFn({ method: 'GET' })
           sort_order: e.sort_order,
           recipe_name: e.recipe?.name,
           recipe_image: e.recipe?.image,
-          recipe_thumbnail: e.recipe?.thumbnail,
           recipe_prep_time: e.recipe?.prep_time,
           recipe_cook_time: e.recipe?.cook_time,
           recipe_yield: e.recipe?.recipe_yield,
