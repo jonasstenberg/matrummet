@@ -94,7 +94,7 @@ const createApiKeyFn = createServerFn({ method: 'POST' })
 
       return {
         apiKey: result.api_key,
-        prefix: result.prefix,
+        prefix: result.api_key_prefix,
         id: result.id,
       }
     } catch (error) {
