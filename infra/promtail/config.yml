@@ -1,0 +1,70 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /var/lib/promtail/positions.yaml
+
+clients:
+  - url: http://localhost:3100/loki/api/v1/push
+
+scrape_configs:
+  # Systemd journal for app services
+  - job_name: journal
+    journal:
+      max_age: 12h
+      labels:
+        job: systemd-journal
+      path: /var/log/journal
+    relabel_configs:
+      # Keep only specific units
+      - source_labels: ['__journal__systemd_unit']
+        regex: '(nginx|demo\.foreningo-.*|tomrummet-.*|postgrest.*|postgresql@15-main|systemnytt-api|matrummet.*)\.service'
+        action: keep
+      # Add unit name as label
+      - source_labels: ['__journal__systemd_unit']
+        target_label: unit
+      # Add hostname
+      - source_labels: ['__journal__hostname']
+        target_label: host
+      # Add priority/level (default from journal)
+      - source_labels: ['__journal_priority_keyword']
+        target_label: level
+    pipeline_stages:
+      # Extract Pino JSON level for matrummet Node.js services
+      - match:
+          selector: '{unit=~"matrummet.service|matrummet-email.service|matrummet-events.service|matrummet-image.service"}'
+          stages:
+            - json:
+                expressions:
+                  level: level
+                  module: module
+            - labels:
+                level:
+                module:
+
+  # Nginx access logs
+  - job_name: nginx-access
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: nginx
+          type: access
+          __path__: /var/log/nginx/access.log
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<remote_addr>[\w\.]+) - (?P<remote_user>[^ ]*) \[(?P<time_local>[^\]]+)\] "(?P<method>\w+) (?P<request>[^ ]+) [^"]+" (?P<status>\d+) (?P<body_bytes_sent>\d+) "(?P<http_referer>[^"]*)" "(?P<http_user_agent>[^"]*)"'
+      - labels:
+          status:
+          method:
+
+  # Nginx error logs
+  - job_name: nginx-error
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: nginx
+          type: error
+          __path__: /var/log/nginx/error.log
