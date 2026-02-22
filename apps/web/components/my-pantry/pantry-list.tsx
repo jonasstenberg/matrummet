@@ -4,6 +4,7 @@ import { X, Search, ChevronLeft, ChevronRight, CalendarDays } from '@/lib/icons'
 import type { PantryItem } from '@/lib/ingredient-search-types'
 import { cn } from '@/lib/utils'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
+import { useIsTouchDevice } from '@/lib/hooks/use-media-query'
 
 interface PantryListProps {
   items: PantryItem[]
@@ -21,9 +22,11 @@ function formatDate(dateStr: string): string {
 function ExpiryEditor({
   item,
   onUpdateExpiry,
+  isTouchDevice,
 }: {
   item: PantryItem
   onUpdateExpiry: (foodId: string, expiresAt: string | null) => void
+  isTouchDevice: boolean
 }) {
   const [open, setOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -51,8 +54,11 @@ function ExpiryEditor({
               'bg-muted text-muted-foreground hover:bg-muted/80',
             hasExpiry && isExpired &&
               'bg-destructive/10 text-destructive hover:bg-destructive/20',
-            !hasExpiry &&
-              'text-muted-foreground/40 opacity-0 group-hover:opacity-100 hover:bg-muted'
+            !hasExpiry && (
+              isTouchDevice
+                ? 'text-muted-foreground/40 opacity-100 hover:bg-muted'
+                : 'text-muted-foreground/40 opacity-0 group-hover:opacity-100 hover:bg-muted'
+            )
           )}
           aria-label={hasExpiry ? `Utgångsdatum: ${item.expires_at}` : 'Sätt utgångsdatum'}
         >
@@ -93,6 +99,7 @@ function ExpiryEditor({
 export function PantryList({ items, onRemoveItem, onUpdateExpiry }: PantryListProps) {
   const [filterValue, setFilterValue] = useState('')
   const [page, setPage] = useState(0)
+  const isTouchDevice = useIsTouchDevice()
 
   const filteredItems = useMemo(() => {
     if (!filterValue) return items
@@ -147,11 +154,14 @@ export function PantryList({ items, onRemoveItem, onUpdateExpiry }: PantryListPr
               <span className="flex-1 min-w-0 text-[15px] font-medium truncate">
                 {item.food_name}
               </span>
-              <ExpiryEditor item={item} onUpdateExpiry={onUpdateExpiry} />
+              <ExpiryEditor item={item} onUpdateExpiry={onUpdateExpiry} isTouchDevice={isTouchDevice} />
               <button
                 type="button"
                 onClick={() => onRemoveItem(item.food_id)}
-                className="shrink-0 rounded-full p-1.5 opacity-0 text-muted-foreground transition-all group-hover:opacity-100 hover:text-destructive hover:bg-destructive/10"
+                className={cn(
+                  'shrink-0 rounded-full p-1.5 text-muted-foreground transition-all hover:text-destructive hover:bg-destructive/10',
+                  isTouchDevice ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                )}
                 aria-label={`Ta bort ${item.food_name}`}
               >
                 <X className="h-4 w-4" />
