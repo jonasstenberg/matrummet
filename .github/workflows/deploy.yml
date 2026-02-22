@@ -600,14 +600,27 @@ jobs:
           scp infra/nginx/production.conf $REMOTE:$STAGING/recept
           scp infra/nginx/api.conf $REMOTE:$STAGING/api.matrummet.se
           scp infra/nginx/proxy-cache.conf $REMOTE:$STAGING/proxy-cache.conf
-          ssh $REMOTE "
-            sudo cp $STAGING/matrummet-locations.conf /etc/nginx/snippets/matrummet-locations.conf &&
-            sudo cp $STAGING/recept /etc/nginx/sites-enabled/recept &&
-            sudo cp $STAGING/api.matrummet.se /etc/nginx/sites-enabled/api.matrummet.se &&
-            sudo cp $STAGING/proxy-cache.conf /etc/nginx/conf.d/proxy-cache.conf &&
-            rm -rf $STAGING &&
-            sudo nginx -t && sudo systemctl reload nginx
-          "
+          CHANGED=$(ssh $REMOTE "
+            changed=false
+            diff -q $STAGING/matrummet-locations.conf /etc/nginx/snippets/matrummet-locations.conf >/dev/null 2>&1 || changed=true
+            diff -q $STAGING/recept /etc/nginx/sites-enabled/recept >/dev/null 2>&1 || changed=true
+            diff -q $STAGING/api.matrummet.se /etc/nginx/sites-enabled/api.matrummet.se >/dev/null 2>&1 || changed=true
+            diff -q $STAGING/proxy-cache.conf /etc/nginx/conf.d/proxy-cache.conf >/dev/null 2>&1 || changed=true
+            echo \$changed
+          ")
+          if [[ "$CHANGED" == "true" ]]; then
+            echo "Nginx config changed, deploying and reloading"
+            ssh $REMOTE "
+              sudo cp $STAGING/matrummet-locations.conf /etc/nginx/snippets/matrummet-locations.conf &&
+              sudo cp $STAGING/recept /etc/nginx/sites-enabled/recept &&
+              sudo cp $STAGING/api.matrummet.se /etc/nginx/sites-enabled/api.matrummet.se &&
+              sudo cp $STAGING/proxy-cache.conf /etc/nginx/conf.d/proxy-cache.conf &&
+              sudo nginx -t && sudo systemctl reload nginx
+            "
+          else
+            echo "Nginx config unchanged, skipping reload"
+          fi
+          ssh $REMOTE "rm -rf $STAGING"
 
   notify:
     needs: [setup, test, api-tests, deploy-migrations, deploy-services, deploy-postgrest, deploy-nginx]
