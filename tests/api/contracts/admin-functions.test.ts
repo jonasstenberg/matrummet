@@ -12,6 +12,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import {
   createAnonymousClient,
   createAuthenticatedClient,
+  createAdminClient,
   setupTestHooks,
   TEST_USERS,
   type PostgrestClient,
@@ -23,11 +24,13 @@ describe("Admin Function Access Control", () => {
 
   let anonClient: PostgrestClient;
   let authClient: PostgrestClient;
+  let adminClient: PostgrestClient;
 
   beforeAll(async () => {
     anonClient = createAnonymousClient();
     await createTestUser(TEST_USERS.userA);
     authClient = await createAuthenticatedClient(TEST_USERS.userA.email);
+    adminClient = await createAdminClient(TEST_USERS.admin.email);
   });
 
   afterAll(async () => {
@@ -168,6 +171,116 @@ describe("Admin Function Access Control", () => {
 
       expect(result.error).not.toBeNull();
       expect(result.error?.message).toContain("permission denied");
+    });
+  });
+
+  // ==========================================================================
+  // Recipe admin functions (V49)
+  // ==========================================================================
+  describe("Recipe admin functions blocked for anon", () => {
+    it("anon cannot call admin_count_recipes", async () => {
+      const result = await anonClient.rpc("admin_count_recipes", {
+        p_search: null,
+        p_owner: null,
+      });
+
+      expect(result.error).not.toBeNull();
+      expect(result.error?.message).toContain("permission denied");
+    });
+
+    it("anon cannot call admin_list_recipes", async () => {
+      const result = await anonClient.rpc("admin_list_recipes", {
+        p_search: null,
+        p_owner: null,
+        p_limit: 10,
+        p_offset: 0,
+        p_sort_by: "date_published",
+        p_sort_dir: "desc",
+      });
+
+      expect(result.error).not.toBeNull();
+      expect(result.error?.message).toContain("permission denied");
+    });
+
+    it("anon cannot call admin_get_recipe_owner", async () => {
+      const result = await anonClient.rpc("admin_get_recipe_owner", {
+        p_id: "00000000-0000-0000-0000-000000000000",
+      });
+
+      expect(result.error).not.toBeNull();
+      expect(result.error?.message).toContain("permission denied");
+    });
+  });
+
+  describe("Recipe admin functions blocked for authenticated (non-admin)", () => {
+    it("authenticated cannot call admin_count_recipes", async () => {
+      const result = await authClient.rpc("admin_count_recipes", {
+        p_search: null,
+        p_owner: null,
+      });
+
+      expect(result.error).not.toBeNull();
+      expect(result.error?.message).toContain("permission denied");
+    });
+
+    it("authenticated cannot call admin_list_recipes", async () => {
+      const result = await authClient.rpc("admin_list_recipes", {
+        p_search: null,
+        p_owner: null,
+        p_limit: 10,
+        p_offset: 0,
+        p_sort_by: "date_published",
+        p_sort_dir: "desc",
+      });
+
+      expect(result.error).not.toBeNull();
+      expect(result.error?.message).toContain("permission denied");
+    });
+
+    it("authenticated cannot call admin_get_recipe_owner", async () => {
+      const result = await authClient.rpc("admin_get_recipe_owner", {
+        p_id: "00000000-0000-0000-0000-000000000000",
+      });
+
+      expect(result.error).not.toBeNull();
+      expect(result.error?.message).toContain("permission denied");
+    });
+  });
+
+  describe("Recipe admin functions work for admin", () => {
+    it("admin can call admin_count_recipes", async () => {
+      const result = await adminClient.rpc<number>("admin_count_recipes", {
+        p_search: null,
+        p_owner: null,
+      });
+
+      expect(result.error).toBeNull();
+      expect(typeof result.data).toBe("number");
+    });
+
+    it("admin can call admin_list_recipes", async () => {
+      const result = await adminClient.rpc("admin_list_recipes", {
+        p_search: null,
+        p_owner: null,
+        p_limit: 10,
+        p_offset: 0,
+        p_sort_by: "date_published",
+        p_sort_dir: "desc",
+      });
+
+      expect(result.error).toBeNull();
+      expect(Array.isArray(result.data)).toBe(true);
+    });
+
+    it("admin can call admin_get_recipe_owner (returns null for nonexistent)", async () => {
+      const result = await adminClient.rpc<string | null>(
+        "admin_get_recipe_owner",
+        { p_id: "00000000-0000-0000-0000-000000000000" }
+      );
+
+      expect(result.error).toBeNull();
+      // No recipe with this ID, so null
+      expect(result.data).toBeNull();
     });
   });
 });

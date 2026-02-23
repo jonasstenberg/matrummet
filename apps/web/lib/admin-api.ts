@@ -1,8 +1,9 @@
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import { redirect } from '@tanstack/react-router'
-import { getSession } from '@/lib/auth'
+import { getSession, signPostgrestToken } from '@/lib/auth'
 import { env } from '@/lib/env'
+import { getRecipe } from '@/lib/api'
 import type { CategoryWithCount } from '@/lib/types'
 import { actionAdminMiddleware } from './middleware'
 
@@ -111,6 +112,38 @@ export interface GetAdminUsersParams {
   search?: string
   role?: UserRole | 'all'
   sortBy?: UserSortField
+  sortDir?: SortDir
+}
+
+export type RecipeVisibility = 'private' | 'public'
+
+export interface AdminRecipe {
+  id: string
+  name: string
+  description: string
+  owner: string
+  owner_name: string | null
+  visibility: RecipeVisibility
+  date_published: string
+  date_modified: string
+  ingredient_count: number
+  category_names: string[]
+}
+
+export interface RecipesPaginatedResponse {
+  items: AdminRecipe[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
+
+export type RecipeSortField = 'name' | 'owner' | 'date_published' | 'date_modified'
+
+export interface GetAdminRecipesParams {
+  page?: number
+  search?: string
+  sortBy?: RecipeSortField
   sortDir?: SortDir
 }
 
@@ -421,6 +454,101 @@ const getAdminUsersFn = createServerFn({ method: 'GET' })
       totalPages: Math.ceil(total / pageSize),
       stats,
     }
+  })
+
+const getAdminRecipesFn = createServerFn({ method: 'GET' })
+  .inputValidator(z.object({
+    page: z.number().optional(),
+    search: z.string().optional(),
+    sortBy: z.string().optional(),
+    sortDir: z.string().optional(),
+  }))
+  .middleware([actionAdminMiddleware])
+  .handler(async ({ data, context }): Promise<RecipesPaginatedResponse> => {
+    const { page = 1, search = '', sortBy = 'date_published', sortDir = 'desc' } = data
+    const pageSize = 50
+
+    const token = context.postgrestToken!
+    const offset = (page - 1) * pageSize
+
+    const [countResponse, itemsResponse] = await Promise.all([
+      fetch(`${env.POSTGREST_URL}/rpc/admin_count_recipes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          p_search: search || null,
+          p_owner: null,
+        }),
+        cache: 'no-store',
+      }),
+      fetch(`${env.POSTGREST_URL}/rpc/admin_list_recipes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          p_search: search || null,
+          p_owner: null,
+          p_limit: pageSize,
+          p_offset: offset,
+          p_sort_by: sortBy,
+          p_sort_dir: sortDir,
+        }),
+        cache: 'no-store',
+      }),
+    ])
+
+    if (!countResponse.ok) {
+      throw new Error('Failed to fetch recipe count')
+    }
+
+    if (!itemsResponse.ok) {
+      throw new Error('Failed to fetch recipes')
+    }
+
+    const [total, items] = await Promise.all([
+      countResponse.json(),
+      itemsResponse.json(),
+    ])
+
+    return {
+      items,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    }
+  })
+
+const getAdminRecipeFn = createServerFn({ method: 'GET' })
+  .inputValidator(z.object({ id: z.string() }))
+  .middleware([actionAdminMiddleware])
+  .handler(async ({ data, context }) => {
+    const token = context.postgrestToken!
+
+    // Look up recipe owner via admin function
+    const res = await fetch(`${env.POSTGREST_URL}/rpc/admin_get_recipe_owner`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ p_id: data.id }),
+      cache: 'no-store',
+    })
+
+    if (!res.ok) return null
+
+    const owner: string | null = await res.json()
+    if (!owner) return null
+
+    // Sign a token as the recipe owner so the user_recipes view works
+    const ownerToken = await signPostgrestToken(owner)
+    return getRecipe(data.id, ownerToken)
   })
 
 const getSimilarFoodsFn = createServerFn({ method: 'GET' })
@@ -735,6 +863,14 @@ export async function getSimilarFoods(name: string): Promise<SimilarFood[]> {
 
 export async function getLinkedRecipes(foodId: string): Promise<LinkedRecipe[]> {
   return getLinkedRecipesFn({ data: { foodId } })
+}
+
+export async function getAdminRecipes(params: GetAdminRecipesParams = {}): Promise<RecipesPaginatedResponse> {
+  return getAdminRecipesFn({ data: params })
+}
+
+export async function getAdminRecipe(id: string) {
+  return getAdminRecipeFn({ data: { id } })
 }
 
 export async function getAdminUnits(params: GetAdminUnitsParams = {}): Promise<UnitsPaginatedResponse> {

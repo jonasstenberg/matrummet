@@ -88,6 +88,7 @@ import { Route as MainAdminAiGranskningRouteImport } from './routes/_main/admin/
 import { Route as AuthResetPasswordTokenRouteImport } from './routes/_auth/reset-password.$token'
 import { Route as MainReceptNyttIndexRouteImport } from './routes/_main/recept/nytt/index'
 import { Route as MainReceptIdIndexRouteImport } from './routes/_main/recept/$id/index'
+import { Route as MainAdminReceptIndexRouteImport } from './routes/_main/admin/recept/index'
 import { Route as ApiAuthResetPasswordCompleteRouteImport } from './routes/api/auth/reset-password.complete'
 import { Route as ApiAuthCallbackGoogleRouteImport } from './routes/api/auth/callback.google'
 import { Route as ApiAdminUsersRoleRouteImport } from './routes/api/admin/users/role'
@@ -107,6 +108,7 @@ import { Route as MainHemHomeIdMatplanRouteImport } from './routes/_main/hem/$ho
 import { Route as MainHemHomeIdInstallningarRouteImport } from './routes/_main/hem/$homeId/installningar'
 import { Route as MainHemHomeIdInkopslistaRouteImport } from './routes/_main/hem/$homeId/inkopslista'
 import { Route as MainDelaBokTokenRouteImport } from './routes/_main/dela/bok/$token'
+import { Route as MainAdminReceptIdRouteImport } from './routes/_main/admin/recept/$id'
 import { Route as ApiAdminAiReviewRunsIdApplyRouteImport } from './routes/api/admin/ai-review/runs/$id/apply'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -505,6 +507,11 @@ const MainReceptIdIndexRoute = MainReceptIdIndexRouteImport.update({
   path: '/recept/$id/',
   getParentRoute: () => MainRoute,
 } as any)
+const MainAdminReceptIndexRoute = MainAdminReceptIndexRouteImport.update({
+  id: '/recept/',
+  path: '/recept/',
+  getParentRoute: () => MainAdminRoute,
+} as any)
 const ApiAuthResetPasswordCompleteRoute =
   ApiAuthResetPasswordCompleteRouteImport.update({
     id: '/api/auth/reset-password/complete',
@@ -605,6 +612,11 @@ const MainDelaBokTokenRoute = MainDelaBokTokenRouteImport.update({
   path: '/dela/bok/$token',
   getParentRoute: () => MainRoute,
 } as any)
+const MainAdminReceptIdRoute = MainAdminReceptIdRouteImport.update({
+  id: '/recept/$id',
+  path: '/recept/$id',
+  getParentRoute: () => MainAdminRoute,
+} as any)
 const ApiAdminAiReviewRunsIdApplyRoute =
   ApiAdminAiReviewRunsIdApplyRouteImport.update({
     id: '/$id/apply',
@@ -688,6 +700,7 @@ export interface FileRoutesByFullPath {
   '/hushall/': typeof MainHushallIndexRoute
   '/installningar/': typeof MainInstallningarIndexRoute
   '/mina-recept/': typeof MainMinaReceptIndexRoute
+  '/admin/recept/$id': typeof MainAdminReceptIdRoute
   '/dela/bok/$token': typeof MainDelaBokTokenRoute
   '/hem/$homeId/inkopslista': typeof MainHemHomeIdInkopslistaRoute
   '/hem/$homeId/installningar': typeof MainHemHomeIdInstallningarRoute
@@ -707,6 +720,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/users/role': typeof ApiAdminUsersRoleRoute
   '/api/auth/callback/google': typeof ApiAuthCallbackGoogleRoute
   '/api/auth/reset-password/complete': typeof ApiAuthResetPasswordCompleteRoute
+  '/admin/recept/': typeof MainAdminReceptIndexRoute
   '/recept/$id/': typeof MainReceptIdIndexRoute
   '/recept/nytt/': typeof MainReceptNyttIndexRoute
   '/api/admin/ai-review/runs/$id/apply': typeof ApiAdminAiReviewRunsIdApplyRoute
@@ -785,6 +799,7 @@ export interface FileRoutesByTo {
   '/hushall': typeof MainHushallIndexRoute
   '/installningar': typeof MainInstallningarIndexRoute
   '/mina-recept': typeof MainMinaReceptIndexRoute
+  '/admin/recept/$id': typeof MainAdminReceptIdRoute
   '/dela/bok/$token': typeof MainDelaBokTokenRoute
   '/hem/$homeId/inkopslista': typeof MainHemHomeIdInkopslistaRoute
   '/hem/$homeId/installningar': typeof MainHemHomeIdInstallningarRoute
@@ -804,6 +819,7 @@ export interface FileRoutesByTo {
   '/api/admin/users/role': typeof ApiAdminUsersRoleRoute
   '/api/auth/callback/google': typeof ApiAuthCallbackGoogleRoute
   '/api/auth/reset-password/complete': typeof ApiAuthResetPasswordCompleteRoute
+  '/admin/recept': typeof MainAdminReceptIndexRoute
   '/recept/$id': typeof MainReceptIdIndexRoute
   '/recept/nytt': typeof MainReceptNyttIndexRoute
   '/api/admin/ai-review/runs/$id/apply': typeof ApiAdminAiReviewRunsIdApplyRoute
@@ -887,6 +903,7 @@ export interface FileRoutesById {
   '/_main/hushall/': typeof MainHushallIndexRoute
   '/_main/installningar/': typeof MainInstallningarIndexRoute
   '/_main/mina-recept/': typeof MainMinaReceptIndexRoute
+  '/_main/admin/recept/$id': typeof MainAdminReceptIdRoute
   '/_main/dela/bok/$token': typeof MainDelaBokTokenRoute
   '/_main/hem/$homeId/inkopslista': typeof MainHemHomeIdInkopslistaRoute
   '/_main/hem/$homeId/installningar': typeof MainHemHomeIdInstallningarRoute
@@ -906,6 +923,7 @@ export interface FileRoutesById {
   '/api/admin/users/role': typeof ApiAdminUsersRoleRoute
   '/api/auth/callback/google': typeof ApiAuthCallbackGoogleRoute
   '/api/auth/reset-password/complete': typeof ApiAuthResetPasswordCompleteRoute
+  '/_main/admin/recept/': typeof MainAdminReceptIndexRoute
   '/_main/recept/$id/': typeof MainReceptIdIndexRoute
   '/_main/recept/nytt/': typeof MainReceptNyttIndexRoute
   '/api/admin/ai-review/runs/$id/apply': typeof ApiAdminAiReviewRunsIdApplyRoute
@@ -988,6 +1006,7 @@ export interface FileRouteTypes {
     | '/hushall/'
     | '/installningar/'
     | '/mina-recept/'
+    | '/admin/recept/$id'
     | '/dela/bok/$token'
     | '/hem/$homeId/inkopslista'
     | '/hem/$homeId/installningar'
@@ -1007,6 +1026,7 @@ export interface FileRouteTypes {
     | '/api/admin/users/role'
     | '/api/auth/callback/google'
     | '/api/auth/reset-password/complete'
+    | '/admin/recept/'
     | '/recept/$id/'
     | '/recept/nytt/'
     | '/api/admin/ai-review/runs/$id/apply'
@@ -1085,6 +1105,7 @@ export interface FileRouteTypes {
     | '/hushall'
     | '/installningar'
     | '/mina-recept'
+    | '/admin/recept/$id'
     | '/dela/bok/$token'
     | '/hem/$homeId/inkopslista'
     | '/hem/$homeId/installningar'
@@ -1104,6 +1125,7 @@ export interface FileRouteTypes {
     | '/api/admin/users/role'
     | '/api/auth/callback/google'
     | '/api/auth/reset-password/complete'
+    | '/admin/recept'
     | '/recept/$id'
     | '/recept/nytt'
     | '/api/admin/ai-review/runs/$id/apply'
@@ -1186,6 +1208,7 @@ export interface FileRouteTypes {
     | '/_main/hushall/'
     | '/_main/installningar/'
     | '/_main/mina-recept/'
+    | '/_main/admin/recept/$id'
     | '/_main/dela/bok/$token'
     | '/_main/hem/$homeId/inkopslista'
     | '/_main/hem/$homeId/installningar'
@@ -1205,6 +1228,7 @@ export interface FileRouteTypes {
     | '/api/admin/users/role'
     | '/api/auth/callback/google'
     | '/api/auth/reset-password/complete'
+    | '/_main/admin/recept/'
     | '/_main/recept/$id/'
     | '/_main/recept/nytt/'
     | '/api/admin/ai-review/runs/$id/apply'
@@ -1808,6 +1832,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainReceptIdIndexRouteImport
       parentRoute: typeof MainRoute
     }
+    '/_main/admin/recept/': {
+      id: '/_main/admin/recept/'
+      path: '/recept'
+      fullPath: '/admin/recept/'
+      preLoaderRoute: typeof MainAdminReceptIndexRouteImport
+      parentRoute: typeof MainAdminRoute
+    }
     '/api/auth/reset-password/complete': {
       id: '/api/auth/reset-password/complete'
       path: '/api/auth/reset-password/complete'
@@ -1941,6 +1972,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainDelaBokTokenRouteImport
       parentRoute: typeof MainRoute
     }
+    '/_main/admin/recept/$id': {
+      id: '/_main/admin/recept/$id'
+      path: '/recept/$id'
+      fullPath: '/admin/recept/$id'
+      preLoaderRoute: typeof MainAdminReceptIdRouteImport
+      parentRoute: typeof MainAdminRoute
+    }
     '/api/admin/ai-review/runs/$id/apply': {
       id: '/api/admin/ai-review/runs/$id/apply'
       path: '/$id/apply'
@@ -1973,6 +2011,8 @@ interface MainAdminRouteChildren {
   MainAdminMatvarorRoute: typeof MainAdminMatvarorRoute
   MainAdminStruktureraRoute: typeof MainAdminStruktureraRoute
   MainAdminIndexRoute: typeof MainAdminIndexRoute
+  MainAdminReceptIdRoute: typeof MainAdminReceptIdRoute
+  MainAdminReceptIndexRoute: typeof MainAdminReceptIndexRoute
 }
 
 const MainAdminRouteChildren: MainAdminRouteChildren = {
@@ -1983,6 +2023,8 @@ const MainAdminRouteChildren: MainAdminRouteChildren = {
   MainAdminMatvarorRoute: MainAdminMatvarorRoute,
   MainAdminStruktureraRoute: MainAdminStruktureraRoute,
   MainAdminIndexRoute: MainAdminIndexRoute,
+  MainAdminReceptIdRoute: MainAdminReceptIdRoute,
+  MainAdminReceptIndexRoute: MainAdminReceptIndexRoute,
 }
 
 const MainAdminRouteWithChildren = MainAdminRoute._addFileChildren(
