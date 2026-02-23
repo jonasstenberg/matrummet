@@ -21,3 +21,16 @@ deploy_recept ALL=(postgres) NOPASSWD: /usr/bin/pg_dump
 deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/cp /tmp/postgrest-deploy/matrummet.conf /etc/postgrest/matrummet.conf
 deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/chown postgres\:postgres /etc/postgrest/matrummet.conf
 deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/chmod 600 /etc/postgrest/matrummet.conf
+
+# Grafana config deployment
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/cp /tmp/grafana-deploy/datasources/loki.yaml /etc/grafana/provisioning/datasources/loki.yaml
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/cp /tmp/grafana-deploy/alerting/matrummet.yaml /etc/grafana/provisioning/alerting/matrummet.yaml
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/cp /tmp/grafana-deploy/dashboards/provider.yaml /etc/grafana/provisioning/dashboards/matrummet.yaml
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/cp /tmp/grafana-deploy/dashboards/matrummet.json /var/lib/grafana/dashboards/matrummet/matrummet.json
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/mkdir -p /var/lib/grafana/dashboards/matrummet
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/rm -f /etc/grafana/provisioning/datasources/sample.yaml
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/rm -f /etc/grafana/provisioning/alerting/sample.yaml
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/rm -f /etc/grafana/provisioning/dashboards/sample.yaml
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/chown -R grafana\:grafana /etc/grafana/provisioning/datasources/loki.yaml /etc/grafana/provisioning/alerting/matrummet.yaml /etc/grafana/provisioning/dashboards/matrummet.yaml /var/lib/grafana/dashboards/matrummet
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/chmod 600 /etc/grafana/provisioning/alerting/matrummet.yaml
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart grafana-server

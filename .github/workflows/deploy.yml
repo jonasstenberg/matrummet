@@ -86,6 +86,7 @@ jobs:
       deploy_nginx: ${{ steps.changes.outputs.deploy_nginx }}
       deploy_postgrest: ${{ steps.changes.outputs.deploy_postgrest }}
       deploy_grafana: ${{ steps.changes.outputs.deploy_grafana }}
+      run_api_tests: ${{ steps.changes.outputs.run_api_tests }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -281,6 +282,21 @@ jobs:
             fi
           fi
 
+          # Check if API test-relevant files changed
+          if [[ -z "$PARENT_SHA" ]]; then
+            echo "run_api_tests=true" >> $GITHUB_OUTPUT
+            echo "First commit, running API tests"
+          else
+            CHANGED_FILES=$(git diff --name-only $PARENT_SHA $WORKFLOW_SHA 2>/dev/null || git ls-files)
+            if echo "$CHANGED_FILES" | grep -qE "^tests/api/|^flyway/sql/|^data/data.sql|^infra/postgrest/|^docker-compose.test.yml"; then
+              echo "run_api_tests=true" >> $GITHUB_OUTPUT
+              echo "API-relevant changes detected"
+            else
+              echo "run_api_tests=false" >> $GITHUB_OUTPUT
+              echo "No API-relevant changes detected"
+            fi
+          fi
+
   test:
     needs: setup
     if: needs.setup.outputs.deploy_frontend == 'true' || needs.setup.outputs.deploy_email_service == 'true' || needs.setup.outputs.deploy_events_service == 'true' || needs.setup.outputs.deploy_image_service == 'true'
@@ -309,7 +325,7 @@ jobs:
 
   api-tests:
     needs: setup
-    if: needs.setup.outputs.deploy_frontend == 'true' || needs.setup.outputs.run_migrations == 'true'
+    if: needs.setup.outputs.run_api_tests == 'true'
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -675,7 +691,7 @@ jobs:
         run: |
           REMOTE="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
           STAGING="/tmp/grafana-deploy"
-          ssh $REMOTE "mkdir -p $STAGING/datasources $STAGING/alerting"
+          ssh $REMOTE "mkdir -p $STAGING/datasources $STAGING/alerting $STAGING/dashboards"
 
           # Datasources (no secrets)
           scp infra/grafana/provisioning/datasources/loki.yaml $REMOTE:$STAGING/datasources/loki.yaml
@@ -684,12 +700,20 @@ jobs:
           envsubst '${TELEGRAM_BOT_TOKEN} ${TELEGRAM_CHAT_ID}' < infra/grafana/provisioning/alerting/matrummet.yaml > /tmp/matrummet-alerting.yaml
           scp /tmp/matrummet-alerting.yaml $REMOTE:$STAGING/alerting/matrummet.yaml
 
+          # Dashboards
+          scp infra/grafana/provisioning/dashboards/provider.yaml $REMOTE:$STAGING/dashboards/provider.yaml
+          scp infra/grafana/provisioning/dashboards/matrummet.json $REMOTE:$STAGING/dashboards/matrummet.json
+
           ssh $REMOTE "
             sudo cp $STAGING/datasources/loki.yaml /etc/grafana/provisioning/datasources/loki.yaml &&
             sudo rm -f /etc/grafana/provisioning/datasources/sample.yaml &&
             sudo cp $STAGING/alerting/matrummet.yaml /etc/grafana/provisioning/alerting/matrummet.yaml &&
             sudo rm -f /etc/grafana/provisioning/alerting/sample.yaml &&
-            sudo chown grafana:grafana /etc/grafana/provisioning/datasources/loki.yaml /etc/grafana/provisioning/alerting/matrummet.yaml &&
+            sudo cp $STAGING/dashboards/provider.yaml /etc/grafana/provisioning/dashboards/matrummet.yaml &&
+            sudo rm -f /etc/grafana/provisioning/dashboards/sample.yaml &&
+            sudo mkdir -p /var/lib/grafana/dashboards/matrummet &&
+            sudo cp $STAGING/dashboards/matrummet.json /var/lib/grafana/dashboards/matrummet/matrummet.json &&
+            sudo chown -R grafana:grafana /etc/grafana/provisioning/datasources/loki.yaml /etc/grafana/provisioning/alerting/matrummet.yaml /etc/grafana/provisioning/dashboards/matrummet.yaml /var/lib/grafana/dashboards/matrummet &&
             sudo chmod 600 /etc/grafana/provisioning/alerting/matrummet.yaml &&
             sudo systemctl restart grafana-server &&
             rm -rf $STAGING
