@@ -9,7 +9,7 @@ model: sonnet
 
 # Run User Stories
 
-> Run acceptance tests from user-stories/*.md files in a browser and report pass/fail results.
+> Run acceptance tests from user-stories/\*.md files in a browser and report pass/fail results.
 
 <when_to_use>
 
@@ -77,7 +77,7 @@ Read `.claude/skills/run-user-stories/references/runner-instructions.md` for det
 2. **Environment**: Tests run against `http://localhost:3000` by default. Ensure:
    - `pnpm dev` is running
    - Database is seeded with test data
-   - PostgREST is running (`./start-postgrest.sh`)
+   - PostgREST is running (`postgrest postgrest.cfg`)
 
 3. **Authentication**: Many tests require login. The runner will:
    - Use test credentials: `test@example.com` / `password123`

@@ -21,7 +21,7 @@ Invoke when user says:
 - "reboot dev"
 - "restart all services"
 - "kill and restart"
-</when_to_use>
+  </when_to_use>
 
 <workflow>
 
@@ -30,10 +30,10 @@ Invoke when user says:
 | Phase | Action                                           |
 | ----- | ------------------------------------------------ |
 | 1     | Kill running processes on ports 3000, 4444, 4446 |
-| 2     | Wait for termination, verify ports free           |
-| 3     | Start all services in background                  |
-| 4     | Verify startup (check logs and health)            |
-| 5     | Display status report                             |
+| 2     | Wait for termination, verify ports free          |
+| 3     | Start all services in background                 |
+| 4     | Verify startup (check logs and health)           |
+| 5     | Display status report                            |
 
 Use `run_in_background: true` for start commands to avoid blocking.
 </workflow>
@@ -42,18 +42,17 @@ Use `run_in_background: true` for start commands to avoid blocking.
 
 ## Services
 
-| Service        | Command                | Port | Health Check                |
-| -------------- | ---------------------- | ---- | --------------------------- |
-| TanStack Start | `pnpm dev`             | 3000 | http://localhost:3000        |
-| PostgREST API  | `./start-postgrest.sh` | 4444 | http://localhost:4444/       |
-| Nginx images   | `./start-nginx.sh`     | 4446 | http://localhost:4446/uploads/ |
+| Service        | Command                   | Port | Health Check           |
+| -------------- | ------------------------- | ---- | ---------------------- |
+| TanStack Start | `pnpm dev`                | 3000 | http://localhost:3000  |
+| PostgREST API  | `postgrest postgrest.cfg` | 4444 | http://localhost:4444/ |
 
 ### Optional Services
 
-| Service        | Command                     | Port | When Needed                |
-| -------------- | --------------------------- | ---- | -------------------------- |
-| Inbucket       | `docker compose up -d inbucket` | 9050 | Email testing              |
-| Email service  | Part of `pnpm dev`          | -    | Runs via monorepo dev      |
+| Service       | Command                         | Port | When Needed           |
+| ------------- | ------------------------------- | ---- | --------------------- |
+| Inbucket      | `docker compose up -d inbucket` | 9050 | Email testing         |
+| Email service | Part of `pnpm dev`              | -    | Runs via monorepo dev |
 
 Note: `pnpm dev` runs all apps in parallel (web + email-service) via `pnpm -r --parallel dev`.
 </services>
@@ -90,8 +89,9 @@ Wait up to 5 seconds for processes to terminate. If ports still occupied, report
 Start services using `run_in_background: true`:
 
 1. **PostgREST** (start first, frontend depends on API):
+
    ```bash
-   ./start-postgrest.sh
+   postgrest postgrest.cfg
    ```
 
 2. **All apps** (TanStack Start + email service):
@@ -129,13 +129,13 @@ Email service:  running via pnpm dev   [OK/FAILED]
 
 ## Troubleshooting
 
-| Issue                  | Cause                          | Fix                                      |
-| ---------------------- | ------------------------------ | ---------------------------------------- |
-| Port 3000 won't free   | Zombie TanStack Start process         | `kill -9 $(lsof -ti :3000)`              |
-| PostgREST won't start  | PostgreSQL not running         | Start PostgreSQL first                   |
-| PostgREST config error | Missing postgrest.cfg          | Check `postgrest.cfg` exists in root     |
-| pnpm dev fails         | Missing dependencies           | Run `pnpm install` first                 |
-| Port 4444 in use       | Another PostgREST instance     | `kill -9 $(lsof -ti :4444)`              |
+| Issue                  | Cause                         | Fix                                  |
+| ---------------------- | ----------------------------- | ------------------------------------ |
+| Port 3000 won't free   | Zombie TanStack Start process | `kill -9 $(lsof -ti :3000)`          |
+| PostgREST won't start  | PostgreSQL not running        | Start PostgreSQL first               |
+| PostgREST config error | Missing postgrest.cfg         | Check `postgrest.cfg` exists in root |
+| pnpm dev fails         | Missing dependencies          | Run `pnpm install` first             |
+| Port 4444 in use       | Another PostgREST instance    | `kill -9 $(lsof -ti :4444)`          |
 
 </troubleshooting>
 

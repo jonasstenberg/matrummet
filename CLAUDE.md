@@ -27,23 +27,21 @@ Personal recipe collection with Swedish full-text search, JWT auth, and row-leve
 
 ```bash
 pnpm dev                    # Start all apps
-./start-postgrest.sh        # Start PostgREST API on port 4444
-./start-nginx.sh            # Start nginx image server on port 4446
+postgrest postgrest.cfg     # Start PostgREST API on port 4444
 ./flyway/run-flyway.sh info # Check migration status
 ./flyway/run-flyway.sh migrate  # Apply migrations (auto-backup)
 ```
 
 ### Local Services
 
-| Service | Command | Port | Purpose |
-|---------|---------|------|---------|
-| TanStack Start | `pnpm dev` | 3000 | Frontend + email service |
-| PostgREST | `./start-postgrest.sh` | 4444 | REST API layer |
-| Nginx images | `./start-nginx.sh` | 4446 | Serves `/uploads/{id}/{size}.webp` |
+| Service        | Command                   | Port | Purpose                  |
+| -------------- | ------------------------- | ---- | ------------------------ |
+| TanStack Start | `pnpm dev`                | 3000 | Frontend + email service |
+| PostgREST      | `postgrest postgrest.cfg` | 4444 | REST API layer           |
 
 Nginx mirrors production config — serves recipe images from `apps/web/public/uploads/`. Config: `nginx/dev.conf`, runtime conf generated to `/tmp/matrummet-nginx-dev.conf`.
 
-### Build/Lint/Test (use check:* commands)
+### Build/Lint/Test (use check:\* commands)
 
 Always use the `check:*` commands for build, lint, and test. They minimize output on success (`✓ Lint`) and show full errors on failure, saving context tokens:
 
@@ -82,30 +80,30 @@ Production configs are version-controlled in `infra/` and deployed via CI.
 
 **Nginx** (`infra/nginx/`) — auto-deployed when files change:
 
-| File | Deploys to | Purpose |
-|------|-----------|---------|
-| `matrummet.conf` | `/etc/nginx/sites-enabled/matrummet` | Main site (matrummet.se), 301 redirect from mat.stenberg.io |
-| `shared-locations.conf` | `/etc/nginx/snippets/matrummet-locations.conf` | Shared location blocks (included by matrummet.conf) |
-| `api.conf` | `/etc/nginx/sites-enabled/api.matrummet.se` | Public PostgREST API with CORS |
-| `proxy-cache.conf` | `/etc/nginx/conf.d/proxy-cache.conf` | Cache zone for static assets/images |
+| File                    | Deploys to                                     | Purpose                                                     |
+| ----------------------- | ---------------------------------------------- | ----------------------------------------------------------- |
+| `matrummet.conf`        | `/etc/nginx/sites-enabled/matrummet`           | Main site (matrummet.se), 301 redirect from mat.stenberg.io |
+| `shared-locations.conf` | `/etc/nginx/snippets/matrummet-locations.conf` | Shared location blocks (included by matrummet.conf)         |
+| `api.conf`              | `/etc/nginx/sites-enabled/api.matrummet.se`    | Public PostgREST API with CORS                              |
+| `proxy-cache.conf`      | `/etc/nginx/conf.d/proxy-cache.conf`           | Cache zone for static assets/images                         |
 
 **PostgREST** (`infra/postgrest/`) — auto-deployed when files change, secrets via `envsubst`:
 
-| File | Deploys to | Purpose |
-|------|-----------|---------|
+| File             | Deploys to                      | Purpose                                                                                 |
+| ---------------- | ------------------------------- | --------------------------------------------------------------------------------------- |
 | `matrummet.conf` | `/etc/postgrest/matrummet.conf` | Connection, auth, pool settings (`${POSTGREST_DB_PASSWORD}`, `${POSTGREST_JWT_SECRET}`) |
 
 **Systemd** (`infra/systemd/`) — reference copies, not auto-deployed:
 
-| Service | Runtime | Purpose |
-|---------|---------|---------|
-| `matrummet.service` | Node.js | TanStack Start app (port 3001) |
-| `matrummet-email.service` | Bun | Email notifications |
-| `matrummet-events.service` | Bun | Event processing |
-| `matrummet-image.service` | Bun | Image service |
-| `postgrest-matrummet.service` | PostgREST | REST API (port 4444) |
-| `backup-matrummet.service/.timer` | pg_dump | DB + photos backup every 4h (30-day retention) |
-| `backup-matrummet-weekly.service/.timer` | pg_dump | Weekly DB backup Sundays 03:00 (6-month retention) |
+| Service                                  | Runtime   | Purpose                                            |
+| ---------------------------------------- | --------- | -------------------------------------------------- |
+| `matrummet.service`                      | Node.js   | TanStack Start app (port 3001)                     |
+| `matrummet-email.service`                | Bun       | Email notifications                                |
+| `matrummet-events.service`               | Bun       | Event processing                                   |
+| `matrummet-image.service`                | Bun       | Image service                                      |
+| `postgrest-matrummet.service`            | PostgREST | REST API (port 4444)                               |
+| `backup-matrummet.service/.timer`        | pg_dump   | DB + photos backup every 4h (30-day retention)     |
+| `backup-matrummet-weekly.service/.timer` | pg_dump   | Weekly DB backup Sundays 03:00 (6-month retention) |
 
 Env files on server: `.matrummet.env`, `.email-service.env`, `.events-service.env`, `.image-service.env`, `.backup.env`.
 
@@ -116,18 +114,21 @@ Env files on server: `.matrummet.env`, `.email-service.env`, `.events-service.en
 Business logic lives in `lib/`, API routes are thin HTTP handlers.
 
 **Server functions** (`lib/*-actions.ts`) use `createServerFn()`:
+
 - Get PostgREST tokens via middleware (`actionAuthMiddleware`)
 - Call business logic in lib
 - Invalidate router cache via `router.invalidate()`
 - Return `{ success, data }` or `{ error }` objects
 
 **API routes** (`src/routes/api/**/*.ts`) handle only:
+
 - Auth via route-level middleware (`apiAuthMiddleware`, `apiAdminMiddleware`)
 - Request parsing
 - Calling lib functions
 - Formatting HTTP responses
 
 **Pure lib modules** contain reusable business logic:
+
 - `lib/auth-operations.ts` — Login, signup, password reset, account deletion (PostgREST + JWT)
 - `lib/credits.ts` — Check/deduct/refund AI credits
 - `lib/ingredient-matching.ts` — Match ingredients to food/unit database
@@ -160,6 +161,7 @@ Cookies via `setCookie()` / `deleteCookie()` from `@tanstack/react-start/server`
 ### AI Integration
 
 Uses Mistral AI via `@mistralai/mistralai`:
+
 - `lib/ai-client.ts` — `createMistralClient()` factory, `MISTRAL_MODEL` constant (`mistral-medium-latest`)
 - Pattern: `client.chat.complete()` with `responseFormat: { type: 'json_schema', jsonSchema: { name, schemaDefinition, strict: true } }`
 - Zod v4: Use `toJSONSchema()` for schema definitions. Do NOT use `chat.parse()` (incompatible with Zod v4)
@@ -179,6 +181,7 @@ Uses Mistral AI via `@mistralai/mistralai`:
 ### Credit System
 
 AI features cost credits (1 point each). Managed via `lib/credits.ts`:
+
 - `checkCredits(token)` — Verify balance
 - `deductCredit(token, description)` — Atomic deduction
 - `refundCredit(email, description)` — Refund on failure
@@ -217,6 +220,7 @@ AI features cost credits (1 point each). Managed via `lib/credits.ts`:
 ### Mobile App
 
 Expo/React Native app in `apps/mobile/`. Uses shared packages:
+
 - `@matrummet/types` for types/schemas, `@matrummet/api-client` for PostgREST client + auth
 - Auth uses pure JS JWT (HMAC-SHA256 via `@noble/hashes`) — no `crypto.subtle` needed for Hermes
 - Images via `EXPO_PUBLIC_IMAGE_BASE_URL` (local: `http://localhost:4446/uploads`, prod: nginx)
@@ -237,12 +241,14 @@ Expo/React Native app in `apps/mobile/`. Uses shared packages:
 ### Routing (File-based)
 
 Routes in `src/routes/`. Key conventions:
+
 - `__root.tsx` — Root layout (`<html>`, `<HeadContent />`, `<Scripts />`)
 - `_auth.tsx` / `_main.tsx` — Layout groups (pathless, wrap child routes)
 - `$id/index.tsx` — Dynamic segments
 - `api/**/*.ts` — Server route handlers (HTTP endpoints)
 
 **Route configuration:**
+
 ```ts
 export const Route = createFileRoute('/_main/')({
   validateSearch: zodSchema,           // Search param validation
@@ -289,28 +295,28 @@ export const Route = createFileRoute('/api/my-endpoint')({
 
 ## Server Functions Reference (apps/web)
 
-| File | Purpose |
-|------|---------|
-| `lib/auth-actions.ts` | Login, signup, password reset, account deletion |
-| `lib/recipe-actions.ts` | CRUD, copy, like, share, import recipes |
-| `lib/admin-actions.ts` | Food/user management (admin-only) |
-| `lib/shopping-list-actions.ts` | Shopping list CRUD, add/toggle/clear items |
-| `lib/meal-plan-actions.ts` | List/get/swap meal plans, save to shopping list |
-| `lib/home-actions.ts` | Household CRUD, member management |
-| `lib/book-share-actions.ts` | Recipe book sharing (create link, accept, revoke) |
-| `lib/settings-actions.ts` | Profile updates, API key management |
-| `lib/ingredient-search-actions.ts` | Food/unit search, substitution suggestions |
-| `lib/credits-actions.ts` | Credit balance, transaction history |
+| File                               | Purpose                                           |
+| ---------------------------------- | ------------------------------------------------- |
+| `lib/auth-actions.ts`              | Login, signup, password reset, account deletion   |
+| `lib/recipe-actions.ts`            | CRUD, copy, like, share, import recipes           |
+| `lib/admin-actions.ts`             | Food/user management (admin-only)                 |
+| `lib/shopping-list-actions.ts`     | Shopping list CRUD, add/toggle/clear items        |
+| `lib/meal-plan-actions.ts`         | List/get/swap meal plans, save to shopping list   |
+| `lib/home-actions.ts`              | Household CRUD, member management                 |
+| `lib/book-share-actions.ts`        | Recipe book sharing (create link, accept, revoke) |
+| `lib/settings-actions.ts`          | Profile updates, API key management               |
+| `lib/ingredient-search-actions.ts` | Food/unit search, substitution suggestions        |
+| `lib/credits-actions.ts`           | Credit balance, transaction history               |
 
 ## User Story Workflow
 
 User stories live in `user-stories/*.md`. Three skills work together:
 
-| Skill | Trigger | Purpose |
-|-------|---------|---------|
-| `/story-to-ship` | "new user story", "As a user I want..." | Create story → implement → validate |
-| `/ship-it` | "ship it", "full pipeline" | 8-phase implementation with acceptance test |
-| `/run-user-stories` | "run user stories US-AUTH-01" | Run browser acceptance tests |
+| Skill               | Trigger                                 | Purpose                                     |
+| ------------------- | --------------------------------------- | ------------------------------------------- |
+| `/story-to-ship`    | "new user story", "As a user I want..." | Create story → implement → validate         |
+| `/ship-it`          | "ship it", "full pipeline"              | 8-phase implementation with acceptance test |
+| `/run-user-stories` | "run user stories US-AUTH-01"           | Run browser acceptance tests                |
 
 ### Full Pipeline Example
 
@@ -319,6 +325,7 @@ User stories live in `user-stories/*.md`. Three skills work together:
 ```
 
 This will:
+
 1. Parse feature → confirm area (RECIPE), user type, action
 2. Generate `US-RECIPE-XX` with test steps and acceptance criteria
 3. Append to `user-stories/02-recipe-management.md`
@@ -327,13 +334,13 @@ This will:
 
 ### Story Areas
 
-| Area | File | Examples |
-|------|------|----------|
-| AUTH | 01-authentication.md | Login, register, OAuth |
-| RECIPE | 02-recipe-management.md | CRUD, copy, like |
-| SEARCH | 03-recipe-search.md | Search, filter, browse |
-| SHARE | 04-recipe-sharing.md | Share links |
-| PANTRY | 05-pantry-management.md | Pantry CRUD |
-| SHOP | 06-shopping-list.md | Shopping lists |
-| HOME | 07-household.md | Household management |
-| IMPORT | 08-recipe-import.md | URL import, AI parsing |
+| Area   | File                    | Examples               |
+| ------ | ----------------------- | ---------------------- |
+| AUTH   | 01-authentication.md    | Login, register, OAuth |
+| RECIPE | 02-recipe-management.md | CRUD, copy, like       |
+| SEARCH | 03-recipe-search.md     | Search, filter, browse |
+| SHARE  | 04-recipe-sharing.md    | Share links            |
+| PANTRY | 05-pantry-management.md | Pantry CRUD            |
+| SHOP   | 06-shopping-list.md     | Shopping lists         |
+| HOME   | 07-household.md         | Household management   |
+| IMPORT | 08-recipe-import.md     | URL import, AI parsing |

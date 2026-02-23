@@ -59,7 +59,7 @@ pnpm install
 ### 3. Start PostgREST
 
 ```bash
-./start-postgrest.sh
+postgrest postgrest.cfg
 ```
 
 ### 4. Start all services
@@ -152,21 +152,21 @@ Test locally before submitting:
 
 ### Key Tables
 
-| Table | Purpose |
-|-------|---------|
-| `users` / `user_passwords` | User accounts with bcrypt auth |
-| `recipes` | Recipe data with full-text search vector |
-| `ingredients` / `ingredient_groups` | Recipe ingredients with quantities |
-| `instructions` / `instruction_groups` | Recipe steps |
-| `categories` / `category_groups` | Recipe tags via `recipe_categories` |
-| `recipe_likes` | User favorites |
-| `recipe_share_tokens` | Shareable recipe links |
-| `homes` / `home_invitations` | Household management |
-| `shopping_lists` / `shopping_list_items` | Shopping lists |
-| `user_pantry` | Pantry inventory |
-| `foods` / `units` | Ingredient reference data |
-| `user_credits` / `credit_transactions` | Credit system |
-| `email_messages` / `email_templates` | Email queue |
+| Table                                    | Purpose                                  |
+| ---------------------------------------- | ---------------------------------------- |
+| `users` / `user_passwords`               | User accounts with bcrypt auth           |
+| `recipes`                                | Recipe data with full-text search vector |
+| `ingredients` / `ingredient_groups`      | Recipe ingredients with quantities       |
+| `instructions` / `instruction_groups`    | Recipe steps                             |
+| `categories` / `category_groups`         | Recipe tags via `recipe_categories`      |
+| `recipe_likes`                           | User favorites                           |
+| `recipe_share_tokens`                    | Shareable recipe links                   |
+| `homes` / `home_invitations`             | Household management                     |
+| `shopping_lists` / `shopping_list_items` | Shopping lists                           |
+| `user_pantry`                            | Pantry inventory                         |
+| `foods` / `units`                        | Ingredient reference data                |
+| `user_credits` / `credit_transactions`   | Credit system                            |
+| `email_messages` / `email_templates`     | Email queue                              |
 
 ### Row-Level Security
 
@@ -199,7 +199,11 @@ Images are optimized at upload time into multiple variants (thumb, small, medium
 Common utilities for Node.js services: configuration management, JWT handling, and logging.
 
 ```typescript
-import { getOptionalEnv, getRequiredEnv, generateToken } from "@matrummet/shared";
+import {
+  getOptionalEnv,
+  getRequiredEnv,
+  generateToken,
+} from "@matrummet/shared";
 ```
 
 ### @matrummet/eslint
