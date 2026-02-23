@@ -14,7 +14,6 @@ export const createLogger = (options: ServiceLoggerOptions): Logger => {
   const { service, level = process.env.LOG_LEVEL || (isProduction ? "info" : "debug"), pretty = !isProduction } = options;
 
   const pinoOptions: LoggerOptions = {
-    name: service,
     level,
     base: {
       service,
@@ -48,22 +47,20 @@ export const createRequestLogger = (logger: Logger) => {
         method: req.method,
         url: req.url,
         statusCode: res.statusCode,
-        responseTime: `${responseTime}ms`,
+        responseTime,
       },
       "request completed"
     );
   };
 };
 
-export const requestIdMiddleware = () => {
-  return (
-    req: { headers: Record<string, string | undefined> },
-    res: { setHeader: (name: string, value: string) => void },
-    next: () => void
-  ) => {
-    const requestId = req.headers["x-request-id"] || crypto.randomUUID();
-    req.headers["x-request-id"] = requestId;
-    res.setHeader("x-request-id", requestId);
-    next();
-  };
+export const requestIdMiddleware = (
+  req: { headers: Record<string, string | undefined> },
+  res: { setHeader: (name: string, value: string) => void },
+  next: () => void
+) => {
+  const requestId = req.headers["x-request-id"] || crypto.randomUUID();
+  req.headers["x-request-id"] = requestId;
+  res.setHeader("x-request-id", requestId);
+  next();
 };
