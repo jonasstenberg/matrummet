@@ -28,8 +28,8 @@
     "inbucket:stop": "docker compose stop inbucket"
   },
   "devDependencies": {
-    "vitest": "^4.0.15",
-    "jose": "^6.0.10"
+    "jose": "^6.1.3",
+    "vitest": "^4.0.18"
   },
   "pnpm": {
     "overrides": {
