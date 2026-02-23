@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import { join } from "path";
-import type { Logger } from "pino";
+import type { Logger } from "@matrummet/shared";
 import { authenticateRequest } from "../auth.js";
 import { config } from "../config.js";
 import { generateImageVariants } from "../image-processing.js";

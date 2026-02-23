@@ -1,4 +1,4 @@
-import type { Logger } from "pino";
+import type { Logger } from "@matrummet/shared";
 import { authenticateServiceRequest } from "../auth.js";
 import { deleteImageVariants } from "../image-processing.js";
 

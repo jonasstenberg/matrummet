@@ -52,10 +52,10 @@ function createMockLogger() {
     child: vi.fn().mockReturnThis(),
     level: "info",
     silent: vi.fn(),
-  } as unknown as import("pino").Logger;
+  } as unknown as import("@matrummet/shared").Logger;
 }
 
-let mockLogger: import("pino").Logger;
+let mockLogger: import("@matrummet/shared").Logger;
 
 function createServiceToken(): string {
   return jwt.sign({ role: "service", service: "web" }, SECRET, {
