@@ -33,34 +33,3 @@ export const createLogger = (options: ServiceLoggerOptions): Logger => {
   return pino(pinoOptions);
 };
 
-export const createRequestLogger = (logger: Logger) => {
-  return (
-    req: { method: string; url: string; headers: Record<string, unknown> },
-    res: { statusCode: number },
-    responseTime: number
-  ) => {
-    const requestId = req.headers["x-request-id"] as string | undefined;
-
-    logger.info(
-      {
-        requestId,
-        method: req.method,
-        url: req.url,
-        statusCode: res.statusCode,
-        responseTime,
-      },
-      "request completed"
-    );
-  };
-};
-
-export const requestIdMiddleware = (
-  req: { headers: Record<string, string | undefined> },
-  res: { setHeader: (name: string, value: string) => void },
-  next: () => void
-) => {
-  const requestId = req.headers["x-request-id"] || crypto.randomUUID();
-  req.headers["x-request-id"] = requestId;
-  res.setHeader("x-request-id", requestId);
-  next();
-};
