@@ -644,13 +644,13 @@ jobs:
           STAGING="/tmp/nginx-deploy"
           ssh $REMOTE "mkdir -p $STAGING"
           scp infra/nginx/shared-locations.conf $REMOTE:$STAGING/matrummet-locations.conf
-          scp infra/nginx/production.conf $REMOTE:$STAGING/recept
+          scp infra/nginx/matrummet.conf $REMOTE:$STAGING/matrummet
           scp infra/nginx/api.conf $REMOTE:$STAGING/api.matrummet.se
           scp infra/nginx/proxy-cache.conf $REMOTE:$STAGING/proxy-cache.conf
           CHANGED=$(ssh $REMOTE "
             changed=false
             diff -q $STAGING/matrummet-locations.conf /etc/nginx/snippets/matrummet-locations.conf >/dev/null 2>&1 || changed=true
-            diff -q $STAGING/recept /etc/nginx/sites-enabled/recept >/dev/null 2>&1 || changed=true
+            diff -q $STAGING/matrummet /etc/nginx/sites-enabled/matrummet >/dev/null 2>&1 || changed=true
             diff -q $STAGING/api.matrummet.se /etc/nginx/sites-enabled/api.matrummet.se >/dev/null 2>&1 || changed=true
             diff -q $STAGING/proxy-cache.conf /etc/nginx/conf.d/proxy-cache.conf >/dev/null 2>&1 || changed=true
             echo \$changed
@@ -659,7 +659,8 @@ jobs:
             echo "Nginx config changed, deploying and reloading"
             ssh $REMOTE "
               sudo cp $STAGING/matrummet-locations.conf /etc/nginx/snippets/matrummet-locations.conf &&
-              sudo cp $STAGING/recept /etc/nginx/sites-enabled/recept &&
+              sudo rm -f /etc/nginx/sites-enabled/recept &&
+              sudo cp $STAGING/matrummet /etc/nginx/sites-enabled/matrummet &&
               sudo cp $STAGING/api.matrummet.se /etc/nginx/sites-enabled/api.matrummet.se &&
               sudo cp $STAGING/proxy-cache.conf /etc/nginx/conf.d/proxy-cache.conf &&
               sudo nginx -t && sudo systemctl reload nginx

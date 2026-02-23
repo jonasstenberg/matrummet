@@ -10,6 +10,7 @@ deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart postgrest-matrummet
 # Nginx config deployment
 deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/cp /tmp/nginx-deploy/* /etc/nginx/snippets/*
 deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/cp /tmp/nginx-deploy/* /etc/nginx/sites-enabled/*
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/rm -f /etc/nginx/sites-enabled/recept
 deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/cp /tmp/nginx-deploy/* /etc/nginx/conf.d/*
 deploy_recept ALL=(ALL) NOPASSWD: /usr/sbin/nginx -t
 deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/systemctl reload nginx

@@ -80,8 +80,8 @@ Production configs are version-controlled in `infra/` and deployed via CI.
 
 | File | Deploys to | Purpose |
 |------|-----------|---------|
-| `production.conf` | `/etc/nginx/sites-enabled/recept` | Main site (matrummet.se), 301 redirect from mat.stenberg.io |
-| `shared-locations.conf` | `/etc/nginx/snippets/matrummet-locations.conf` | Shared location blocks (included by production.conf) |
+| `matrummet.conf` | `/etc/nginx/sites-enabled/matrummet` | Main site (matrummet.se), 301 redirect from mat.stenberg.io |
+| `shared-locations.conf` | `/etc/nginx/snippets/matrummet-locations.conf` | Shared location blocks (included by matrummet.conf) |
 | `api.conf` | `/etc/nginx/sites-enabled/api.matrummet.se` | Public PostgREST API with CORS |
 | `proxy-cache.conf` | `/etc/nginx/conf.d/proxy-cache.conf` | Cache zone for static assets/images |
 
