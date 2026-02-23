@@ -17,6 +17,10 @@ Matrummet is a Swedish recipe management app. Monorepo with:
 
 Personal recipe collection with Swedish full-text search, JWT auth, and row-level security (RLS) ensuring users only modify their own data.
 
+## Principles
+
+- **Always choose the idiomatic solution.** Prefer the conventions and built-in capabilities of each technology in the stack (TanStack Start/Router, React 19, Tailwind v4, PostgREST, Zod v4, etc.) over generic or legacy patterns. When multiple approaches work, pick the one the library authors intended. Don't ask — just use the idiomatic choice.
+
 ## How
 
 ### Quick Commands
