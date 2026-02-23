@@ -2,8 +2,6 @@ import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import { env } from '@/lib/env'
 import { actionAuthMiddleware } from './middleware'
-import { logger as rootLogger } from '@/lib/logger'
-const logger = rootLogger.child({ module: 'credits' })
 
 // ============================================================================
 // Schemas
@@ -34,7 +32,8 @@ export interface CreditsData {
 const getCreditsDataFn = createServerFn({ method: 'GET' })
   .middleware([actionAuthMiddleware])
   .handler(async ({ context }): Promise<CreditsData | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'credits' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad' }
@@ -64,13 +63,13 @@ const getCreditsDataFn = createServerFn({ method: 'GET' })
 
       if (!balanceRes.ok) {
         const errorText = await balanceRes.text()
-        logger.error({ responseBody: errorText, email: context.session?.email }, 'Failed to fetch credits balance')
+        log.error({ responseBody: errorText }, 'Failed to fetch credits balance')
         return { error: 'Kunde inte hämta saldo' }
       }
 
       if (!historyRes.ok) {
         const errorText = await historyRes.text()
-        logger.error({ responseBody: errorText, email: context.session?.email }, 'Failed to fetch credit history')
+        log.error({ responseBody: errorText }, 'Failed to fetch credit history')
         return { error: 'Kunde inte hämta transaktionshistorik' }
       }
 
@@ -80,13 +79,13 @@ const getCreditsDataFn = createServerFn({ method: 'GET' })
       // Validate transactions with Zod
       const transactionsResult = creditTransactionsArraySchema.safeParse(rawTransactions)
       if (!transactionsResult.success) {
-        logger.error({ detail: transactionsResult.error.message, email: context.session?.email }, 'Credit transactions validation failed')
+        log.error({ detail: transactionsResult.error.message }, 'Credit transactions validation failed')
         return { error: 'Ogiltigt svar från servern' }
       }
 
       return { balance, transactions: transactionsResult.data }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error fetching credits data')
+      log.error({ err: error instanceof Error ? error : String(error) }, 'Error fetching credits data')
       return { error: 'Ett fel uppstod' }
     }
   })
@@ -106,7 +105,8 @@ export interface CreditBalance {
 const getCreditBalanceFn = createServerFn({ method: 'GET' })
   .middleware([actionAuthMiddleware])
   .handler(async ({ context }): Promise<CreditBalance | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'credits' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad' }
@@ -125,14 +125,14 @@ const getCreditBalanceFn = createServerFn({ method: 'GET' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email }, 'Failed to fetch credits balance')
+        log.error({ responseBody: errorText }, 'Failed to fetch credits balance')
         return { error: 'Kunde inte hämta saldo' }
       }
 
       const balance = await response.json()
       return { balance }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error fetching credit balance')
+      log.error({ err: error instanceof Error ? error : String(error) }, 'Error fetching credit balance')
       return { error: 'Ett fel uppstod' }
     }
   })

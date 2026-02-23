@@ -3,9 +3,6 @@ import { z } from 'zod'
 import type { BookShareConnection, BookShareInfo } from '@/lib/types'
 import { actionAuthMiddleware } from './middleware'
 import { env } from '@/lib/env'
-import { logger as rootLogger } from '@/lib/logger'
-
-const logger = rootLogger.child({ module: 'book-share' })
 
 // ============================================================================
 // Server Functions
@@ -15,7 +12,8 @@ const createBookShareLinkFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ expiresDays: z.number().optional() }))
   .handler(async ({ data, context }): Promise<{ token: string; url: string; expires_at: string | null } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'book-share' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad' }
@@ -33,7 +31,7 @@ const createBookShareLinkFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email }, 'Failed to create book share link')
+        log.error({ responseBody: errorText }, 'Failed to create book share link')
         return { error: 'Kunde inte skapa delningslänk. Försök igen.' }
       }
 
@@ -53,7 +51,7 @@ const createBookShareLinkFn = createServerFn({ method: 'POST' })
         expires_at: row.expires_at ?? null,
       }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error creating book share link')
+      log.error({ err: error instanceof Error ? error : String(error) }, 'Error creating book share link')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -62,7 +60,8 @@ const getBookShareInfoFn = createServerFn({ method: 'GET' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ shareToken: z.string() }))
   .handler(async ({ data, context }): Promise<BookShareInfo | null> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'book-share' })
 
     try {
       const response = await fetch(`${env.POSTGREST_URL}/rpc/get_book_share_info`, {
@@ -87,7 +86,7 @@ const getBookShareInfoFn = createServerFn({ method: 'GET' })
 
       return row as BookShareInfo
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), shareToken: data.shareToken }, 'Error getting book share info')
+      log.error({ err: error instanceof Error ? error : String(error), shareToken: data.shareToken }, 'Error getting book share info')
       return null
     }
   })
@@ -96,7 +95,8 @@ const acceptBookShareFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ shareToken: z.string() }))
   .handler(async ({ data, context }): Promise<{ sharer_name: string; sharer_id: string } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'book-share' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad för att acceptera' }
@@ -114,7 +114,7 @@ const acceptBookShareFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email, shareToken: data.shareToken }, 'Failed to accept book share')
+        log.error({ responseBody: errorText, shareToken: data.shareToken }, 'Failed to accept book share')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -136,7 +136,7 @@ const acceptBookShareFn = createServerFn({ method: 'POST' })
 
       return { sharer_name: row.sharer_name, sharer_id: row.sharer_id }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, shareToken: data.shareToken }, 'Error accepting book share')
+      log.error({ err: error instanceof Error ? error : String(error), shareToken: data.shareToken }, 'Error accepting book share')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -145,7 +145,8 @@ const revokeBookShareLinkFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ shareToken: z.string() }))
   .handler(async ({ data, context }): Promise<{ success: boolean } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'book-share' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad' }
@@ -168,7 +169,7 @@ const revokeBookShareLinkFn = createServerFn({ method: 'POST' })
       const result = await response.json()
       return { success: result === true }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, shareToken: data.shareToken }, 'Error revoking book share link')
+      log.error({ err: error instanceof Error ? error : String(error), shareToken: data.shareToken }, 'Error revoking book share link')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -176,7 +177,8 @@ const revokeBookShareLinkFn = createServerFn({ method: 'POST' })
 const getSharedBooksFn = createServerFn({ method: 'GET' })
   .middleware([actionAuthMiddleware])
   .handler(async ({ context }): Promise<BookShareConnection[]> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'book-share' })
 
     if (!postgrestToken) {
       return []
@@ -198,7 +200,7 @@ const getSharedBooksFn = createServerFn({ method: 'GET' })
 
       return await response.json()
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error getting shared books')
+      log.error({ err: error instanceof Error ? error : String(error) }, 'Error getting shared books')
       return []
     }
   })
@@ -207,7 +209,8 @@ const removeBookShareConnectionFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ connectionId: z.string() }))
   .handler(async ({ data, context }): Promise<{ success: boolean } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'book-share' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad' }
@@ -231,7 +234,7 @@ const removeBookShareConnectionFn = createServerFn({ method: 'POST' })
 
       return { success: result === true }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, connectionId: data.connectionId }, 'Error removing book share connection')
+      log.error({ err: error instanceof Error ? error : String(error), connectionId: data.connectionId }, 'Error removing book share connection')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })

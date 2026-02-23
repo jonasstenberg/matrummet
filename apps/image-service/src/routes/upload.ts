@@ -10,11 +10,14 @@ export async function handleUpload(
   logger: Logger,
 ): Promise<Response> {
   // Authenticate (cookie, Bearer JWT, or x-api-key)
+  let caller: { email?: string; role?: string };
   try {
-    await authenticateRequest(request);
+    caller = await authenticateRequest(request);
   } catch {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const log = logger.child({ email: caller.email });
 
   try {
     const formData = await request.formData();
@@ -51,11 +54,11 @@ export async function handleUpload(
     // Generate all image size variants
     await generateImageVariants(inputBuffer, imageDir);
 
-    logger.info({ imageId }, "Image uploaded");
+    log.info({ imageId }, "Image uploaded");
 
     return Response.json({ filename: imageId });
   } catch (error) {
-    logger.error({ error }, "Upload error");
+    log.error({ error }, "Upload error");
     return Response.json(
       { error: "Uppladdning misslyckades" },
       { status: 500 },

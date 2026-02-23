@@ -2,8 +2,9 @@ import { chromium, Browser } from "playwright"
 import { JsonLdRecipe } from "./types"
 import { jsonLdRecipeSchema } from "../schemas"
 import { logger as rootLogger } from '@/lib/logger'
+import type { Logger } from 'pino'
 
-const logger = rootLogger.child({ module: 'recipe-import' })
+const moduleLogger = rootLogger.child({ module: 'recipe-import' })
 
 /**
  * Browser singleton for Playwright.
@@ -70,9 +71,22 @@ async function getBrowser(): Promise<Browser> {
 }
 
 /**
+ * Summarize Zod validation errors to just the failing paths and expected types.
+ * e.g. "recipeCuisine: expected string|array; image: expected string"
+ */
+function summarizeZodError(error: { issues: Array<{ path: PropertyKey[]; expected?: string; message: string }> }): string {
+  return error.issues
+    .map((issue) => {
+      const path = issue.path.length > 0 ? issue.path.map(String).join('.') : '(root)'
+      return `${path}: ${issue.message}${issue.expected ? ` (expected ${issue.expected})` : ''}`
+    })
+    .join('; ')
+}
+
+/**
  * Parse JSON-LD Recipe data from an array of script contents
  */
-function parseJsonLdFromScripts(scripts: (string | null)[]): JsonLdRecipe | null {
+function parseJsonLdFromScripts(scripts: (string | null)[], url: string, logger: Logger): JsonLdRecipe | null {
   for (const script of scripts) {
     if (!script) continue
 
@@ -85,7 +99,7 @@ function parseJsonLdFromScripts(scripts: (string | null)[]): JsonLdRecipe | null
         if (result.success) {
           return result.data as JsonLdRecipe
         }
-        logger.warn({ detail: result.error.message }, 'JSON-LD Recipe validation failed')
+        logger.warn({ url, format: 'single', validationErrors: summarizeZodError(result.error) }, 'JSON-LD Recipe validation failed')
         return null
       }
 
@@ -102,7 +116,7 @@ function parseJsonLdFromScripts(scripts: (string | null)[]): JsonLdRecipe | null
           if (result.success) {
             return result.data as JsonLdRecipe
           }
-          logger.warn({ detail: result.error.message }, 'JSON-LD Recipe validation failed')
+          logger.warn({ url, format: '@graph', validationErrors: summarizeZodError(result.error) }, 'JSON-LD Recipe validation failed')
           return null
         }
       }
@@ -120,7 +134,7 @@ function parseJsonLdFromScripts(scripts: (string | null)[]): JsonLdRecipe | null
           if (result.success) {
             return result.data as JsonLdRecipe
           }
-          logger.warn({ detail: result.error.message }, 'JSON-LD Recipe validation failed')
+          logger.warn({ url, format: 'array', validationErrors: summarizeZodError(result.error) }, 'JSON-LD Recipe validation failed')
           return null
         }
       }
@@ -142,13 +156,15 @@ export interface PlaywrightFetchResult {
  * Returns JSON-LD if found, otherwise returns page text for AI parsing.
  */
 export async function fetchWithPlaywright(
-  url: string
+  url: string,
+  requestLogger?: Logger,
 ): Promise<PlaywrightFetchResult> {
+  const logger = (requestLogger ?? moduleLogger).child({ module: 'recipe-import' })
   let browser: Browser
   try {
     browser = await getBrowser()
   } catch (error) {
-    logger.error({ err: error instanceof Error ? error : String(error) }, 'Failed to get browser')
+    logger.error({ err: error instanceof Error ? error : String(error), url }, 'Failed to get browser')
     return { jsonLd: null, pageText: null }
   }
 
@@ -261,7 +277,7 @@ export async function fetchWithPlaywright(
       return Array.from(scripts).map((s) => s.textContent)
     })
 
-    const jsonLd = parseJsonLdFromScripts(jsonLdScripts)
+    const jsonLd = parseJsonLdFromScripts(jsonLdScripts, url, logger)
 
     // Always extract page text (needed for AI import even when JSON-LD exists)
     const pageText = await page.evaluate(() => {

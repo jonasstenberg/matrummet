@@ -4,7 +4,7 @@ const isProduction = process.env.NODE_ENV === 'production'
 
 export const logger = pino({
   name: 'web',
-  level: isProduction ? 'info' : 'debug',
+  level: process.env.LOG_LEVEL || (isProduction ? 'info' : 'debug'),
   base: {
     service: 'web',
     env: process.env.NODE_ENV || 'development',

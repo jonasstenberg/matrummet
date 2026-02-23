@@ -252,6 +252,9 @@ export const changePasswordFn = createServerFn({ method: 'POST' })
   .inputValidator(z.object({ oldPassword: z.string(), newPassword: z.string(), confirmNewPassword: z.string() }))
   .middleware([actionAuthMiddleware])
   .handler(async ({ data, context }): Promise<ChangePasswordState> => {
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'auth' })
+
     const result = changePasswordSchema.safeParse({
       oldPassword: data.oldPassword,
       newPassword: data.newPassword,
@@ -264,7 +267,7 @@ export const changePasswordFn = createServerFn({ method: 'POST' })
     }
 
     try {
-      if (!context.postgrestToken || !context.session?.email) {
+      if (!postgrestToken || !context.session?.email) {
         return { error: 'Du måste vara inloggad' }
       }
 
@@ -272,7 +275,7 @@ export const changePasswordFn = createServerFn({ method: 'POST' })
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${context.postgrestToken}`,
+          Authorization: `Bearer ${postgrestToken}`,
         },
         body: JSON.stringify({
           p_email: context.session.email,
@@ -283,7 +286,7 @@ export const changePasswordFn = createServerFn({ method: 'POST' })
 
       if (!postgrestResponse.ok) {
         const errorText = await postgrestResponse.text()
-        logger.error({ responseBody: errorText, email: context.session?.email }, 'Password change failed')
+        log.error({ responseBody: errorText }, 'Password change failed')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -304,7 +307,7 @@ export const changePasswordFn = createServerFn({ method: 'POST' })
 
       return { success: true }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Password change error')
+      log.error({ err: error instanceof Error ? error : String(error) }, 'Password change error')
       return { error: 'Ett oväntat fel uppstod' }
     }
   })
@@ -332,8 +335,11 @@ export const deleteAccountFn = createServerFn({ method: 'POST' })
   .inputValidator(z.object({ password: z.string().optional(), deleteData: z.boolean().optional() }))
   .middleware([actionAuthMiddleware])
   .handler(async ({ data, context }): Promise<DeleteAccountState> => {
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'auth' })
+
     try {
-      if (!context.postgrestToken || !context.session?.email) {
+      if (!postgrestToken || !context.session?.email) {
         return { error: 'Du måste vara inloggad' }
       }
 
@@ -341,7 +347,7 @@ export const deleteAccountFn = createServerFn({ method: 'POST' })
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${context.postgrestToken}`,
+          Authorization: `Bearer ${postgrestToken}`,
         },
         body: JSON.stringify({
           p_password: data.password || null,
@@ -376,7 +382,7 @@ export const deleteAccountFn = createServerFn({ method: 'POST' })
 
       return { success: true }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Account deletion error')
+      log.error({ err: error instanceof Error ? error : String(error) }, 'Account deletion error')
       return { error: 'Ett oväntat fel uppstod' }
     }
   })

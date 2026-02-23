@@ -18,7 +18,8 @@ const listMealPlansFn = createServerFn({ method: 'GET' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ homeId: z.string().optional() }))
   .handler(async ({ data, context }): Promise<MealPlanSummary[]> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'meal-plan' })
 
     if (!postgrestToken) return []
 
@@ -43,7 +44,7 @@ const listMealPlansFn = createServerFn({ method: 'GET' })
       const result = await response.json()
       return Array.isArray(result) ? result : []
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error listing meal plans')
+      log.error({ err: error instanceof Error ? error : String(error) }, 'Error listing meal plans')
       return []
     }
   })
@@ -52,7 +53,8 @@ const getMealPlanFn = createServerFn({ method: 'GET' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ planId: z.string().optional(), homeId: z.string().optional() }))
   .handler(async ({ data, context }): Promise<MealPlan | null> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'meal-plan' })
 
     if (!postgrestToken) return null
 
@@ -118,7 +120,7 @@ const getMealPlanFn = createServerFn({ method: 'GET' })
         })),
       } as MealPlan
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, planId: data.planId }, 'Error fetching meal plan')
+      log.error({ err: error instanceof Error ? error : String(error), planId: data.planId }, 'Error fetching meal plan')
       return null
     }
   })
@@ -133,7 +135,8 @@ const swapMealPlanEntryFn = createServerFn({ method: 'POST' })
     suggestedRecipe: SuggestedRecipeSchema.nullable().optional(),
   }))
   .handler(async ({ data, context }): Promise<{ success: boolean } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'meal-plan' })
 
     if (!postgrestToken) return { error: 'Du måste vara inloggad' }
 
@@ -162,7 +165,7 @@ const swapMealPlanEntryFn = createServerFn({ method: 'POST' })
 
       return { success: true }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, entryId: data.entryId }, 'Error swapping meal plan entry')
+      log.error({ err: error instanceof Error ? error : String(error), entryId: data.entryId }, 'Error swapping meal plan entry')
       return { error: 'Ett fel uppstod. Försök igen.' }
     }
   })
@@ -184,14 +187,15 @@ const getRecipeIngredientsByIdsFn = createServerFn({ method: 'GET' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ recipeIds: z.array(z.string()), homeId: z.string().optional() }))
   .handler(async ({ data, context }): Promise<RecipeIngredientData[]> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'meal-plan' })
 
     if (!postgrestToken || data.recipeIds.length === 0) return []
 
     try {
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
       if (!data.recipeIds.every((id) => uuidRegex.test(id))) {
-        logger.error('Invalid recipe ID format detected')
+        log.error('Invalid recipe ID format detected')
         return []
       }
 
@@ -220,7 +224,8 @@ const addMealPlanToShoppingListFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ planId: z.string(), shoppingListId: z.string().optional(), homeId: z.string().optional() }))
   .handler(async ({ data, context }): Promise<{ added_count: number; list_id: string } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'meal-plan' })
 
     if (!postgrestToken) return { error: 'Du måste vara inloggad' }
 
@@ -252,7 +257,7 @@ const addMealPlanToShoppingListFn = createServerFn({ method: 'POST' })
       const result = await response.json()
       return result
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, planId: data.planId }, 'Error adding meal plan to shopping list')
+      log.error({ err: error instanceof Error ? error : String(error), planId: data.planId }, 'Error adding meal plan to shopping list')
       return { error: 'Ett fel uppstod. Försök igen.' }
     }
   })

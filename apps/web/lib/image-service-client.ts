@@ -8,9 +8,9 @@ function getImageServiceUrl(): string {
   return env.IMAGE_SERVICE_URL ?? 'http://localhost:4006'
 }
 
-async function getServiceToken(): Promise<string> {
+async function getServiceToken(email?: string): Promise<string> {
   const secret = new TextEncoder().encode(env.JWT_SECRET)
-  return new SignJWT({ role: 'service', service: 'web' })
+  return new SignJWT({ role: 'service', service: 'web', ...(email && { email }) })
     .setProtectedHeader({ alg: 'HS256' })
     .setExpirationTime('5m')
     .sign(secret)
@@ -18,9 +18,10 @@ async function getServiceToken(): Promise<string> {
 
 export async function uploadImageBuffer(
   buffer: Buffer,
-  contentType: string
+  contentType: string,
+  email?: string,
 ): Promise<string> {
-  const token = await getServiceToken()
+  const token = await getServiceToken(email)
   const formData = new FormData()
   formData.append('file', new Blob([buffer], { type: contentType }), 'image.jpg')
 

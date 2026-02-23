@@ -6,9 +6,6 @@ import { signToken } from '@/lib/auth'
 import { actionAuthMiddleware } from './middleware'
 import { apiKeysArraySchema } from './schemas'
 import { env } from '@/lib/env'
-import { logger as rootLogger } from '@/lib/logger'
-
-const logger = rootLogger.child({ module: 'settings' })
 
 // ============================================================================
 // Server Functions
@@ -17,7 +14,8 @@ const logger = rootLogger.child({ module: 'settings' })
 const getApiKeysFn = createServerFn({ method: 'GET' })
   .middleware([actionAuthMiddleware])
   .handler(async ({ context }): Promise<ApiKey[] | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'settings' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad' }
@@ -35,7 +33,7 @@ const getApiKeysFn = createServerFn({ method: 'GET' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email }, 'Failed to get API keys')
+        log.error({ responseBody: errorText }, 'Failed to get API keys')
         return { error: 'Kunde inte hämta API-nycklar' }
       }
 
@@ -51,13 +49,13 @@ const getApiKeysFn = createServerFn({ method: 'GET' })
 
       const result = apiKeysArraySchema.safeParse(mapped)
       if (!result.success) {
-        logger.error({ detail: result.error.message, email: context.session?.email }, 'API keys validation failed')
+        log.error({ detail: result.error.message }, 'API keys validation failed')
         return { error: 'Ogiltigt svar från servern' }
       }
 
       return result.data
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error getting API keys')
+      log.error({ err: error instanceof Error ? error : String(error) }, 'Error getting API keys')
       return { error: 'Kunde inte hämta API-nycklar' }
     }
   })
@@ -66,7 +64,8 @@ const createApiKeyFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.string())
   .handler(async ({ data, context }): Promise<{ apiKey: string; prefix: string; id: string } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'settings' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad' }
@@ -84,7 +83,7 @@ const createApiKeyFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email }, 'Failed to create API key')
+        log.error({ responseBody: errorText }, 'Failed to create API key')
 
         if (errorText.includes('duplicate key') || errorText.includes('unique constraint')) {
           return { error: 'En nyckel med det namnet finns redan' }
@@ -101,7 +100,7 @@ const createApiKeyFn = createServerFn({ method: 'POST' })
         id: result.id,
       }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error creating API key')
+      log.error({ err: error instanceof Error ? error : String(error) }, 'Error creating API key')
       return { error: 'Kunde inte skapa nyckel' }
     }
   })
@@ -110,7 +109,8 @@ const revokeApiKeyFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.string())
   .handler(async ({ data, context }): Promise<{ success: true } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'settings' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad' }
@@ -128,13 +128,13 @@ const revokeApiKeyFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email }, 'Failed to revoke API key')
+        log.error({ responseBody: errorText }, 'Failed to revoke API key')
         return { error: 'Kunde inte ta bort nyckel' }
       }
 
       return { success: true }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error revoking API key')
+      log.error({ err: error instanceof Error ? error : String(error) }, 'Error revoking API key')
       return { error: 'Kunde inte ta bort nyckel' }
     }
   })
@@ -148,7 +148,8 @@ const updateProfileFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ name: z.string() }))
   .handler(async ({ data, context }): Promise<UpdateProfileState> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'settings' })
     const { name } = data
 
     try {
@@ -175,7 +176,7 @@ const updateProfileFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email }, 'Failed to update profile')
+        log.error({ responseBody: errorText }, 'Failed to update profile')
         return { error: 'Kunde inte uppdatera profil. Försök igen.' }
       }
 
@@ -202,7 +203,7 @@ const updateProfileFn = createServerFn({ method: 'POST' })
 
       return { success: true }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error updating profile')
+      log.error({ err: error instanceof Error ? error : String(error) }, 'Error updating profile')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })

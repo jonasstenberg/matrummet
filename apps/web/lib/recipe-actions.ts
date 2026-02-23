@@ -12,8 +12,6 @@ import { getRecipes } from '@/lib/api'
 import type { Recipe } from '@/lib/types'
 import { actionAuthMiddleware } from './middleware'
 import { env } from '@/lib/env'
-import { logger as rootLogger } from '@/lib/logger'
-const logger = rootLogger.child({ module: 'recipe' })
 // Zod schemas for recipe ingredient/instruction unions
 const ingredientInputSchema = z.union([
   z.object({ group: z.string() }),
@@ -182,7 +180,8 @@ const deductAiCreditFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ description: z.string() }))
   .handler(async ({ data, context }): Promise<{ remainingCredits: number } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'recipe' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad' }
@@ -207,7 +206,7 @@ const deductAiCreditFn = createServerFn({ method: 'POST' })
       const remainingCredits = await response.json()
       return { remainingCredits }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error deducting AI credit')
+      log.error({ err: error instanceof Error ? error : String(error) }, 'Error deducting AI credit')
       return { error: 'Något gick fel. Försök igen.' }
     }
   })
@@ -216,7 +215,8 @@ const createRecipeFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(createRecipeInputSchema)
   .handler(async ({ data, context }): Promise<{ id: string } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'recipe' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad för att skapa recept' }
@@ -250,7 +250,7 @@ const createRecipeFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email }, 'Failed to create recipe')
+        log.error({ responseBody: errorText }, 'Failed to create recipe')
         return { error: 'Kunde inte skapa receptet. Försök igen.' }
       }
 
@@ -258,7 +258,7 @@ const createRecipeFn = createServerFn({ method: 'POST' })
 
       return { id: result }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error creating recipe')
+      log.error({ err: error instanceof Error ? error : String(error) }, 'Error creating recipe')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -267,7 +267,8 @@ const updateRecipeFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ id: z.string(), data: updateRecipeInputSchema }))
   .handler(async ({ data: input, context }): Promise<{ success: boolean } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'recipe' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad för att uppdatera recept' }
@@ -303,13 +304,13 @@ const updateRecipeFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email, recipeId: input.id }, 'Failed to update recipe')
+        log.error({ responseBody: errorText, recipeId: input.id }, 'Failed to update recipe')
         return { error: 'Kunde inte uppdatera receptet. Försök igen.' }
       }
 
       return { success: true }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, recipeId: input.id }, 'Error updating recipe')
+      log.error({ err: error instanceof Error ? error : String(error), recipeId: input.id }, 'Error updating recipe')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -318,7 +319,8 @@ const deleteRecipeFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ id: z.string() }))
   .handler(async ({ data, context }): Promise<{ success: boolean } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'recipe' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad för att ta bort recept' }
@@ -350,13 +352,13 @@ const deleteRecipeFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email, recipeId: data.id }, 'Failed to delete recipe')
+        log.error({ responseBody: errorText, recipeId: data.id }, 'Failed to delete recipe')
         return { error: 'Kunde inte ta bort receptet. Försök igen.' }
       }
 
       return { success: true }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, recipeId: data.id }, 'Error deleting recipe')
+      log.error({ err: error instanceof Error ? error : String(error), recipeId: data.id }, 'Error deleting recipe')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -365,7 +367,8 @@ const copyRecipeFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ recipeId: z.string() }))
   .handler(async ({ data, context }): Promise<{ newRecipeId: string } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'recipe' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad för att kopiera recept' }
@@ -383,7 +386,7 @@ const copyRecipeFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email, recipeId: data.recipeId }, 'Failed to copy recipe')
+        log.error({ responseBody: errorText, recipeId: data.recipeId }, 'Failed to copy recipe')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -406,7 +409,7 @@ const copyRecipeFn = createServerFn({ method: 'POST' })
 
       return { newRecipeId: result }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, recipeId: data.recipeId }, 'Error copying recipe')
+      log.error({ err: error instanceof Error ? error : String(error), recipeId: data.recipeId }, 'Error copying recipe')
       return { error: 'Kunde inte kopiera receptet. Försök igen.' }
     }
   })
@@ -415,7 +418,8 @@ const toggleRecipeLikeFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ recipeId: z.string() }))
   .handler(async ({ data, context }): Promise<{ liked: boolean } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'recipe' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad för att gilla recept' }
@@ -433,7 +437,7 @@ const toggleRecipeLikeFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email, recipeId: data.recipeId }, 'Failed to toggle recipe like')
+        log.error({ responseBody: errorText, recipeId: data.recipeId }, 'Failed to toggle recipe like')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -456,7 +460,7 @@ const toggleRecipeLikeFn = createServerFn({ method: 'POST' })
 
       return { liked: result.liked }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, recipeId: data.recipeId }, 'Error toggling recipe like')
+      log.error({ err: error instanceof Error ? error : String(error), recipeId: data.recipeId }, 'Error toggling recipe like')
       return { error: 'Kunde inte uppdatera gillning' }
     }
   })
@@ -465,7 +469,8 @@ const importRecipeFromUrlFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ url: z.string() }))
   .handler(async ({ data, context }): Promise<ImportRecipeResult> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'recipe' })
 
     if (!postgrestToken) {
       return {
@@ -524,12 +529,13 @@ const importRecipeFromUrlFn = createServerFn({ method: 'POST' })
       }
 
       if (!jsonLd) {
-        const playwrightResult = await fetchWithPlaywright(data.url)
+        const playwrightResult = await fetchWithPlaywright(data.url, requestLogger)
         jsonLd = playwrightResult.jsonLd
         pageText = playwrightResult.pageText
       }
 
       if (!jsonLd) {
+        log.info({ url: data.url, hasPageText: !!pageText }, 'Recipe import: no structured data found')
         return {
           success: false,
           error: pageText
@@ -570,7 +576,7 @@ const importRecipeFromUrlFn = createServerFn({ method: 'POST' })
         sourceUrl: data.url,
       }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, url: data.url }, 'Error importing recipe from URL')
+      log.error({ err: error instanceof Error ? error : String(error), url: data.url }, 'Error importing recipe from URL')
       return {
         success: false,
         error: 'Ett oväntat fel uppstod vid import. Försök igen.',
@@ -583,7 +589,8 @@ const fetchUrlPageTextFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ url: z.string() }))
   .handler(async ({ data, context }): Promise<{ pageText: string | null; error?: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'recipe' })
 
     if (!postgrestToken) {
       return { pageText: null, error: 'Du måste vara inloggad' }
@@ -614,22 +621,25 @@ const fetchUrlPageTextFn = createServerFn({ method: 'POST' })
         }
       }
 
-      const result = await fetchWithPlaywright(data.url)
+      const result = await fetchWithPlaywright(data.url, requestLogger)
       if (!result.pageText) {
         return { pageText: null, error: 'Kunde inte hämta sidans innehåll' }
       }
       return { pageText: result.pageText }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, url: data.url }, 'Error fetching page text')
+      log.error({ err: error instanceof Error ? error : String(error), url: data.url }, 'Error fetching page text')
       return { pageText: null, error: 'Ett oväntat fel uppstod' }
     }
   })
 
 const downloadAndSaveImageFn = createServerFn({ method: 'POST' })
+  .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ imageUrl: z.string() }))
-  .handler(async ({ data }): Promise<{ filename: string } | { error: string }> => {
+  .handler(async ({ data, context }): Promise<{ filename: string } | { error: string }> => {
+    const { logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'recipe' })
     try {
-      const result = await downloadImage(data.imageUrl)
+      const result = await downloadImage(data.imageUrl, requestLogger)
 
       if (!result.success || !result.filename) {
         return { error: result.error || 'Kunde inte ladda ner bilden' }
@@ -637,7 +647,7 @@ const downloadAndSaveImageFn = createServerFn({ method: 'POST' })
 
       return { filename: result.filename }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), imageUrl: data.imageUrl }, 'Error downloading image')
+      log.error({ err: error instanceof Error ? error : String(error), imageUrl: data.imageUrl }, 'Error downloading image')
       return { error: 'Ett fel uppstod vid nedladdning av bilden' }
     }
   })
@@ -646,7 +656,8 @@ const createShareLinkFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ recipeId: z.string(), expiresDays: z.number().optional() }))
   .handler(async ({ data, context }): Promise<{ token: string; url: string; expires_at: string | null } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'recipe' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad för att dela recept' }
@@ -667,7 +678,7 @@ const createShareLinkFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email, recipeId: data.recipeId }, 'Failed to create share link')
+        log.error({ responseBody: errorText, recipeId: data.recipeId }, 'Failed to create share link')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -697,7 +708,7 @@ const createShareLinkFn = createServerFn({ method: 'POST' })
         expires_at: row.expires_at ?? null,
       }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, recipeId: data.recipeId }, 'Error creating share link')
+      log.error({ err: error instanceof Error ? error : String(error), recipeId: data.recipeId }, 'Error creating share link')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -706,7 +717,8 @@ const revokeShareLinkFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ shareToken: z.string() }))
   .handler(async ({ data, context }): Promise<{ success: boolean } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'recipe' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad' }
@@ -724,7 +736,7 @@ const revokeShareLinkFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email, shareToken: data.shareToken }, 'Failed to revoke share link')
+        log.error({ responseBody: errorText, shareToken: data.shareToken }, 'Failed to revoke share link')
         return { error: 'Kunde inte återkalla delningslänken' }
       }
 
@@ -732,7 +744,7 @@ const revokeShareLinkFn = createServerFn({ method: 'POST' })
 
       return { success: result === true }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, shareToken: data.shareToken }, 'Error revoking share link')
+      log.error({ err: error instanceof Error ? error : String(error), shareToken: data.shareToken }, 'Error revoking share link')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -741,7 +753,8 @@ const getShareLinksFn = createServerFn({ method: 'GET' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ recipeId: z.string() }))
   .handler(async ({ data, context }): Promise<{ links: ShareLink[] } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'recipe' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad' }
@@ -759,7 +772,7 @@ const getShareLinksFn = createServerFn({ method: 'GET' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email, recipeId: data.recipeId }, 'Failed to get share links')
+        log.error({ responseBody: errorText, recipeId: data.recipeId }, 'Failed to get share links')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -777,7 +790,7 @@ const getShareLinksFn = createServerFn({ method: 'GET' })
 
       return { links }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, recipeId: data.recipeId }, 'Error getting share links')
+      log.error({ err: error instanceof Error ? error : String(error), recipeId: data.recipeId }, 'Error getting share links')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -786,7 +799,8 @@ const copySharedRecipeFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ shareToken: z.string() }))
   .handler(async ({ data, context }): Promise<{ newRecipeId: string } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'recipe' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad för att spara recept' }
@@ -804,7 +818,7 @@ const copySharedRecipeFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email, shareToken: data.shareToken }, 'Failed to copy shared recipe')
+        log.error({ responseBody: errorText, shareToken: data.shareToken }, 'Failed to copy shared recipe')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -822,7 +836,7 @@ const copySharedRecipeFn = createServerFn({ method: 'POST' })
 
       return { newRecipeId: result }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, shareToken: data.shareToken }, 'Error copying shared recipe')
+      log.error({ err: error instanceof Error ? error : String(error), shareToken: data.shareToken }, 'Error copying shared recipe')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })

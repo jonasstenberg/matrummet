@@ -1,7 +1,8 @@
 import { uploadImageBuffer } from '@/lib/image-service-client'
 import { logger as rootLogger } from '@/lib/logger'
+import type { Logger } from 'pino'
 
-const logger = rootLogger.child({ module: 'recipe-import' })
+const moduleLogger = rootLogger.child({ module: 'recipe-import' })
 
 const MAX_IMAGE_SIZE = 20 * 1024 * 1024 // 20MB
 
@@ -23,7 +24,8 @@ export interface DownloadResult {
  * Download an image from a URL and upload it to the image service.
  * Returns the image ID (filename) on success.
  */
-export async function downloadImage(imageUrl: string): Promise<DownloadResult> {
+export async function downloadImage(imageUrl: string, requestLogger?: Logger): Promise<DownloadResult> {
+  const logger = (requestLogger ?? moduleLogger).child({ module: 'recipe-import' })
   try {
     // Validate URL
     const url = new URL(imageUrl)
@@ -76,8 +78,9 @@ export async function downloadImage(imageUrl: string): Promise<DownloadResult> {
       }
     }
 
-    // Upload to image service
-    const filename = await uploadImageBuffer(buffer, contentType)
+    // Upload to image service — forward email for audit logging
+    const email = (requestLogger?.bindings?.() as { email?: string } | undefined)?.email
+    const filename = await uploadImageBuffer(buffer, contentType, email)
 
     return { success: true, filename }
   } catch (error) {

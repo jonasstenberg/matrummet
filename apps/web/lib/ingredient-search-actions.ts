@@ -5,9 +5,6 @@ import { getCurrentUserEmail, postgrestHeaders } from '@/lib/action-utils'
 import { actionAuthMiddleware } from './middleware'
 import { env } from '@/lib/env'
 import { getSubstitutionSuggestions as getSubstitutionSuggestionsLib } from '@/lib/substitutions'
-import { logger as rootLogger } from '@/lib/logger'
-
-const logger = rootLogger.child({ module: 'ingredient-search' })
 
 // ============================================================================
 // Server Functions
@@ -25,7 +22,8 @@ const findRecipesByIngredientsFn = createServerFn({ method: 'GET' })
     homeId: z.string().optional(),
   }))
   .handler(async ({ data, context }): Promise<RecipeMatch[] | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'ingredient-search' })
 
     try {
       if (data.foodIds.length === 0) {
@@ -58,14 +56,14 @@ const findRecipesByIngredientsFn = createServerFn({ method: 'GET' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email }, 'Failed to find recipes by ingredients')
+        log.error({ responseBody: errorText }, 'Failed to find recipes by ingredients')
         return { error: 'Kunde inte hitta recept. Försök igen.' }
       }
 
       const results: RecipeMatch[] = await response.json()
       return results
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error finding recipes by ingredients')
+      log.error({ err: error instanceof Error ? error : String(error) }, 'Error finding recipes by ingredients')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -74,7 +72,8 @@ const getUserPantryFn = createServerFn({ method: 'GET' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ homeId: z.string().optional() }))
   .handler(async ({ data, context }): Promise<PantryItem[] | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'ingredient-search' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad för att se ditt skafferi' }
@@ -89,14 +88,14 @@ const getUserPantryFn = createServerFn({ method: 'GET' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email }, 'Failed to get user pantry')
+        log.error({ responseBody: errorText }, 'Failed to get user pantry')
         return { error: 'Kunde inte hämta ditt skafferi' }
       }
 
       const items: PantryItem[] = await response.json()
       return items
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error getting user pantry')
+      log.error({ err: error instanceof Error ? error : String(error) }, 'Error getting user pantry')
       return { error: 'Ett oväntat fel uppstod' }
     }
   })
@@ -105,7 +104,8 @@ const addToPantryFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ foodIds: z.array(z.string()), expiresAt: z.string().nullable().optional(), homeId: z.string().optional() }))
   .handler(async ({ data, context }): Promise<{ success: boolean } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'ingredient-search' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad för att spara till skafferiet' }
@@ -131,14 +131,14 @@ const addToPantryFn = createServerFn({ method: 'POST' })
         })
 
         if (!response.ok) {
-          logger.error({ responseBody: await response.text(), email: context.session?.email, foodId }, 'Failed to add to pantry')
+          log.error({ responseBody: await response.text(), foodId }, 'Failed to add to pantry')
           return { error: 'Kunde inte spara till skafferiet' }
         }
       }
 
       return { success: true }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error adding to pantry')
+      log.error({ err: error instanceof Error ? error : String(error) }, 'Error adding to pantry')
       return { error: 'Ett oväntat fel uppstod' }
     }
   })
@@ -147,7 +147,8 @@ const updatePantryItemExpiryFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ foodId: z.string(), expiresAt: z.string().nullable(), homeId: z.string().optional() }))
   .handler(async ({ data, context }): Promise<{ success: boolean } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'ingredient-search' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad' }
@@ -164,13 +165,13 @@ const updatePantryItemExpiryFn = createServerFn({ method: 'POST' })
       })
 
       if (!response.ok) {
-        logger.error({ responseBody: await response.text(), email: context.session?.email, foodId: data.foodId }, 'Failed to update pantry item expiry')
+        log.error({ responseBody: await response.text(), foodId: data.foodId }, 'Failed to update pantry item expiry')
         return { error: 'Kunde inte uppdatera utgångsdatum' }
       }
 
       return { success: true }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, foodId: data.foodId }, 'Error updating pantry item expiry')
+      log.error({ err: error instanceof Error ? error : String(error), foodId: data.foodId }, 'Error updating pantry item expiry')
       return { error: 'Ett oväntat fel uppstod' }
     }
   })
@@ -179,7 +180,8 @@ const removeFromPantryFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ foodId: z.string(), homeId: z.string().optional() }))
   .handler(async ({ data, context }): Promise<{ success: boolean } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'ingredient-search' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad' }
@@ -195,13 +197,13 @@ const removeFromPantryFn = createServerFn({ method: 'POST' })
       })
 
       if (!response.ok) {
-        logger.error({ responseBody: await response.text(), email: context.session?.email, foodId: data.foodId }, 'Failed to remove from pantry')
+        log.error({ responseBody: await response.text(), foodId: data.foodId }, 'Failed to remove from pantry')
         return { error: 'Kunde inte ta bort från skafferiet' }
       }
 
       return { success: true }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, foodId: data.foodId }, 'Error removing from pantry')
+      log.error({ err: error instanceof Error ? error : String(error), foodId: data.foodId }, 'Error removing from pantry')
       return { error: 'Ett oväntat fel uppstod' }
     }
   })
@@ -213,7 +215,8 @@ const deductFromPantryFn = createServerFn({ method: 'POST' })
     homeId: z.string().optional(),
   }))
   .handler(async ({ data, context }): Promise<{ success: boolean; count: number } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'ingredient-search' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad' }
@@ -233,14 +236,14 @@ const deductFromPantryFn = createServerFn({ method: 'POST' })
       })
 
       if (!response.ok) {
-        logger.error({ responseBody: await response.text(), email: context.session?.email }, 'Failed to deduct from pantry')
+        log.error({ responseBody: await response.text() }, 'Failed to deduct from pantry')
         return { error: 'Kunde inte uppdatera skafferiet' }
       }
 
       const count: number = await response.json()
       return { success: true, count }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error deducting from pantry')
+      log.error({ err: error instanceof Error ? error : String(error) }, 'Error deducting from pantry')
       return { error: 'Ett oväntat fel uppstod' }
     }
   })
@@ -249,7 +252,8 @@ const getSubstitutionSuggestionsFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ recipeId: z.string(), missingFoodIds: z.array(z.string()), availableFoodIds: z.array(z.string()) }))
   .handler(async ({ data, context }): Promise<SubstitutionResponse | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'ingredient-search' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad för att se ersättningsförslag' }
@@ -263,13 +267,13 @@ const getSubstitutionSuggestionsFn = createServerFn({ method: 'POST' })
       })
 
       if ('error' in result) {
-        logger.error({ detail: result.error, email: context.session?.email, recipeId: data.recipeId }, 'Failed to get substitution suggestions')
+        log.error({ detail: result.error, recipeId: data.recipeId }, 'Failed to get substitution suggestions')
         return { error: result.error }
       }
 
       return result
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, recipeId: data.recipeId }, 'Error getting substitution suggestions')
+      log.error({ err: error instanceof Error ? error : String(error), recipeId: data.recipeId }, 'Error getting substitution suggestions')
       return { error: 'Ett oväntat fel uppstod' }
     }
   })
@@ -278,7 +282,8 @@ const searchFoodsWithIdsFn = createServerFn({ method: 'GET' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ query: z.string(), limit: z.number().optional() }))
   .handler(async ({ data, context }): Promise<Array<{ id: string; name: string }>> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'ingredient-search' })
 
     try {
       const headers: Record<string, string> = {
@@ -305,7 +310,7 @@ const searchFoodsWithIdsFn = createServerFn({ method: 'GET' })
       const results: Array<{ id: string; name: string; rank: number }> = await response.json()
       return results.map((food) => ({ id: food.id, name: food.name }))
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error) }, 'Error searching foods with IDs')
+      log.error({ err: error instanceof Error ? error : String(error) }, 'Error searching foods with IDs')
       return []
     }
   })
@@ -314,7 +319,8 @@ const getCommonPantryItemsFn = createServerFn({ method: 'GET' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ homeId: z.string().optional() }))
   .handler(async ({ data, context }): Promise<CommonPantryItem[]> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'ingredient-search' })
 
     try {
       const headers: Record<string, string> = {
@@ -335,14 +341,14 @@ const getCommonPantryItemsFn = createServerFn({ method: 'GET' })
       })
 
       if (!response.ok) {
-        logger.error('Failed to get common pantry items')
+        log.error('Failed to get common pantry items')
         return []
       }
 
       const items: CommonPantryItem[] = await response.json()
       return items
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error) }, 'Error getting common pantry items')
+      log.error({ err: error instanceof Error ? error : String(error) }, 'Error getting common pantry items')
       return []
     }
   })

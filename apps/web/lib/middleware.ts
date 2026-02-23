@@ -4,6 +4,7 @@ import { redirect } from '@tanstack/react-router'
 import { getRequestUrl } from '@tanstack/react-start/server'
 import { getSession, signPostgrestToken, type JWTPayload } from '@/lib/auth'
 import { logger as rootLogger } from '@/lib/logger'
+import type { Logger } from 'pino'
 
 const logger = rootLogger.child({ module: 'middleware' })
 
@@ -88,7 +89,11 @@ export const actionAuthMiddleware = createMiddleware({ type: 'function' }).serve
       postgrestToken = await signPostgrestToken(session.email, session.role)
     }
 
-    return next({ context: { session, postgrestToken } })
+    const requestLogger = session?.email
+      ? rootLogger.child({ email: session.email })
+      : rootLogger
+
+    return next({ context: { session, postgrestToken, logger: requestLogger } })
   },
 )
 
@@ -115,7 +120,11 @@ export const actionAdminMiddleware = createMiddleware({ type: 'function' }).serv
       postgrestToken = await signPostgrestToken(session.email, session.role)
     }
 
-    return next({ context: { session, postgrestToken } })
+    const requestLogger = session?.email
+      ? rootLogger.child({ email: session.email })
+      : rootLogger
+
+    return next({ context: { session, postgrestToken, logger: requestLogger } })
   },
 )
 
@@ -195,6 +204,7 @@ export const apiAdminMiddleware = createMiddleware().server(
 export type ActionAuthContext = {
   session: JWTPayload | null
   postgrestToken: string | null
+  logger: Logger
 }
 
 export type ActionAdminContext = ActionAuthContext

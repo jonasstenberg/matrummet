@@ -4,8 +4,6 @@ import { HomeInfo, HomeInvitation, UserHome } from '@/lib/types'
 import { postgrestHeaders } from '@/lib/action-utils'
 import { actionAuthMiddleware } from './middleware'
 import { env } from '@/lib/env'
-import { logger as rootLogger } from '@/lib/logger'
-const logger = rootLogger.child({ module: 'home' })
 
 // ============================================================================
 // Server Functions
@@ -15,7 +13,8 @@ const createHomeFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ name: z.string() }))
   .handler(async ({ data, context }): Promise<{ id: string } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'home' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad för att skapa ett hushåll' }
@@ -33,7 +32,7 @@ const createHomeFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email }, 'Failed to create home')
+        log.error({ responseBody: errorText }, 'Failed to create home')
         return { error: 'Kunde inte skapa hushållet. Försök igen.' }
       }
 
@@ -41,7 +40,7 @@ const createHomeFn = createServerFn({ method: 'POST' })
 
       return { id: result }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error creating home')
+      log.error({ err: error instanceof Error ? error : String(error) }, 'Error creating home')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -50,7 +49,8 @@ const updateHomeNameFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ name: z.string(), homeId: z.string().optional() }))
   .handler(async ({ data, context }): Promise<{ success: true } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'home' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad för att uppdatera hushållet' }
@@ -65,7 +65,7 @@ const updateHomeNameFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email, homeId: data.homeId }, 'Failed to update home name')
+        log.error({ responseBody: errorText, homeId: data.homeId }, 'Failed to update home name')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -81,7 +81,7 @@ const updateHomeNameFn = createServerFn({ method: 'POST' })
 
       return { success: true }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, homeId: data.homeId }, 'Error updating home name')
+      log.error({ err: error instanceof Error ? error : String(error), homeId: data.homeId }, 'Error updating home name')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -90,7 +90,8 @@ const leaveHomeFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ homeId: z.string().optional() }))
   .handler(async ({ data, context }): Promise<{ success: true } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'home' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad för att lämna hushållet' }
@@ -110,7 +111,7 @@ const leaveHomeFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email, homeId: data.homeId }, 'Failed to leave home')
+        log.error({ responseBody: errorText, homeId: data.homeId }, 'Failed to leave home')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -126,7 +127,7 @@ const leaveHomeFn = createServerFn({ method: 'POST' })
 
       return { success: true }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, homeId: data.homeId }, 'Error leaving home')
+      log.error({ err: error instanceof Error ? error : String(error), homeId: data.homeId }, 'Error leaving home')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -135,7 +136,8 @@ const generateJoinCodeFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ expiresHours: z.number().optional(), homeId: z.string().optional() }))
   .handler(async ({ data, context }): Promise<{ code: string; expires_at: string } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'home' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad för att skapa en inbjudningskod' }
@@ -155,7 +157,7 @@ const generateJoinCodeFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email, homeId: data.homeId }, 'Failed to generate join code')
+        log.error({ responseBody: errorText, homeId: data.homeId }, 'Failed to generate join code')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -176,7 +178,7 @@ const generateJoinCodeFn = createServerFn({ method: 'POST' })
 
       return { code, expires_at: expiresAt }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, homeId: data.homeId }, 'Error generating join code')
+      log.error({ err: error instanceof Error ? error : String(error), homeId: data.homeId }, 'Error generating join code')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -185,7 +187,8 @@ const disableJoinCodeFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ homeId: z.string().optional() }))
   .handler(async ({ data, context }): Promise<{ success: true } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'home' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad för att inaktivera inbjudningskoden' }
@@ -200,7 +203,7 @@ const disableJoinCodeFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email, homeId: data.homeId }, 'Failed to disable join code')
+        log.error({ responseBody: errorText, homeId: data.homeId }, 'Failed to disable join code')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -216,7 +219,7 @@ const disableJoinCodeFn = createServerFn({ method: 'POST' })
 
       return { success: true }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, homeId: data.homeId }, 'Error disabling join code')
+      log.error({ err: error instanceof Error ? error : String(error), homeId: data.homeId }, 'Error disabling join code')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -225,7 +228,8 @@ const joinHomeByCodeFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ code: z.string() }))
   .handler(async ({ data, context }): Promise<{ home_id: string } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'home' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad för att gå med i ett hushåll' }
@@ -243,7 +247,7 @@ const joinHomeByCodeFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email }, 'Failed to join home by code')
+        log.error({ responseBody: errorText }, 'Failed to join home by code')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -261,7 +265,7 @@ const joinHomeByCodeFn = createServerFn({ method: 'POST' })
 
       return { home_id: result }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error joining home by code')
+      log.error({ err: error instanceof Error ? error : String(error) }, 'Error joining home by code')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -270,7 +274,8 @@ const inviteToHomeFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ email: z.string(), homeId: z.string().optional() }))
   .handler(async ({ data, context }): Promise<{ id: string } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'home' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad för att bjuda in någon' }
@@ -285,7 +290,7 @@ const inviteToHomeFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email, homeId: data.homeId }, 'Failed to invite to home')
+        log.error({ responseBody: errorText, homeId: data.homeId }, 'Failed to invite to home')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -312,7 +317,7 @@ const inviteToHomeFn = createServerFn({ method: 'POST' })
 
       return { id: result }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, homeId: data.homeId }, 'Error inviting to home')
+      log.error({ err: error instanceof Error ? error : String(error), homeId: data.homeId }, 'Error inviting to home')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -321,7 +326,8 @@ const acceptInvitationFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ token: z.string() }))
   .handler(async ({ data, context }): Promise<{ home_id: string } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'home' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad för att acceptera inbjudan' }
@@ -339,7 +345,7 @@ const acceptInvitationFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email }, 'Failed to accept invitation')
+        log.error({ responseBody: errorText }, 'Failed to accept invitation')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -360,7 +366,7 @@ const acceptInvitationFn = createServerFn({ method: 'POST' })
 
       return { home_id: result }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error accepting invitation')
+      log.error({ err: error instanceof Error ? error : String(error) }, 'Error accepting invitation')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -369,7 +375,8 @@ const declineInvitationFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ token: z.string() }))
   .handler(async ({ data, context }): Promise<{ success: true } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'home' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad för att avböja inbjudan' }
@@ -387,7 +394,7 @@ const declineInvitationFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email }, 'Failed to decline invitation')
+        log.error({ responseBody: errorText }, 'Failed to decline invitation')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -406,7 +413,7 @@ const declineInvitationFn = createServerFn({ method: 'POST' })
 
       return { success: true }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error declining invitation')
+      log.error({ err: error instanceof Error ? error : String(error) }, 'Error declining invitation')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -415,7 +422,8 @@ const getHomeInfoFn = createServerFn({ method: 'GET' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ homeId: z.string().optional() }))
   .handler(async ({ data, context }): Promise<HomeInfo | null> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'home' })
 
     if (!postgrestToken) {
       return null
@@ -430,7 +438,7 @@ const getHomeInfoFn = createServerFn({ method: 'GET' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email, homeId: data.homeId }, 'Failed to get home info')
+        log.error({ responseBody: errorText, homeId: data.homeId }, 'Failed to get home info')
         return null
       }
 
@@ -449,7 +457,7 @@ const getHomeInfoFn = createServerFn({ method: 'GET' })
         members: result.members || [],
       }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, homeId: data.homeId }, 'Error getting home info')
+      log.error({ err: error instanceof Error ? error : String(error), homeId: data.homeId }, 'Error getting home info')
       return null
     }
   })
@@ -457,7 +465,8 @@ const getHomeInfoFn = createServerFn({ method: 'GET' })
 const getPendingInvitationsFn = createServerFn({ method: 'GET' })
   .middleware([actionAuthMiddleware])
   .handler(async ({ context }): Promise<HomeInvitation[]> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'home' })
 
     if (!postgrestToken) {
       return []
@@ -475,7 +484,7 @@ const getPendingInvitationsFn = createServerFn({ method: 'GET' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email }, 'Failed to get pending invitations')
+        log.error({ responseBody: errorText }, 'Failed to get pending invitations')
         return []
       }
 
@@ -483,7 +492,7 @@ const getPendingInvitationsFn = createServerFn({ method: 'GET' })
 
       return result as HomeInvitation[]
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error getting pending invitations')
+      log.error({ err: error instanceof Error ? error : String(error) }, 'Error getting pending invitations')
       return []
     }
   })
@@ -492,7 +501,8 @@ const removeMemberFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ email: z.string(), homeId: z.string().optional() }))
   .handler(async ({ data, context }): Promise<{ success: true } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'home' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad för att ta bort en medlem' }
@@ -507,7 +517,7 @@ const removeMemberFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email, homeId: data.homeId }, 'Failed to remove member')
+        log.error({ responseBody: errorText, homeId: data.homeId }, 'Failed to remove member')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -529,7 +539,7 @@ const removeMemberFn = createServerFn({ method: 'POST' })
 
       return { success: true }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, homeId: data.homeId }, 'Error removing member')
+      log.error({ err: error instanceof Error ? error : String(error), homeId: data.homeId }, 'Error removing member')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -538,7 +548,8 @@ const cancelInvitationFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ invitationId: z.string(), homeId: z.string().optional() }))
   .handler(async ({ data, context }): Promise<{ success: true } | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'home' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad för att avbryta inbjudan' }
@@ -553,7 +564,7 @@ const cancelInvitationFn = createServerFn({ method: 'POST' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email, homeId: data.homeId, invitationId: data.invitationId }, 'Failed to cancel invitation')
+        log.error({ responseBody: errorText, homeId: data.homeId, invitationId: data.invitationId }, 'Failed to cancel invitation')
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -572,7 +583,7 @@ const cancelInvitationFn = createServerFn({ method: 'POST' })
 
       return { success: true }
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email, homeId: data.homeId, invitationId: data.invitationId }, 'Error cancelling invitation')
+      log.error({ err: error instanceof Error ? error : String(error), homeId: data.homeId, invitationId: data.invitationId }, 'Error cancelling invitation')
       return { error: 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
@@ -580,7 +591,8 @@ const cancelInvitationFn = createServerFn({ method: 'POST' })
 const getUserHomesFn = createServerFn({ method: 'GET' })
   .middleware([actionAuthMiddleware])
   .handler(async ({ context }): Promise<UserHome[] | { error: string }> => {
-    const { postgrestToken } = context
+    const { postgrestToken, logger: requestLogger } = context
+    const log = requestLogger.child({ module: 'home' })
 
     if (!postgrestToken) {
       return { error: 'Du måste vara inloggad' }
@@ -595,7 +607,7 @@ const getUserHomesFn = createServerFn({ method: 'GET' })
 
       if (!response.ok) {
         const errorText = await response.text()
-        logger.error({ responseBody: errorText, email: context.session?.email }, 'Failed to get user homes')
+        log.error({ responseBody: errorText }, 'Failed to get user homes')
         return { error: 'Kunde inte hämta hushåll' }
       }
 
@@ -603,7 +615,7 @@ const getUserHomesFn = createServerFn({ method: 'GET' })
 
       return result as UserHome[]
     } catch (error) {
-      logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Error getting user homes')
+      log.error({ err: error instanceof Error ? error : String(error) }, 'Error getting user homes')
       return { error: 'Ett oväntat fel uppstod' }
     }
   })
