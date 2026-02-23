@@ -18,7 +18,6 @@ export const createLogger = (options: ServiceLoggerOptions): Logger => {
     level,
     base: {
       service,
-      env: process.env.NODE_ENV || "development",
     },
     timestamp: pino.stdTimeFunctions.isoTime,
     formatters: {
