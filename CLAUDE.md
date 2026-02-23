@@ -103,7 +103,6 @@ Production configs are version-controlled in `infra/` and deployed via CI.
 | `backup-matrummet.service/.timer` | pg_dump | DB + photos backup every 4h (30-day retention) |
 | `backup-matrummet-weekly.service/.timer` | pg_dump | Weekly DB backup Sundays 03:00 (6-month retention) |
 
-Production host: `37.27.181.252`, deploy user: `deploy_recept`, deploy path: `/opt/matrummet`.
 Env files on server: `.matrummet.env`, `.email-service.env`, `.events-service.env`, `.image-service.env`, `.backup.env`.
 
 ## Architecture
