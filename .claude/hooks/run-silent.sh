@@ -22,5 +22,5 @@ else
     escaped=$(echo "$cleaned" | jq -Rsa '.')
     escaped=${escaped:1:${#escaped}-2}
     echo '{"decision": "block", "reason": "✗ '"$description"': '"$escaped"'"}'
-    exit 2
+    exit 0
 fi

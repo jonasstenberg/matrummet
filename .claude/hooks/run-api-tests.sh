@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Run unit tests and API integration tests before commit.
-# Unit tests run first (fast, no Docker). API tests require Docker test env.
+# Unit tests run first (fast, no Docker). API tests only run when
+# relevant files changed (migrations, PostgREST config, test files, seed data).
 
 set -euo pipefail
 
@@ -10,9 +11,28 @@ RUN_SILENT="$SCRIPT_DIR/run-silent.sh"
 COMPOSE="docker compose -f $PROJECT_DIR/docker-compose.test.yml"
 
 # 1. Unit tests (fast, no Docker needed)
-"$RUN_SILENT" "Unit Tests" "pnpm test" || exit 2
+UNIT_RESULT=$("$RUN_SILENT" "Unit Tests" "pnpm test")
+if echo "$UNIT_RESULT" | jq -e '.decision == "block"' > /dev/null 2>&1; then
+    echo "$UNIT_RESULT"
+    exit 0
+fi
 
-# 2. API integration tests (require Docker)
+# 2. Check if API-relevant files changed (staged for commit)
+API_PATHS="tests/api/ flyway/sql/ data/data.sql infra/postgrest/ docker-compose.test.yml"
+API_CHANGED=false
+for path in $API_PATHS; do
+    if git -C "$PROJECT_DIR" diff --cached --name-only | grep -q "^$path"; then
+        API_CHANGED=true
+        break
+    fi
+done
+
+if [ "$API_CHANGED" = false ]; then
+    echo '{"decision":"approve","reason":"✓ Unit Tests passed. API Tests (skipped, no DB/API changes)"}'
+    exit 0
+fi
+
+# 3. API integration tests (require Docker)
 $COMPOSE down -v --remove-orphans 2>/dev/null || true
 
 if ! $COMPOSE up -d --force-recreate --wait 2>/dev/null; then
@@ -31,4 +51,4 @@ if ! curl -sf http://localhost:4445/ > /dev/null 2>&1; then
   exit 0
 fi
 
-exec "$RUN_SILENT" "API Tests" "pnpm test:api"
+"$RUN_SILENT" "API Tests" "pnpm test:api"
