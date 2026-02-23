@@ -11,7 +11,7 @@ export type ServiceLoggerOptions = {
 const isProduction = process.env.NODE_ENV === "production";
 
 export const createLogger = (options: ServiceLoggerOptions): Logger => {
-  const { service, level = isProduction ? "info" : "debug", pretty = !isProduction } = options;
+  const { service, level = process.env.LOG_LEVEL || (isProduction ? "info" : "debug"), pretty = !isProduction } = options;
 
   const pinoOptions: LoggerOptions = {
     name: service,

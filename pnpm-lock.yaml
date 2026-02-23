@@ -219,6 +219,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^5.2.2
         version: 5.2.2(react-hook-form@7.71.2(react@19.2.4))
+      '@matrummet/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@mistralai/mistralai':
         specifier: ^1.14.0
         version: 1.14.0
