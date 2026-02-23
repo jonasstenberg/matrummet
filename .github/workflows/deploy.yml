@@ -62,6 +62,14 @@ on:
         options:
           - "true"
           - "false"
+      deploy_grafana:
+        description: "Deploy Grafana alerting configuration"
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
 
 env:
   NODE_VERSION: "22"
@@ -77,6 +85,7 @@ jobs:
       deploy_image_service: ${{ steps.changes.outputs.deploy_image_service }}
       deploy_nginx: ${{ steps.changes.outputs.deploy_nginx }}
       deploy_postgrest: ${{ steps.changes.outputs.deploy_postgrest }}
+      deploy_grafana: ${{ steps.changes.outputs.deploy_grafana }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -248,6 +257,27 @@ jobs:
             else
               echo "deploy_nginx=false" >> $GITHUB_OUTPUT
               echo "No nginx config changes detected"
+            fi
+          fi
+
+          # Check for Grafana config changes
+          if [[ "${{ github.event.inputs.deploy_grafana }}" == "false" ]]; then
+            echo "deploy_grafana=false" >> $GITHUB_OUTPUT
+            echo "Skipping Grafana deployment as requested"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.deploy_grafana }}" == "true" ]]; then
+            echo "deploy_grafana=true" >> $GITHUB_OUTPUT
+            echo "Manual request to deploy Grafana"
+          elif [[ -z "$PARENT_SHA" ]]; then
+            echo "deploy_grafana=true" >> $GITHUB_OUTPUT
+            echo "First commit, deploying Grafana"
+          else
+            CHANGED_FILES=$(git diff --name-only $PARENT_SHA $WORKFLOW_SHA 2>/dev/null || git ls-files)
+            if echo "$CHANGED_FILES" | grep -q "^infra/grafana/"; then
+              echo "deploy_grafana=true" >> $GITHUB_OUTPUT
+              echo "Grafana config changes detected"
+            else
+              echo "deploy_grafana=false" >> $GITHUB_OUTPUT
+              echo "No Grafana config changes detected"
             fi
           fi
 
@@ -623,8 +653,50 @@ jobs:
           fi
           ssh $REMOTE "rm -rf $STAGING"
 
+  deploy-grafana:
+    needs: [setup]
+    if: always() && needs.setup.outputs.deploy_grafana == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy Grafana config
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          REMOTE="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          STAGING="/tmp/grafana-deploy"
+          ssh $REMOTE "mkdir -p $STAGING/datasources $STAGING/alerting"
+
+          # Datasources (no secrets)
+          scp infra/grafana/provisioning/datasources/loki.yaml $REMOTE:$STAGING/datasources/loki.yaml
+
+          # Alerting (substitute secrets)
+          envsubst '${TELEGRAM_BOT_TOKEN} ${TELEGRAM_CHAT_ID}' < infra/grafana/provisioning/alerting/matrummet.yaml > /tmp/matrummet-alerting.yaml
+          scp /tmp/matrummet-alerting.yaml $REMOTE:$STAGING/alerting/matrummet.yaml
+
+          ssh $REMOTE "
+            sudo cp $STAGING/datasources/loki.yaml /etc/grafana/provisioning/datasources/loki.yaml &&
+            sudo rm -f /etc/grafana/provisioning/datasources/sample.yaml &&
+            sudo cp $STAGING/alerting/matrummet.yaml /etc/grafana/provisioning/alerting/matrummet.yaml &&
+            sudo rm -f /etc/grafana/provisioning/alerting/sample.yaml &&
+            sudo chown grafana:grafana /etc/grafana/provisioning/datasources/loki.yaml /etc/grafana/provisioning/alerting/matrummet.yaml &&
+            sudo chmod 600 /etc/grafana/provisioning/alerting/matrummet.yaml &&
+            sudo systemctl restart grafana-server &&
+            rm -rf $STAGING
+          "
+
   notify:
-    needs: [setup, test, api-tests, deploy-migrations, deploy-services, deploy-postgrest, deploy-nginx]
+    needs: [setup, test, api-tests, deploy-migrations, deploy-services, deploy-postgrest, deploy-nginx, deploy-grafana]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -641,3 +713,4 @@ jobs:
           echo "- Image-service: ${{ needs.setup.outputs.deploy_image_service == 'true' && 'Deployed' || 'Skipped' }}"
           echo "- PostgREST: ${{ needs.setup.outputs.deploy_postgrest == 'true' && (needs.deploy-postgrest.result == 'success' && 'Deployed' || 'Failed') || 'Skipped' }}"
           echo "- Nginx: ${{ needs.setup.outputs.deploy_nginx == 'true' && (needs.deploy-nginx.result == 'success' && 'Deployed' || 'Failed') || 'Skipped' }}"
+          echo "- Grafana: ${{ needs.setup.outputs.deploy_grafana == 'true' && (needs.deploy-grafana.result == 'success' && 'Deployed' || 'Failed') || 'Skipped' }}"
