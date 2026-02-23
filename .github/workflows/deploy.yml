@@ -137,7 +137,7 @@ jobs:
             echo "First commit, deploying frontend"
           else
             CHANGED_FILES=$(git diff --name-only $PARENT_SHA $WORKFLOW_SHA 2>/dev/null || git ls-files)
-            if echo "$CHANGED_FILES" | grep -q "^apps/web/"; then
+            if echo "$CHANGED_FILES" | grep -qE "^apps/web/|^packages/shared/"; then
               echo "deploy_frontend=true" >> $GITHUB_OUTPUT
               echo "Frontend changes detected"
             else
@@ -158,7 +158,7 @@ jobs:
             echo "First commit, deploying email-service"
           else
             CHANGED_FILES=$(git diff --name-only $PARENT_SHA $WORKFLOW_SHA 2>/dev/null || git ls-files)
-            if echo "$CHANGED_FILES" | grep -q "^apps/email-service/"; then
+            if echo "$CHANGED_FILES" | grep -qE "^apps/email-service/|^packages/shared/"; then
               echo "deploy_email_service=true" >> $GITHUB_OUTPUT
               echo "Email-service changes detected"
             else
@@ -179,7 +179,7 @@ jobs:
             echo "First commit, deploying events-service"
           else
             CHANGED_FILES=$(git diff --name-only $PARENT_SHA $WORKFLOW_SHA 2>/dev/null || git ls-files)
-            if echo "$CHANGED_FILES" | grep -q "^apps/events-service/"; then
+            if echo "$CHANGED_FILES" | grep -qE "^apps/events-service/|^packages/shared/"; then
               echo "deploy_events_service=true" >> $GITHUB_OUTPUT
               echo "Events-service changes detected"
             else
@@ -200,7 +200,7 @@ jobs:
             echo "First commit, deploying image-service"
           else
             CHANGED_FILES=$(git diff --name-only $PARENT_SHA $WORKFLOW_SHA 2>/dev/null || git ls-files)
-            if echo "$CHANGED_FILES" | grep -q "^apps/image-service/"; then
+            if echo "$CHANGED_FILES" | grep -qE "^apps/image-service/|^packages/shared/"; then
               echo "deploy_image_service=true" >> $GITHUB_OUTPUT
               echo "Image-service changes detected"
             else
@@ -485,6 +485,7 @@ jobs:
         if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'frontend'
         working-directory: apps/web
         run: |
+          pnpm --filter @matrummet/shared build
           pnpm build
           # Playwright can't be bundled by Nitro (uses __dirname, CJS internals)
           # Install it in a temp dir then copy to avoid npm touching sharp's platform deps
