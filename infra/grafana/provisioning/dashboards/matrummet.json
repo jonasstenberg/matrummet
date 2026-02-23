@@ -24,7 +24,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
+        "uid": "loki"
       },
       "fieldConfig": {
         "defaults": {
@@ -107,7 +107,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
+            "uid": "loki"
           },
           "expr": "sum by (unit) (count_over_time({unit=~\"matrummet.*|postgrest-matrummet.*\"}[5m]))",
           "queryType": "range",
@@ -120,7 +120,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
+        "uid": "loki"
       },
       "gridPos": {
         "h": 6,
@@ -143,7 +143,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
+            "uid": "loki"
           },
           "expr": "{service_name=\"nginx\"} |= \"matrummet\" | status >= 500",
           "queryType": "range",
@@ -156,7 +156,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
+        "uid": "loki"
       },
       "gridPos": {
         "h": 7,
@@ -179,7 +179,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
+            "uid": "loki"
           },
           "expr": "{unit=\"matrummet.service\", module=~\"auth|middleware|api:auth:.*\"}",
           "queryType": "range",
@@ -192,7 +192,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
+        "uid": "loki"
       },
       "fieldConfig": {
         "defaults": {
@@ -301,7 +301,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
+            "uid": "loki"
           },
           "expr": "count_over_time({unit=\"matrummet.service\", level=\"warn\", module=\"middleware\"}[5m])",
           "legendFormat": "Auth denied (401/403)",
@@ -315,7 +315,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
+        "uid": "loki"
       },
       "gridPos": {
         "h": 7,
@@ -338,7 +338,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
+            "uid": "loki"
           },
           "expr": "{unit=\"matrummet.service\", module=~\"api:webhooks:stripe|credits\"}",
           "queryType": "range",
@@ -351,7 +351,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
+        "uid": "loki"
       },
       "gridPos": {
         "h": 7,
@@ -374,7 +374,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
+            "uid": "loki"
           },
           "expr": "{unit=\"postgrest-matrummet.service\", level=\"error\"}",
           "queryType": "range",
@@ -387,7 +387,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
+        "uid": "loki"
       },
       "gridPos": {
         "h": 7,
@@ -410,7 +410,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
+            "uid": "loki"
           },
           "expr": "{unit=\"matrummet.service\", level=\"error\"}",
           "queryType": "range",
@@ -423,7 +423,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
+        "uid": "loki"
       },
       "fieldConfig": {
         "defaults": {
@@ -508,7 +508,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
+            "uid": "loki"
           },
           "expr": "sum by (module) (count_over_time({unit=\"matrummet.service\", level=\"error\"}[5m]))",
           "legendFormat": "{{module}}",
@@ -522,7 +522,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
+        "uid": "loki"
       },
       "gridPos": {
         "h": 7,
@@ -545,7 +545,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
+            "uid": "loki"
           },
           "expr": "{unit=\"matrummet-email.service\", level=\"error\"}",
           "queryType": "range",
@@ -558,7 +558,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
+        "uid": "loki"
       },
       "gridPos": {
         "h": 7,
@@ -581,7 +581,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
+            "uid": "loki"
           },
           "expr": "{unit=\"matrummet-events.service\", level=\"error\"}",
           "queryType": "range",
@@ -594,7 +594,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
+        "uid": "loki"
       },
       "gridPos": {
         "h": 7,
@@ -617,7 +617,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
+            "uid": "loki"
           },
           "expr": "{unit=\"matrummet-image.service\", level=\"error\"}",
           "queryType": "range",
@@ -630,7 +630,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
+        "uid": "loki"
       },
       "gridPos": {
         "h": 9,
@@ -654,7 +654,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
+            "uid": "loki"
           },
           "expr": "{unit=~\"matrummet.*|postgrest-matrummet.*\"}",
           "queryType": "range",
