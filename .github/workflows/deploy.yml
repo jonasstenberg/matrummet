@@ -542,21 +542,21 @@ jobs:
         if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'email-service'
         run: |
           pnpm --filter @matrummet/shared build
-          pnpm deploy --filter @matrummet/email-service --prod deploy/email-service
+          pnpm deploy --filter @matrummet/email-service --prod --legacy deploy/email-service
           ls -la deploy/email-service/  # Verify deployment package
 
       - name: Build and prepare events-service deployment
         if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'events-service'
         run: |
           pnpm --filter @matrummet/shared build
-          pnpm deploy --filter @matrummet/events-service --prod deploy/events-service
+          pnpm deploy --filter @matrummet/events-service --prod --legacy deploy/events-service
           ls -la deploy/events-service/  # Verify deployment package
 
       - name: Build and prepare image-service deployment
         if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'image-service'
         run: |
           pnpm --filter @matrummet/shared build
-          pnpm deploy --filter @matrummet/image-service --prod deploy/image-service
+          pnpm deploy --filter @matrummet/image-service --prod --legacy deploy/image-service
           ls -la deploy/image-service/  # Verify deployment package
 
       - name: Setup SSH
@@ -579,7 +579,7 @@ jobs:
       - name: Deploy email-service to VPS
         if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'email-service'
         run: |
-          rsync -avzL --delete \
+          rsync -avz --delete \
             deploy/email-service/ \
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ vars.DEPLOY_PATH }}/apps/email-service/
 
@@ -588,7 +588,7 @@ jobs:
       - name: Deploy events-service to VPS
         if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'events-service'
         run: |
-          rsync -avzL --delete \
+          rsync -avz --delete \
             deploy/events-service/ \
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ vars.DEPLOY_PATH }}/apps/events-service/
 
@@ -597,7 +597,7 @@ jobs:
       - name: Deploy image-service to VPS
         if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'image-service'
         run: |
-          rsync -avzL --delete \
+          rsync -avz --delete \
             deploy/image-service/ \
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ vars.DEPLOY_PATH }}/apps/image-service/
 
