@@ -102,8 +102,13 @@ export function LoginForm() {
 
       await router.invalidate()
       router.navigate({ to: resolvedReturnUrl, state: { authTransition: 'login' } })
-    } catch {
-      setLoginError('Ett fel uppstod vid inloggning')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      if (message.includes('429') || message.includes('Too Many')) {
+        setLoginError('För många inloggningsförsök. Försök igen om en stund.')
+      } else {
+        setLoginError('Ett fel uppstod vid inloggning')
+      }
       setIsLoginPending(false)
     }
   }
@@ -129,8 +134,13 @@ export function LoginForm() {
 
       setResetSuccess(true)
       setIsResetPending(false)
-    } catch {
-      setResetError('Ett fel uppstod')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      if (message.includes('429') || message.includes('Too Many')) {
+        setResetError('För många förfrågningar. Försök igen om en stund.')
+      } else {
+        setResetError('Ett fel uppstod')
+      }
       setIsResetPending(false)
     }
   }

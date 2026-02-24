@@ -63,8 +63,13 @@ export function SignupForm() {
 
       await router.invalidate()
       router.navigate({ to: returnUrl, state: { authTransition: 'login' } })
-    } catch {
-      setError('Ett fel uppstod vid registrering')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      if (message.includes('429') || message.includes('Too Many')) {
+        setError('För många registreringsförsök. Försök igen om en stund.')
+      } else {
+        setError('Ett fel uppstod vid registrering')
+      }
       setIsPending(false)
     }
   }

@@ -30,6 +30,7 @@ pnpm dev                    # Start all apps
 postgrest postgrest.cfg     # Start PostgREST API on port 4444
 ./flyway/run-flyway.sh info # Check migration status
 ./flyway/run-flyway.sh migrate  # Apply migrations (auto-backup)
+./infra/nginx/test/test.sh  # Test nginx configs (after any nginx change)
 ```
 
 ### Local Services
@@ -78,7 +79,7 @@ Backups: `flyway/run-flyway.sh backup|restore|list-backups`
 
 Production configs are version-controlled in `infra/` and deployed via CI.
 
-**Nginx** (`infra/nginx/`) — auto-deployed when files change:
+**Nginx** (`infra/nginx/`) — auto-deployed when files change. **Always run `./infra/nginx/test/test.sh` after changing any nginx config.** Requires Docker. Tests routing, security headers, CORS, cache headers, and rate limiting against unmodified production configs in a container with mock upstreams.
 
 | File                    | Deploys to                                     | Purpose                                                     |
 | ----------------------- | ---------------------------------------------- | ----------------------------------------------------------- |
@@ -86,6 +87,11 @@ Production configs are version-controlled in `infra/` and deployed via CI.
 | `shared-locations.conf` | `/etc/nginx/snippets/matrummet-locations.conf` | Shared location blocks (included by matrummet.conf)         |
 | `api.conf`              | `/etc/nginx/sites-enabled/api.matrummet.se`    | Public PostgREST API with CORS                              |
 | `proxy-cache.conf`      | `/etc/nginx/conf.d/proxy-cache.conf`           | Cache zone for static assets/images                         |
+| `rate-limit.conf`       | `/etc/nginx/conf.d/rate-limit.conf`            | Rate limiting zones for auth endpoints                      |
+| `security-headers.conf` | `/etc/nginx/snippets/matrummet-security-headers.conf` | Security headers + CSP (included in location blocks)   |
+| `api-rpc-common.conf`   | `/etc/nginx/snippets/matrummet-api-rpc.conf`           | Shared CORS/proxy config for rate-limited API RPCs     |
+| `app-proxy-common.conf` | `/etc/nginx/snippets/matrummet-app-proxy.conf`         | Shared proxy config for rate-limited app endpoints     |
+| `db-proxy-common.conf`  | `/etc/nginx/snippets/matrummet-db-proxy.conf`          | Shared proxy config for rate-limited DB RPC endpoints  |
 
 **PostgREST** (`infra/postgrest/`) — auto-deployed when files change, secrets via `envsubst`:
 

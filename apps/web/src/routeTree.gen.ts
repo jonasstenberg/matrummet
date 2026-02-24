@@ -18,7 +18,6 @@ import { Route as MainIndexRouteImport } from './routes/_main/index'
 import { Route as ApiUploadRouteImport } from './routes/api/upload'
 import { Route as ApiUnitsRouteImport } from './routes/api/units'
 import { Route as ApiSubstitutionsRouteImport } from './routes/api/substitutions'
-import { Route as ApiOpenapiRouteImport } from './routes/api/openapi'
 import { Route as ApiFoodsRouteImport } from './routes/api/foods'
 import { Route as ApiDocsRouteImport } from './routes/api/docs'
 import { Route as ApiCategoriesRouteImport } from './routes/api/categories'
@@ -47,7 +46,6 @@ import { Route as ApiWebhooksStripeRouteImport } from './routes/api/webhooks/str
 import { Route as ApiUserExportRouteImport } from './routes/api/user/export'
 import { Route as ApiUserDeleteAccountRouteImport } from './routes/api/user/delete-account'
 import { Route as ApiRecipesSearchRouteImport } from './routes/api/recipes/search'
-import { Route as ApiPostgrestSplatRouteImport } from './routes/api/postgrest/$'
 import { Route as ApiImagesSplatRouteImport } from './routes/api/images/$'
 import { Route as ApiCreditsHistoryRouteImport } from './routes/api/credits/history'
 import { Route as ApiCreditsGrantRouteImport } from './routes/api/credits/grant'
@@ -152,11 +150,6 @@ const ApiUnitsRoute = ApiUnitsRouteImport.update({
 const ApiSubstitutionsRoute = ApiSubstitutionsRouteImport.update({
   id: '/api/substitutions',
   path: '/api/substitutions',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiOpenapiRoute = ApiOpenapiRouteImport.update({
-  id: '/api/openapi',
-  path: '/api/openapi',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiFoodsRoute = ApiFoodsRouteImport.update({
@@ -297,11 +290,6 @@ const ApiUserDeleteAccountRoute = ApiUserDeleteAccountRouteImport.update({
 const ApiRecipesSearchRoute = ApiRecipesSearchRouteImport.update({
   id: '/api/recipes/search',
   path: '/api/recipes/search',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPostgrestSplatRoute = ApiPostgrestSplatRouteImport.update({
-  id: '/api/postgrest/$',
-  path: '/api/postgrest/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiImagesSplatRoute = ApiImagesSplatRouteImport.update({
@@ -647,7 +635,6 @@ export interface FileRoutesByFullPath {
   '/api/categories': typeof ApiCategoriesRoute
   '/api/docs': typeof ApiDocsRoute
   '/api/foods': typeof ApiFoodsRoute
-  '/api/openapi': typeof ApiOpenapiRoute
   '/api/substitutions': typeof ApiSubstitutionsRoute
   '/api/units': typeof ApiUnitsRoute
   '/api/upload': typeof ApiUploadRoute
@@ -689,7 +676,6 @@ export interface FileRoutesByFullPath {
   '/api/credits/grant': typeof ApiCreditsGrantRoute
   '/api/credits/history': typeof ApiCreditsHistoryRoute
   '/api/images/$': typeof ApiImagesSplatRoute
-  '/api/postgrest/$': typeof ApiPostgrestSplatRoute
   '/api/recipes/search': typeof ApiRecipesSearchRoute
   '/api/user/delete-account': typeof ApiUserDeleteAccountRoute
   '/api/user/export': typeof ApiUserExportRoute
@@ -746,7 +732,6 @@ export interface FileRoutesByTo {
   '/api/categories': typeof ApiCategoriesRoute
   '/api/docs': typeof ApiDocsRoute
   '/api/foods': typeof ApiFoodsRoute
-  '/api/openapi': typeof ApiOpenapiRoute
   '/api/substitutions': typeof ApiSubstitutionsRoute
   '/api/units': typeof ApiUnitsRoute
   '/api/upload': typeof ApiUploadRoute
@@ -788,7 +773,6 @@ export interface FileRoutesByTo {
   '/api/credits/grant': typeof ApiCreditsGrantRoute
   '/api/credits/history': typeof ApiCreditsHistoryRoute
   '/api/images/$': typeof ApiImagesSplatRoute
-  '/api/postgrest/$': typeof ApiPostgrestSplatRoute
   '/api/recipes/search': typeof ApiRecipesSearchRoute
   '/api/user/delete-account': typeof ApiUserDeleteAccountRoute
   '/api/user/export': typeof ApiUserExportRoute
@@ -849,7 +833,6 @@ export interface FileRoutesById {
   '/api/categories': typeof ApiCategoriesRoute
   '/api/docs': typeof ApiDocsRoute
   '/api/foods': typeof ApiFoodsRoute
-  '/api/openapi': typeof ApiOpenapiRoute
   '/api/substitutions': typeof ApiSubstitutionsRoute
   '/api/units': typeof ApiUnitsRoute
   '/api/upload': typeof ApiUploadRoute
@@ -892,7 +875,6 @@ export interface FileRoutesById {
   '/api/credits/grant': typeof ApiCreditsGrantRoute
   '/api/credits/history': typeof ApiCreditsHistoryRoute
   '/api/images/$': typeof ApiImagesSplatRoute
-  '/api/postgrest/$': typeof ApiPostgrestSplatRoute
   '/api/recipes/search': typeof ApiRecipesSearchRoute
   '/api/user/delete-account': typeof ApiUserDeleteAccountRoute
   '/api/user/export': typeof ApiUserExportRoute
@@ -953,7 +935,6 @@ export interface FileRouteTypes {
     | '/api/categories'
     | '/api/docs'
     | '/api/foods'
-    | '/api/openapi'
     | '/api/substitutions'
     | '/api/units'
     | '/api/upload'
@@ -995,7 +976,6 @@ export interface FileRouteTypes {
     | '/api/credits/grant'
     | '/api/credits/history'
     | '/api/images/$'
-    | '/api/postgrest/$'
     | '/api/recipes/search'
     | '/api/user/delete-account'
     | '/api/user/export'
@@ -1052,7 +1032,6 @@ export interface FileRouteTypes {
     | '/api/categories'
     | '/api/docs'
     | '/api/foods'
-    | '/api/openapi'
     | '/api/substitutions'
     | '/api/units'
     | '/api/upload'
@@ -1094,7 +1073,6 @@ export interface FileRouteTypes {
     | '/api/credits/grant'
     | '/api/credits/history'
     | '/api/images/$'
-    | '/api/postgrest/$'
     | '/api/recipes/search'
     | '/api/user/delete-account'
     | '/api/user/export'
@@ -1154,7 +1132,6 @@ export interface FileRouteTypes {
     | '/api/categories'
     | '/api/docs'
     | '/api/foods'
-    | '/api/openapi'
     | '/api/substitutions'
     | '/api/units'
     | '/api/upload'
@@ -1197,7 +1174,6 @@ export interface FileRouteTypes {
     | '/api/credits/grant'
     | '/api/credits/history'
     | '/api/images/$'
-    | '/api/postgrest/$'
     | '/api/recipes/search'
     | '/api/user/delete-account'
     | '/api/user/export'
@@ -1243,7 +1219,6 @@ export interface RootRouteChildren {
   ApiCategoriesRoute: typeof ApiCategoriesRoute
   ApiDocsRoute: typeof ApiDocsRoute
   ApiFoodsRoute: typeof ApiFoodsRoute
-  ApiOpenapiRoute: typeof ApiOpenapiRoute
   ApiSubstitutionsRoute: typeof ApiSubstitutionsRoute
   ApiUnitsRoute: typeof ApiUnitsRoute
   ApiUploadRoute: typeof ApiUploadRoute
@@ -1264,7 +1239,6 @@ export interface RootRouteChildren {
   ApiCreditsGrantRoute: typeof ApiCreditsGrantRoute
   ApiCreditsHistoryRoute: typeof ApiCreditsHistoryRoute
   ApiImagesSplatRoute: typeof ApiImagesSplatRoute
-  ApiPostgrestSplatRoute: typeof ApiPostgrestSplatRoute
   ApiRecipesSearchRoute: typeof ApiRecipesSearchRoute
   ApiUserDeleteAccountRoute: typeof ApiUserDeleteAccountRoute
   ApiUserExportRoute: typeof ApiUserExportRoute
@@ -1340,13 +1314,6 @@ declare module '@tanstack/react-router' {
       path: '/api/substitutions'
       fullPath: '/api/substitutions'
       preLoaderRoute: typeof ApiSubstitutionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/openapi': {
-      id: '/api/openapi'
-      path: '/api/openapi'
-      fullPath: '/api/openapi'
-      preLoaderRoute: typeof ApiOpenapiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/foods': {
@@ -1543,13 +1510,6 @@ declare module '@tanstack/react-router' {
       path: '/api/recipes/search'
       fullPath: '/api/recipes/search'
       preLoaderRoute: typeof ApiRecipesSearchRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/postgrest/$': {
-      id: '/api/postgrest/$'
-      path: '/api/postgrest/$'
-      fullPath: '/api/postgrest/$'
-      preLoaderRoute: typeof ApiPostgrestSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/images/$': {
@@ -2203,7 +2163,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCategoriesRoute: ApiCategoriesRoute,
   ApiDocsRoute: ApiDocsRoute,
   ApiFoodsRoute: ApiFoodsRoute,
-  ApiOpenapiRoute: ApiOpenapiRoute,
   ApiSubstitutionsRoute: ApiSubstitutionsRoute,
   ApiUnitsRoute: ApiUnitsRoute,
   ApiUploadRoute: ApiUploadRoute,
@@ -2224,7 +2183,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCreditsGrantRoute: ApiCreditsGrantRoute,
   ApiCreditsHistoryRoute: ApiCreditsHistoryRoute,
   ApiImagesSplatRoute: ApiImagesSplatRoute,
-  ApiPostgrestSplatRoute: ApiPostgrestSplatRoute,
   ApiRecipesSearchRoute: ApiRecipesSearchRoute,
   ApiUserDeleteAccountRoute: ApiUserDeleteAccountRoute,
   ApiUserExportRoute: ApiUserExportRoute,
