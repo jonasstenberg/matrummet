@@ -495,6 +495,56 @@ curl -s https://api.matrummet.se/rpc/insert_recipe \\
   -d '{"p_query": "pasta", "p_category": null}'`}</CodeBlock>
               </Endpoint>
 
+              <Endpoint name="search_public_recipes">
+                <p className="mb-3">
+                  Sök bland alla publika recept. Stöder filtrering på kategori
+                  och författare.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/search_public_recipes \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_query": "pasta", "p_category": null, "p_author_id": null}'`}</CodeBlock>
+                <div className="mt-3">
+                  <ParamTable
+                    params={[
+                      {
+                        name: 'p_query',
+                        type: 'text',
+                        required: 'ja',
+                        description: 'Sökfråga',
+                      },
+                      {
+                        name: 'p_category',
+                        type: 'text',
+                        required: 'nej',
+                        description: 'Filtrera på kategori',
+                      },
+                      {
+                        name: 'p_author_id',
+                        type: 'uuid',
+                        required: 'nej',
+                        description: 'Filtrera på receptägarens ID',
+                      },
+                      {
+                        name: 'p_limit',
+                        type: 'integer',
+                        required: 'nej',
+                        description: 'Max resultat (standard: 50)',
+                      },
+                      {
+                        name: 'p_offset',
+                        type: 'integer',
+                        required: 'nej',
+                        description: 'Sidnumrering (standard: 0)',
+                      },
+                    ]}
+                  />
+                </div>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Returnerar rader från vyn <Code>public_recipes</Code>.
+                </p>
+              </Endpoint>
+
               <Endpoint name="toggle_recipe_like">
                 <p className="mb-3">
                   Gilla eller avgilla ett recept (inte ditt eget). Returnerar{' '}
@@ -505,6 +555,185 @@ curl -s https://api.matrummet.se/rpc/insert_recipe \\
   -H "x-api-key: sk_DIN_NYCKEL" \\
   -H "Content-Type: application/json" \\
   -d '{"p_recipe_id": "uuid-här"}'`}</CodeBlock>
+              </Endpoint>
+            </div>
+          </section>
+
+          {/* Recipe sharing */}
+          <section>
+            <h2 className="text-xl font-semibold text-foreground mb-4">
+              Receptdelning
+            </h2>
+
+            <div className="space-y-8">
+              <Endpoint name="create_share_token">
+                <p className="mb-3">
+                  Skapa en delbar länk för ett av dina recept.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/create_share_token \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_recipe_id": "uuid-här", "p_expires_days": 30}'`}</CodeBlock>
+                <div className="mt-3">
+                  <ParamTable
+                    params={[
+                      {
+                        name: 'p_recipe_id',
+                        type: 'uuid',
+                        required: 'ja',
+                        description: 'Recept att dela (måste vara ditt)',
+                      },
+                      {
+                        name: 'p_expires_days',
+                        type: 'integer',
+                        required: 'nej',
+                        description: 'Dagar till utgång (null = aldrig)',
+                      },
+                    ]}
+                  />
+                </div>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Returnerar: token och expires_at.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="get_recipe_share_tokens">
+                <p className="mb-3">
+                  Lista alla dellänkar för ett recept du äger.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/get_recipe_share_tokens \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_recipe_id": "uuid-här"}'`}</CodeBlock>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Returnerar: id, token, created_at, expires_at, revoked_at,
+                  view_count, last_viewed_at, is_active.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="revoke_share_token">
+                <p className="mb-3">
+                  Återkalla en dellänk så att den inte längre kan användas.
+                  Returnerar <Code>true</Code> om den återkallades.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/revoke_share_token \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_token": "abc123"}'`}</CodeBlock>
+              </Endpoint>
+
+              <Endpoint name="get_shared_recipe">
+                <p className="mb-3">
+                  Hämta ett recept via en dellänk. Kräver ingen autentisering.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/get_shared_recipe \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_token": "abc123"}'`}</CodeBlock>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Returnerar fullständig receptdata inklusive ingredienser,
+                  instruktioner och delarens namn. Returnerar tomt om länken
+                  är ogiltig, utgången eller återkallad.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="copy_shared_recipe">
+                <p className="mb-3">
+                  Kopiera ett delat recept till din samling via dellänken.
+                  Returnerar det nya receptets UUID.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/copy_shared_recipe \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_token": "abc123"}'`}</CodeBlock>
+              </Endpoint>
+            </div>
+          </section>
+
+          {/* Book sharing */}
+          <section>
+            <h2 className="text-xl font-semibold text-foreground mb-4">
+              Receptboksdelning
+            </h2>
+            <p className="mb-4 text-sm text-foreground/60">
+              Dela hela din receptsamling med en annan användare via en länk.
+            </p>
+
+            <div className="space-y-8">
+              <Endpoint name="create_book_share_token">
+                <p className="mb-3">
+                  Skapa en delbar länk för din receptbok.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/create_book_share_token \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_expires_days": 30}'`}</CodeBlock>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Valfritt: <Code>p_expires_days</Code> (null = aldrig).
+                  Returnerar: token och expires_at.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="get_book_share_info">
+                <p className="mb-3">
+                  Hämta info om en receptbokslänk innan du accepterar den.
+                  Kräver ingen autentisering.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/get_book_share_info \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_token": "abc123"}'`}</CodeBlock>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Returnerar: sharer_name, sharer_email, recipe_count,
+                  already_connected.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="accept_book_share">
+                <p className="mb-3">
+                  Acceptera en receptbokslänk och anslut till delarens
+                  receptsamling. Idempotent.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/accept_book_share \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_token": "abc123"}'`}</CodeBlock>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Returnerar: sharer_name och sharer_id.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="get_shared_books">
+                <p className="mb-3">
+                  Lista receptböcker som delas med dig.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/get_shared_books \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{}'`}</CodeBlock>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Returnerar: id, sharer_name, sharer_id, created_at.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="revoke_book_share_token">
+                <p className="mb-3">
+                  Återkalla en receptbokslänk. Returnerar{' '}
+                  <Code>true</Code> om den återkallades.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/revoke_book_share_token \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_token": "abc123"}'`}</CodeBlock>
+              </Endpoint>
+
+              <Endpoint name="remove_book_share_connection">
+                <p className="mb-3">
+                  Ta bort en receptboksanslutning. Både delaren och mottagaren
+                  kan ta bort den. Returnerar <Code>true</Code>.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/remove_book_share_connection \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_connection_id": "uuid-här"}'`}</CodeBlock>
               </Endpoint>
             </div>
           </section>
@@ -845,6 +1074,207 @@ curl -s https://api.matrummet.se/rpc/insert_recipe \\
             </div>
           </section>
 
+          {/* Meal plans */}
+          <section>
+            <h2 className="text-xl font-semibold text-foreground mb-3">
+              Matsedlar
+            </h2>
+            <p className="mb-4 text-sm text-foreground/60">
+              Matsedelsoperationer är hushållskopplade. Inkludera{' '}
+              <Code>X-Active-Home-Id</Code> om du tillhör ett hushåll.
+            </p>
+
+            <div className="space-y-8">
+              <Endpoint name="get_meal_plan">
+                <p className="mb-3">
+                  Hämta den aktiva matsedeln, eller en specifik via ID.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/get_meal_plan \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "X-Active-Home-Id: home-uuid" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_plan_id": null}'`}</CodeBlock>
+                <div className="mt-3">
+                  <ParamTable
+                    params={[
+                      {
+                        name: 'p_plan_id',
+                        type: 'uuid',
+                        required: 'nej',
+                        description:
+                          'Specifikt matsedel-ID (null = senaste aktiva)',
+                      },
+                    ]}
+                  />
+                </div>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Returnerar matsedeln med alla poster (dag, måltidstyp,
+                  recept, portioner). Returnerar null om ingen aktiv matsedel
+                  finns.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="save_meal_plan">
+                <p className="mb-3">
+                  Spara en ny matsedel. Arkiverar eventuell befintlig aktiv
+                  matsedel.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/save_meal_plan \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "X-Active-Home-Id: home-uuid" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{
+    "p_week_start": "2026-02-23",
+    "p_preferences": {},
+    "p_entries": [
+      {"day_of_week": 0, "meal_type": "dinner", "recipe_id": "uuid-här", "servings": 4, "sort_order": 0}
+    ]
+  }'`}</CodeBlock>
+                <div className="mt-3">
+                  <ParamTable
+                    params={[
+                      {
+                        name: 'p_week_start',
+                        type: 'date',
+                        required: 'ja',
+                        description: 'Veckans måndag',
+                      },
+                      {
+                        name: 'p_preferences',
+                        type: 'jsonb',
+                        required: 'ja',
+                        description: 'Kostpreferenser (kan vara {})',
+                      },
+                      {
+                        name: 'p_entries',
+                        type: 'jsonb',
+                        required: 'ja',
+                        description: 'Array av matsedelsposter',
+                      },
+                    ]}
+                  />
+                </div>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Returnerar den nya matsedelns UUID.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="swap_meal_plan_entry">
+                <p className="mb-3">
+                  Byt ut en enskild post i en befintlig matsedel.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/swap_meal_plan_entry \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_entry_id": "uuid-här", "p_recipe_id": "nytt-recept-uuid"}'`}</CodeBlock>
+                <div className="mt-3">
+                  <ParamTable
+                    params={[
+                      {
+                        name: 'p_entry_id',
+                        type: 'uuid',
+                        required: 'ja',
+                        description: 'Posten att byta ut',
+                      },
+                      {
+                        name: 'p_recipe_id',
+                        type: 'uuid',
+                        required: 'nej',
+                        description: 'Nytt recept-ID',
+                      },
+                      {
+                        name: 'p_suggested_name',
+                        type: 'text',
+                        required: 'nej',
+                        description: 'Namn för post utan recept',
+                      },
+                      {
+                        name: 'p_suggested_description',
+                        type: 'text',
+                        required: 'nej',
+                        description: 'Beskrivning för post utan recept',
+                      },
+                    ]}
+                  />
+                </div>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Minst en av <Code>p_recipe_id</Code> eller{' '}
+                  <Code>p_suggested_name</Code> måste anges.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="add_meal_plan_to_shopping_list">
+                <p className="mb-3">
+                  Lägg till alla receptingredienser från en matsedel på en
+                  inköpslista.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/add_meal_plan_to_shopping_list \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "X-Active-Home-Id: home-uuid" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_plan_id": "uuid-här", "p_shopping_list_id": null}'`}</CodeBlock>
+                <div className="mt-3">
+                  <ParamTable
+                    params={[
+                      {
+                        name: 'p_plan_id',
+                        type: 'uuid',
+                        required: 'ja',
+                        description: 'Matsedel att lägga till från',
+                      },
+                      {
+                        name: 'p_shopping_list_id',
+                        type: 'uuid',
+                        required: 'nej',
+                        description: 'Mållista (null = standardlista)',
+                      },
+                    ]}
+                  />
+                </div>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Returnerar{' '}
+                  <Code>{`{"recipes_added": N}`}</Code>.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="get_base_recipes">
+                <p className="mb-3">
+                  Hämta slumpmässiga recept från basreceptpoolen (kurerade
+                  svenska middagsrecept). Användbart för matsedelsförslag.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/get_base_recipes \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_diet_types": ["vegetarian", "vegan"], "p_categories": null, "p_limit": 10}'`}</CodeBlock>
+                <div className="mt-3">
+                  <ParamTable
+                    params={[
+                      {
+                        name: 'p_diet_types',
+                        type: 'text[]',
+                        required: 'nej',
+                        description:
+                          'Kosttyper: "vegan", "vegetarian", "pescetarian", "meat"',
+                      },
+                      {
+                        name: 'p_categories',
+                        type: 'text[]',
+                        required: 'nej',
+                        description: 'Filtrera på kategorinamn',
+                      },
+                      {
+                        name: 'p_limit',
+                        type: 'integer',
+                        required: 'nej',
+                        description: 'Max resultat (standard: 50)',
+                      },
+                    ]}
+                  />
+                </div>
+              </Endpoint>
+            </div>
+          </section>
+
           {/* Household */}
           <section>
             <h2 className="text-xl font-semibold text-foreground mb-4">
@@ -941,6 +1371,134 @@ curl -s https://api.matrummet.se/rpc/insert_recipe \\
   -H "Content-Type: application/json" \\
   -d '{"p_member_email": "namn@exempel.se"}'`}</CodeBlock>
               </Endpoint>
+
+              <Endpoint name="get_pending_invitations">
+                <p className="mb-3">
+                  Lista hushållsinbjudningar skickade till dig.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/get_pending_invitations \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{}'`}</CodeBlock>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Returnerar: id, home_id, home_name, invited_by_email,
+                  invited_by_name, token, expires_at, date_published.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="accept_invitation">
+                <p className="mb-3">
+                  Acceptera en hushållsinbjudan. Returnerar hushållets UUID.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/accept_invitation \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_token": "inbjudningstoken-här"}'`}</CodeBlock>
+              </Endpoint>
+
+              <Endpoint name="decline_invitation">
+                <p className="mb-3">Avböj en hushållsinbjudan.</p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/decline_invitation \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_token": "inbjudningstoken-här"}'`}</CodeBlock>
+              </Endpoint>
+
+              <Endpoint name="disable_join_code">
+                <p className="mb-3">
+                  Inaktivera den nuvarande anslutningskoden för ditt hushåll.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/disable_join_code \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "X-Active-Home-Id: home-uuid" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{}'`}</CodeBlock>
+              </Endpoint>
+            </div>
+          </section>
+
+          {/* Credits */}
+          <section>
+            <h2 className="text-xl font-semibold text-foreground mb-3">
+              Poäng
+            </h2>
+            <p className="mb-4 text-sm text-foreground/60">
+              AI-funktioner (receptgenerering, matsedlar) kostar poäng.
+            </p>
+
+            <div className="space-y-8">
+              <Endpoint name="get_user_credits">
+                <p className="mb-3">Hämta ditt nuvarande poängsaldo.</p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/get_user_credits \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{}'`}</CodeBlock>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Returnerar ett heltal (ditt saldo).
+                </p>
+              </Endpoint>
+
+              <Endpoint name="get_credit_history">
+                <p className="mb-3">
+                  Hämta din poängtransaktionshistorik.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/get_credit_history \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_limit": 50, "p_offset": 0}'`}</CodeBlock>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Returnerar: id, amount, balance_after, transaction_type,
+                  description, created_at.
+                </p>
+              </Endpoint>
+            </div>
+          </section>
+
+          {/* API key management */}
+          <section>
+            <h2 className="text-xl font-semibold text-foreground mb-3">
+              API-nycklar (hantering)
+            </h2>
+
+            <div className="space-y-8">
+              <Endpoint name="get_user_api_keys">
+                <p className="mb-3">
+                  Lista dina API-nycklar (hela nyckeln visas bara vid
+                  skapande).
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/get_user_api_keys \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{}'`}</CodeBlock>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Returnerar: id, name, api_key_prefix, last_used_at,
+                  expires_at, is_active, date_published.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="create_user_api_key">
+                <p className="mb-3">
+                  Skapa en ny API-nyckel. Den fullständiga nyckeln returneras
+                  bara en gång.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/create_user_api_key \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_name": "Min integration"}'`}</CodeBlock>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Spara nyckeln säkert — den kan inte hämtas igen.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="revoke_api_key">
+                <p className="mb-3">
+                  Återkalla en API-nyckel så att den inte längre kan användas.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/revoke_api_key \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_key_id": "uuid-här"}'`}</CodeBlock>
+              </Endpoint>
             </div>
           </section>
 
@@ -963,7 +1521,25 @@ curl -s "https://api.matrummet.se/user_recipes?name=ilike.*pasta*" \\
 
 # Välj specifika kolumner
 curl -s "https://api.matrummet.se/user_recipes?select=id,name,categories&limit=5" \\
+  -H "x-api-key: sk_DIN_NYCKEL"
+
+# Publika recept
+curl -s "https://api.matrummet.se/public_recipes?limit=10&order=date_modified.desc" \\
+  -H "x-api-key: sk_DIN_NYCKEL"
+
+# Gillade recept
+curl -s "https://api.matrummet.se/liked_recipes?limit=10" \\
+  -H "x-api-key: sk_DIN_NYCKEL"
+
+# Utvalda recept
+curl -s "https://api.matrummet.se/featured_recipes?limit=5" \\
   -H "x-api-key: sk_DIN_NYCKEL"`}</CodeBlock>
+            <p className="mt-3">
+              Tillgängliga vyer: <Code>user_recipes</Code>,{' '}
+              <Code>public_recipes</Code>, <Code>liked_recipes</Code>,{' '}
+              <Code>featured_recipes</Code>,{' '}
+              <Code>shopping_list_view</Code>.
+            </p>
             <p className="mt-3">
               Vanliga operatorer: <Code>eq</Code>, <Code>neq</Code>,{' '}
               <Code>gt</Code>, <Code>lt</Code>, <Code>gte</Code>,{' '}
@@ -1017,7 +1593,7 @@ curl -s "https://api.matrummet.se/user_recipes?select=id,name,categories&limit=5
         </div>
 
         <p className="text-sm text-muted-foreground mt-10">
-          Senast uppdaterad: 22 februari 2026
+          Senast uppdaterad: 24 februari 2026
         </p>
       </article>
     </div>

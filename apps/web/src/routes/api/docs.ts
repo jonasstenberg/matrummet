@@ -233,6 +233,29 @@ curl -s https://api.matrummet.se/rpc/search_liked_recipes \\
   -d '{"p_query": "pasta", "p_category": null}'
 \`\`\`
 
+### search_public_recipes
+
+Search all public recipes (no ownership required). Supports filtering by category and author.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/search_public_recipes \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_query": "pasta", "p_category": null, "p_author_id": null}'
+\`\`\`
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| p_query | text | required | Search query |
+| p_category | text | null | Filter by category name |
+| p_author_id | uuid | null | Filter by recipe owner ID |
+| p_limit | integer | 50 | Max results |
+| p_offset | integer | 0 | Pagination offset |
+
+Returns rows from the \`public_recipes\` view.
+
 ### toggle_recipe_like
 
 Like or unlike a recipe (not your own). Returns \`{"liked": true}\` or \`{"liked": false}\`.
@@ -275,6 +298,154 @@ curl -s https://api.matrummet.se/rpc/toggle_recipe_like \\
 | Field | Type | Description |
 |-------|------|-------------|
 | step | string | Instruction text |
+
+## Recipe Sharing
+
+### create_share_token
+
+Create a shareable link for one of your recipes. Returns a token and optional expiry.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/create_share_token \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_recipe_id": "uuid-here", "p_expires_days": 30}'
+\`\`\`
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| p_recipe_id | uuid | yes | Recipe to share (must be yours) |
+| p_expires_days | integer | no | Days until expiry (null = never) |
+
+Returns: \`{token, expires_at}\`.
+
+### get_recipe_share_tokens
+
+List all share tokens for a recipe you own.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/get_recipe_share_tokens \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_recipe_id": "uuid-here"}'
+\`\`\`
+
+Returns: id, token, created_at, expires_at, revoked_at, view_count, last_viewed_at, is_active.
+
+### revoke_share_token
+
+Revoke a share token so it can no longer be used. Returns \`true\` if revoked.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/revoke_share_token \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_token": "abc123"}'
+\`\`\`
+
+### get_shared_recipe
+
+Fetch a recipe via share token. No authentication required.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/get_shared_recipe \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_token": "abc123"}'
+\`\`\`
+
+Returns full recipe data including ingredients, instructions, and sharer name. Returns empty if the token is invalid, expired, or revoked.
+
+### copy_shared_recipe
+
+Copy a shared recipe to your own collection using the share token. Returns the new recipe UUID.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/copy_shared_recipe \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_token": "abc123"}'
+\`\`\`
+
+## Recipe Book Sharing
+
+Share your entire recipe collection with another user via a link.
+
+### create_book_share_token
+
+Create a shareable link for your recipe book.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/create_book_share_token \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_expires_days": 30}'
+\`\`\`
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| p_expires_days | integer | no | Days until expiry (null = never) |
+
+Returns: \`{token, expires_at}\`.
+
+### get_book_share_info
+
+Get info about a book share link before accepting. Works without authentication.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/get_book_share_info \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_token": "abc123"}'
+\`\`\`
+
+Returns: sharer_name, sharer_email, recipe_count, already_connected.
+
+### accept_book_share
+
+Accept a book share link and connect to the sharer's recipe collection.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/accept_book_share \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_token": "abc123"}'
+\`\`\`
+
+Returns: sharer_name, sharer_id. Idempotent — accepting the same token twice is safe.
+
+### get_shared_books
+
+List recipe books shared with you.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/get_shared_books \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{}'
+\`\`\`
+
+Returns: id, sharer_name, sharer_id, created_at.
+
+### revoke_book_share_token
+
+Revoke one of your book share tokens. Returns \`true\` if revoked.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/revoke_book_share_token \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_token": "abc123"}'
+\`\`\`
+
+### remove_book_share_connection
+
+Remove a book share connection. Either the sharer or recipient can remove it. Returns \`true\` if removed.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/remove_book_share_connection \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_connection_id": "uuid-here"}'
+\`\`\`
 
 ## Search Helpers
 
@@ -527,6 +698,111 @@ curl -s "https://api.matrummet.se/shopping_list_view?shopping_list_id=eq.LIST_UU
   -H "X-Active-Home-Id: home-uuid"
 \`\`\`
 
+## Meal Plans
+
+Meal plans are household-scoped. Include the \`X-Active-Home-Id\` header if you belong to a household.
+
+### get_meal_plan
+
+Get the current active meal plan, or a specific plan by ID.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/get_meal_plan \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "X-Active-Home-Id: home-uuid" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_plan_id": null}'
+\`\`\`
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| p_plan_id | uuid | no | Specific plan ID (null = latest active) |
+
+Returns a JSON object with plan details and entries array. Each entry has day_of_week, meal_type, recipe info, servings, etc. Returns null if no active plan.
+
+### save_meal_plan
+
+Save a new meal plan. Archives any existing active plan for the same user/home.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/save_meal_plan \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "X-Active-Home-Id: home-uuid" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "p_week_start": "2026-02-23",
+    "p_preferences": {},
+    "p_entries": [
+      {"day_of_week": 0, "meal_type": "dinner", "recipe_id": "uuid-here", "servings": 4, "sort_order": 0},
+      {"day_of_week": 1, "meal_type": "dinner", "suggested_name": "Tacos", "suggested_description": "Fredagsmys", "servings": 4, "sort_order": 0}
+    ]
+  }'
+\`\`\`
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| p_week_start | date | yes | Monday of the week |
+| p_preferences | jsonb | yes | Diet preferences (can be \`{}\`) |
+| p_entries | jsonb | yes | Array of meal plan entries |
+
+Returns the new plan UUID.
+
+### swap_meal_plan_entry
+
+Replace a single entry in an existing meal plan.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/swap_meal_plan_entry \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_entry_id": "uuid-here", "p_recipe_id": "new-recipe-uuid"}'
+\`\`\`
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| p_entry_id | uuid | yes | Entry to replace |
+| p_recipe_id | uuid | no | New recipe ID |
+| p_suggested_name | text | no | Name for non-recipe entry |
+| p_suggested_description | text | no | Description for non-recipe entry |
+
+At least one of \`p_recipe_id\` or \`p_suggested_name\` must be provided.
+
+### add_meal_plan_to_shopping_list
+
+Add all recipe ingredients from a meal plan to a shopping list.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/add_meal_plan_to_shopping_list \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "X-Active-Home-Id: home-uuid" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_plan_id": "uuid-here", "p_shopping_list_id": null}'
+\`\`\`
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| p_plan_id | uuid | yes | Meal plan to add from |
+| p_shopping_list_id | uuid | no | Target list (null = default) |
+
+Returns \`{"recipes_added": N}\`.
+
+### get_base_recipes
+
+Get random recipes from the curated base recipe pool (Swedish dinner recipes). Useful for meal plan suggestions.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/get_base_recipes \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_diet_types": ["vegetarian", "vegan"], "p_categories": null, "p_limit": 10}'
+\`\`\`
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| p_diet_types | text[] | no | Filter: "vegan", "vegetarian", "pescetarian", "meat" |
+| p_categories | text[] | no | Filter by category names |
+| p_limit | integer | no | Max results (default: 50) |
+
 ## Household
 
 ### get_user_homes
@@ -634,6 +910,122 @@ curl -s https://api.matrummet.se/rpc/remove_home_member \\
   -d '{"p_member_email": "someone@example.com"}'
 \`\`\`
 
+### get_pending_invitations
+
+List household invitations sent to you.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/get_pending_invitations \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{}'
+\`\`\`
+
+Returns: id, home_id, home_name, invited_by_email, invited_by_name, token, expires_at, date_published.
+
+### accept_invitation
+
+Accept a household invitation. Returns the home UUID.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/accept_invitation \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_token": "invitation-token-here"}'
+\`\`\`
+
+### decline_invitation
+
+Decline a household invitation.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/decline_invitation \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_token": "invitation-token-here"}'
+\`\`\`
+
+### disable_join_code
+
+Disable the current join code for your household so it can no longer be used.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/disable_join_code \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "X-Active-Home-Id: home-uuid" \\
+  -H "Content-Type: application/json" \\
+  -d '{}'
+\`\`\`
+
+## Credits
+
+AI-powered features (recipe generation, meal plans) cost credits.
+
+### get_user_credits
+
+Get your current credit balance.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/get_user_credits \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{}'
+\`\`\`
+
+Returns an integer (your current balance).
+
+### get_credit_history
+
+Get your credit transaction history.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/get_credit_history \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_limit": 50, "p_offset": 0}'
+\`\`\`
+
+Returns: id, amount, balance_after, transaction_type, description, created_at.
+
+## API Key Management
+
+### get_user_api_keys
+
+List your API keys (the full key is only shown at creation).
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/get_user_api_keys \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{}'
+\`\`\`
+
+Returns: id, name, api_key_prefix, last_used_at, expires_at, is_active, date_published.
+
+### create_user_api_key
+
+Create a new API key. The full key is only returned once.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/create_user_api_key \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_name": "My integration"}'
+\`\`\`
+
+Returns a JSON object with the full API key. Store it securely — it cannot be retrieved later.
+
+### revoke_api_key
+
+Revoke an API key so it can no longer be used.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/revoke_api_key \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_key_id": "uuid-here"}'
+\`\`\`
+
 ## Direct Table Access
 
 PostgREST exposes tables and views directly. Use standard PostgREST query syntax:
@@ -650,7 +1042,21 @@ curl -s "https://api.matrummet.se/user_recipes?name=ilike.*pasta*" \\
 # Select specific columns
 curl -s "https://api.matrummet.se/user_recipes?select=id,name,categories&limit=5" \\
   -H "x-api-key: sk_YOUR_KEY"
+
+# Browse public recipes
+curl -s "https://api.matrummet.se/public_recipes?limit=10&order=date_modified.desc" \\
+  -H "x-api-key: sk_YOUR_KEY"
+
+# Get your liked recipes
+curl -s "https://api.matrummet.se/liked_recipes?limit=10" \\
+  -H "x-api-key: sk_YOUR_KEY"
+
+# Featured recipes
+curl -s "https://api.matrummet.se/featured_recipes?limit=5" \\
+  -H "x-api-key: sk_YOUR_KEY"
 \`\`\`
+
+**Available views:** \`user_recipes\`, \`public_recipes\`, \`liked_recipes\`, \`featured_recipes\`, \`shopping_list_view\`.
 
 Common operators: \`eq\`, \`neq\`, \`gt\`, \`lt\`, \`gte\`, \`lte\`, \`like\`, \`ilike\`, \`in\`, \`is\`.
 
