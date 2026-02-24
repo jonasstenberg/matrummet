@@ -72,6 +72,7 @@ export const Route = createFileRoute('/api/user/delete-account')({
           // Clear the auth cookie on success
           deleteCookie('auth-token')
 
+          logger.info({ email: context.session?.email }, 'Account deleted via API')
           return Response.json({ success: true })
         } catch (error) {
           logger.error({ err: error instanceof Error ? error : String(error), email: context.session?.email }, 'Account deletion error')

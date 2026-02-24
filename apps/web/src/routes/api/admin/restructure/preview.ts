@@ -92,6 +92,7 @@ export const Route = createFileRoute('/api/admin/restructure/preview')({
             )
           }
 
+          const aiStartTime = Date.now()
           const client = createMistralClient()
           const ingredientGroups = recipe.ingredient_groups || []
           const recipeInstructions = recipe.instructions || []
@@ -266,6 +267,8 @@ export const Route = createFileRoute('/api/admin/restructure/preview')({
             }
           }
 
+          const durationMs = Date.now() - aiStartTime
+          logger.info({ durationMs, recipeId, includeIngredients, includeInstructions }, 'Restructure preview generated')
           return Response.json(responseData)
         } catch (error) {
           logger.error({ err: error instanceof Error ? error : String(error) }, 'Preview restructure error')

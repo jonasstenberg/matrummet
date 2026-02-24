@@ -15,6 +15,7 @@ export const Route = createFileRoute('/api/user/export')({
           const recipes = await getRecipes({ owner: session.email, token: postgrestToken, limit: 10000 })
           const markdown = recipesToMarkdown(recipes)
 
+          logger.info({ email: session.email, recipeCount: recipes.length }, 'Recipe export completed')
           return new Response(markdown, {
             headers: {
               'Content-Type': 'text/markdown; charset=utf-8',

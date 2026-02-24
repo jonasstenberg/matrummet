@@ -119,6 +119,7 @@ export const Route = createFileRoute('/api/admin/foods')({
             throw new Error(errorText || 'Kunde inte skapa matvara')
           }
 
+          logger.info({ name: name.trim() }, 'Food created')
           return Response.json({ success: true })
         } catch (error) {
           logger.error({ err: error instanceof Error ? error : String(error) }, 'Create food error')
@@ -175,6 +176,7 @@ export const Route = createFileRoute('/api/admin/foods')({
             throw new Error(errorText || 'Kunde inte uppdatera matvara')
           }
 
+          logger.info({ id, name: name.trim() }, 'Food updated')
           return Response.json({ success: true })
         } catch (error) {
           logger.error({ err: error instanceof Error ? error : String(error) }, 'Update food error')
@@ -217,6 +219,7 @@ export const Route = createFileRoute('/api/admin/foods')({
             throw new Error(errorText || 'Kunde inte ta bort matvara')
           }
 
+          logger.info({ id }, 'Food deleted')
           return Response.json({ success: true })
         } catch (error) {
           logger.error({ err: error instanceof Error ? error : String(error) }, 'Delete food error')

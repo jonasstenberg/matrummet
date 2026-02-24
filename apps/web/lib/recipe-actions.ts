@@ -12,6 +12,8 @@ import { getRecipes } from '@/lib/api'
 import type { Recipe } from '@/lib/types'
 import { actionAuthMiddleware } from './middleware'
 import { env } from '@/lib/env'
+import { logger as rootLogger } from '@/lib/logger'
+const helperLog = rootLogger.child({ module: 'recipe:helpers' })
 // Zod schemas for recipe ingredient/instruction unions
 const ingredientInputSchema = z.union([
   z.object({ group: z.string() }),
@@ -96,11 +98,15 @@ async function searchFood(query: string, token: string): Promise<FoodMatch | nul
       body: JSON.stringify({ p_query: query, p_limit: 1 }),
     })
 
-    if (!response.ok) return null
+    if (!response.ok) {
+      helperLog.warn({ query, status: response.status }, 'searchFood: PostgREST returned error')
+      return null
+    }
 
     const results: FoodMatch[] = await response.json()
     return results.length > 0 && results[0].rank > 0.5 ? results[0] : null
-  } catch {
+  } catch (error) {
+    helperLog.error({ err: error instanceof Error ? error : String(error), query }, 'searchFood: unexpected error')
     return null
   }
 }
@@ -118,11 +124,15 @@ async function searchUnit(query: string, token: string): Promise<UnitMatch | nul
       body: JSON.stringify({ p_query: query, p_limit: 1 }),
     })
 
-    if (!response.ok) return null
+    if (!response.ok) {
+      helperLog.warn({ query, status: response.status }, 'searchUnit: PostgREST returned error')
+      return null
+    }
 
     const results: UnitMatch[] = await response.json()
     return results.length > 0 && results[0].rank > 0.5 ? results[0] : null
-  } catch {
+  } catch (error) {
+    helperLog.error({ err: error instanceof Error ? error : String(error), query }, 'searchUnit: unexpected error')
     return null
   }
 }
@@ -398,8 +408,8 @@ const copyRecipeFn = createServerFn({ method: 'POST' })
           if (errorCode === 'recipe-not-found-or-not-visible') {
             return { error: 'Receptet kunde inte hittas eller är inte tillgängligt' }
           }
-        } catch {
-          // Fall through to generic message
+        } catch (parseErr) {
+          log.debug({ err: parseErr instanceof Error ? parseErr.message : String(parseErr) }, 'Could not parse PostgREST error response as JSON')
         }
 
         return { error: 'Kunde inte kopiera receptet. Försök igen.' }
@@ -449,8 +459,8 @@ const toggleRecipeLikeFn = createServerFn({ method: 'POST' })
           if (errorCode === 'recipe-not-found') {
             return { error: 'Receptet hittades inte' }
           }
-        } catch {
-          // Fall through to generic message
+        } catch (parseErr) {
+          log.debug({ err: parseErr instanceof Error ? parseErr.message : String(parseErr) }, 'Could not parse PostgREST error response as JSON')
         }
 
         return { error: 'Kunde inte uppdatera gillning' }
@@ -685,8 +695,8 @@ const createShareLinkFn = createServerFn({ method: 'POST' })
           if (errorJson.message?.includes('access-denied')) {
             return { error: 'Du kan bara dela dina egna recept' }
           }
-        } catch {
-          // Fall through to generic error
+        } catch (parseErr) {
+          log.debug({ err: parseErr instanceof Error ? parseErr.message : String(parseErr) }, 'Could not parse PostgREST error response as JSON')
         }
 
         return { error: 'Kunde inte skapa delningslänk. Försök igen.' }
@@ -779,8 +789,8 @@ const getShareLinksFn = createServerFn({ method: 'GET' })
           if (errorJson.message?.includes('access-denied')) {
             return { error: 'Du kan bara se delningslänkar för dina egna recept' }
           }
-        } catch {
-          // Fall through to generic error
+        } catch (parseErr) {
+          log.debug({ err: parseErr instanceof Error ? parseErr.message : String(parseErr) }, 'Could not parse PostgREST error response as JSON')
         }
 
         return { error: 'Kunde inte hämta delningslänkar' }
@@ -825,8 +835,8 @@ const copySharedRecipeFn = createServerFn({ method: 'POST' })
           if (errorJson.message?.includes('invalid-or-expired-token')) {
             return { error: 'Delningslänken är ogiltig eller har gått ut' }
           }
-        } catch {
-          // Fall through to generic error
+        } catch (parseErr) {
+          log.debug({ err: parseErr instanceof Error ? parseErr.message : String(parseErr) }, 'Could not parse PostgREST error response as JSON')
         }
 
         return { error: 'Kunde inte spara receptet. Försök igen.' }

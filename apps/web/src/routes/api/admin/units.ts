@@ -131,6 +131,7 @@ export const Route = createFileRoute('/api/admin/units')({
               throw new Error('Kunde inte ta bort källenhet')
             }
 
+            logger.info({ sourceId, targetId }, 'Units merged')
             return Response.json({ success: true })
           }
 
@@ -171,6 +172,7 @@ export const Route = createFileRoute('/api/admin/units')({
             throw new Error(errorText || 'Kunde inte skapa enhet')
           }
 
+          logger.info({ name: name.trim() }, 'Unit created')
           return Response.json({ success: true })
         } catch (error) {
           logger.error({ err: error instanceof Error ? error : String(error) }, 'Create unit error')
@@ -221,6 +223,7 @@ export const Route = createFileRoute('/api/admin/units')({
             throw new Error(errorText || 'Kunde inte uppdatera enhet')
           }
 
+          logger.info({ id, name: name.trim() }, 'Unit updated')
           return Response.json({ success: true })
         } catch (error) {
           logger.error({ err: error instanceof Error ? error : String(error) }, 'Update unit error')
@@ -255,6 +258,7 @@ export const Route = createFileRoute('/api/admin/units')({
             throw new Error(errorText || 'Kunde inte ta bort enhet')
           }
 
+          logger.info({ id }, 'Unit deleted')
           return Response.json({ success: true })
         } catch (error) {
           logger.error({ err: error instanceof Error ? error : String(error) }, 'Delete unit error')

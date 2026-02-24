@@ -58,8 +58,10 @@ export const loginFn = createServerFn({ method: 'POST' })
         path: '/',
       })
 
+      logger.info({ email: user.email }, 'User logged in')
       return {}
-    } catch {
+    } catch (error) {
+      logger.error({ err: error instanceof Error ? error : String(error) }, 'Login error')
       return { error: 'Ett fel uppstod vid inloggning' }
     }
   })
@@ -168,6 +170,7 @@ export const completeResetPasswordFn = createServerFn({ method: 'POST' })
         return { error: 'Kunde inte återställa lösenordet' }
       }
 
+      logger.info('Password reset completed successfully')
       return { success: true }
     } catch (error) {
       logger.error({ err: error instanceof Error ? error : String(error) }, 'Password reset completion error')
@@ -237,8 +240,10 @@ export const signupFn = createServerFn({ method: 'POST' })
         path: '/',
       })
 
+      logger.info({ email: user.email }, 'User signed up')
       return {}
-    } catch {
+    } catch (error) {
+      logger.error({ err: error instanceof Error ? error : String(error) }, 'Signup error')
       return { error: 'Ett fel uppstod vid registrering' }
     }
   })
@@ -298,13 +303,14 @@ export const changePasswordFn = createServerFn({ method: 'POST' })
           if (errorCode === 'password-not-meet-requirements' || errorText.includes('password-not-meet-requirements')) {
             return { error: 'Nytt lösenord uppfyller inte kraven' }
           }
-        } catch {
-          // If we can't parse the error, fall through to generic message
+        } catch (parseErr) {
+          log.debug({ err: parseErr instanceof Error ? parseErr.message : String(parseErr) }, 'Could not parse PostgREST error response as JSON')
         }
 
         return { error: 'Kunde inte byta lösenord' }
       }
 
+      log.info({ email: context.session?.email }, 'Password changed successfully')
       return { success: true }
     } catch (error) {
       log.error({ err: error instanceof Error ? error : String(error) }, 'Password change error')
@@ -371,13 +377,14 @@ export const deleteAccountFn = createServerFn({ method: 'POST' })
           } else if (dbMessage.includes('password-required')) {
             errorMessage = 'Lösenord krävs'
           }
-        } catch {
-          // If parsing fails, use default error message
+        } catch (parseErr) {
+          log.debug({ err: parseErr instanceof Error ? parseErr.message : String(parseErr) }, 'Could not parse PostgREST error response as JSON')
         }
 
         return { error: errorMessage }
       }
 
+      log.info({ email: context.session?.email }, 'Account deleted successfully')
       deleteCookie('auth-token')
 
       return { success: true }

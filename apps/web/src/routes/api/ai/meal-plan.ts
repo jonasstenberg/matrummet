@@ -66,6 +66,8 @@ export const Route = createFileRoute('/api/ai/meal-plan')({
           }
           creditDeducted = true
 
+          const aiStartTime = Date.now()
+
           // ── Fetch data ─────────────────────────────────────────────
           const [recipes, pantryItems, baseRecipes] = await Promise.all([
             fetchUserRecipes(postgrestToken, home_id),
@@ -94,6 +96,8 @@ export const Route = createFileRoute('/api/ai/meal-plan')({
             home_id,
           )
 
+          const durationMs = Date.now() - aiStartTime
+          logger.info({ durationMs, planId, entryCount: result.entries.length, email: userEmail }, 'Meal plan generated successfully')
           return Response.json({
             plan_id: planId,
             entries: result.entries,

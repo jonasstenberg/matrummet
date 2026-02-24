@@ -2,6 +2,9 @@ import { createFileRoute } from '@tanstack/react-router'
 import { apiAuthMiddleware } from '@/lib/middleware'
 import { env } from '@/lib/env'
 import { getStripe, getCreditPack } from '@/lib/stripe'
+import { logger as rootLogger } from '@/lib/logger'
+
+const logger = rootLogger.child({ module: 'api:credits:checkout' })
 
 export const Route = createFileRoute('/api/credits/checkout')({
   server: {
@@ -93,6 +96,7 @@ export const Route = createFileRoute('/api/credits/checkout')({
           cancel_url: `${appUrl}/ai-poang?status=cancelled`,
         })
 
+        logger.info({ email: session.email, packId: pack.id, credits: pack.credits }, 'Checkout session created')
         return Response.json({ url: checkoutSession.url })
       },
     },

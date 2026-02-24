@@ -1,6 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { apiAuthMiddleware } from '@/lib/middleware'
 import { env } from '@/lib/env'
+import { logger as rootLogger } from '@/lib/logger'
+
+const logger = rootLogger.child({ module: 'api:recipes:search' })
 
 export const Route = createFileRoute('/api/recipes/search')({
   server: {
@@ -37,6 +40,8 @@ export const Route = createFileRoute('/api/recipes/search')({
           })
 
           if (!response.ok) {
+            const errorText = await response.text()
+            logger.error({ status: response.status, responseBody: errorText, query: query.trim() }, 'Recipe search RPC failed')
             return Response.json([])
           }
 
@@ -57,6 +62,8 @@ export const Route = createFileRoute('/api/recipes/search')({
           const response = await fetch(url, { headers, cache: 'no-store' })
 
           if (!response.ok) {
+            const errorText = await response.text()
+            logger.error({ status: response.status, responseBody: errorText }, 'Recent recipes query failed')
             return Response.json([])
           }
 

@@ -56,6 +56,7 @@ export const Route = createFileRoute('/api/auth/login')({
             path: '/',
           })
 
+          logger.info({ email: user.email }, 'User logged in via API')
           return Response.json({
             user: {
               id: user.id,

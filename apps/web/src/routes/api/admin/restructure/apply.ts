@@ -36,12 +36,16 @@ async function searchFood(query: string): Promise<FoodMatch | null> {
       body: JSON.stringify({ p_query: query, p_limit: 1 }),
     })
 
-    if (!response.ok) return null
+    if (!response.ok) {
+      logger.warn({ query, status: response.status }, 'searchFood: PostgREST returned error')
+      return null
+    }
 
     const results: FoodMatch[] = await response.json()
     // Only return if it's a good match (rank > 0.5)
     return results.length > 0 && results[0].rank > 0.5 ? results[0] : null
-  } catch {
+  } catch (error) {
+    logger.error({ err: error instanceof Error ? error : String(error), query }, 'searchFood: unexpected error')
     return null
   }
 }
@@ -56,12 +60,16 @@ async function searchUnit(query: string): Promise<UnitMatch | null> {
       body: JSON.stringify({ p_query: query, p_limit: 1 }),
     })
 
-    if (!response.ok) return null
+    if (!response.ok) {
+      logger.warn({ query, status: response.status }, 'searchUnit: PostgREST returned error')
+      return null
+    }
 
     const results: UnitMatch[] = await response.json()
     // Only return if it's a good match (rank > 0.5)
     return results.length > 0 && results[0].rank > 0.5 ? results[0] : null
-  } catch {
+  } catch (error) {
+    logger.error({ err: error instanceof Error ? error : String(error), query }, 'searchUnit: unexpected error')
     return null
   }
 }
@@ -211,6 +219,7 @@ export const Route = createFileRoute('/api/admin/restructure/apply')({
           if (hasIngredients) updatedParts.push('ingredients')
           if (hasInstructions) updatedParts.push('instructions')
 
+          logger.info({ recipeId, updatedParts }, 'Recipe restructure applied')
           return Response.json({
             success: true,
             message: `Recipe ${updatedParts.join(' and ')} updated successfully`,

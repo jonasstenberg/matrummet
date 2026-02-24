@@ -96,6 +96,7 @@ export const Route = createFileRoute('/api/admin/ai-review/runs/$id/apply')({
           body: JSON.stringify({ p_run_id: runId }),
         })
 
+        logger.info({ runId, ...results }, 'AI review suggestions applied')
         return Response.json(results)
       },
     },

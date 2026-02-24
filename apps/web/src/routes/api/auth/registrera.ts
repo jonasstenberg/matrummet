@@ -72,6 +72,7 @@ export const Route = createFileRoute('/api/auth/registrera')({
             path: '/',
           })
 
+          logger.info({ email: user.email }, 'User signed up via API')
           return Response.json({
             user: {
               id: user.id,

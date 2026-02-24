@@ -26,6 +26,7 @@ export const Route = createFileRoute('/api/substitutions')({
             )
           }
 
+          logger.info({ recipeId: body.recipe_id, missingCount: body.missing_food_ids?.length }, 'Substitution suggestions generated')
           return Response.json(result)
         } catch (error) {
           logger.error({ err: error instanceof Error ? error : String(error) }, 'Substitution API error')

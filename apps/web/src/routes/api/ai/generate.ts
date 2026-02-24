@@ -23,10 +23,14 @@ async function fetchCategories(): Promise<string[]> {
     const response = await fetch(
       `${env.POSTGREST_URL}/categories?select=name&order=name`,
     )
-    if (!response.ok) return []
+    if (!response.ok) {
+      logger.warn({ status: response.status }, 'Failed to fetch categories for AI generation')
+      return []
+    }
     const data = await response.json()
     return data.map((c: { name: string }) => c.name)
-  } catch {
+  } catch (error) {
+    logger.error({ err: error instanceof Error ? error : String(error) }, 'Error fetching categories for AI generation')
     return []
   }
 }
@@ -155,6 +159,7 @@ export const Route = createFileRoute('/api/ai/generate')({
           // Fetch categories
           const categories = await fetchCategories()
 
+          const aiStartTime = Date.now()
           const client = createMistralClient()
 
           let parsedJson: unknown
@@ -192,7 +197,8 @@ export const Route = createFileRoute('/api/ai/generate')({
 
             try {
               parsedJson = JSON.parse(annotation)
-            } catch {
+            } catch (parseErr) {
+              logger.error({ err: parseErr instanceof Error ? parseErr.message : String(parseErr), detail: annotation.substring(0, 500) }, 'OCR annotation JSON parse error')
               return Response.json(
                 { error: 'AI returnerade ogiltigt svar' },
                 { status: 422 },
@@ -226,7 +232,8 @@ export const Route = createFileRoute('/api/ai/generate')({
 
             try {
               parsedJson = JSON.parse(generatedText)
-            } catch {
+            } catch (parseErr) {
+              logger.error({ err: parseErr instanceof Error ? parseErr.message : String(parseErr), detail: generatedText.substring(0, 500) }, 'Chat completion JSON parse error')
               return Response.json(
                 { error: 'AI returnerade ogiltigt svar' },
                 { status: 422 },
@@ -243,6 +250,8 @@ export const Route = createFileRoute('/api/ai/generate')({
               `AI: ${recipe.recipe_name.substring(0, 50)}`,
             )
 
+            const durationMs = Date.now() - aiStartTime
+            logger.info({ durationMs, recipeName: recipe.recipe_name, mode: imageData ? 'image' : 'text', email: context.session?.email }, 'Recipe generated successfully')
             return Response.json({
               recipe,
               remainingCredits: deductResult.success ? deductResult.remainingCredits : creditCheck.balance - 1,

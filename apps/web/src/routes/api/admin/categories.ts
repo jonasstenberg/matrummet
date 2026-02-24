@@ -121,6 +121,7 @@ export const Route = createFileRoute('/api/admin/categories')({
               throw new Error('Kunde inte ta bort källkategori')
             }
 
+            logger.info({ sourceId, targetId }, 'Categories merged')
             return Response.json({ success: true })
           }
 
@@ -151,6 +152,7 @@ export const Route = createFileRoute('/api/admin/categories')({
             throw new Error(errorText || 'Kunde inte skapa kategori')
           }
 
+          logger.info({ name: name.trim(), group_id }, 'Category created')
           return Response.json({ success: true })
         } catch (error) {
           logger.error({ err: error instanceof Error ? error : String(error) }, 'Create category error')
@@ -203,6 +205,7 @@ export const Route = createFileRoute('/api/admin/categories')({
             throw new Error(errorText || 'Kunde inte uppdatera kategori')
           }
 
+          logger.info({ id, ...updateBody }, 'Category updated')
           return Response.json({ success: true })
         } catch (error) {
           logger.error({ err: error instanceof Error ? error : String(error) }, 'Update category error')
@@ -237,6 +240,7 @@ export const Route = createFileRoute('/api/admin/categories')({
             throw new Error(errorText || 'Kunde inte ta bort kategori')
           }
 
+          logger.info({ id }, 'Category deleted')
           return Response.json({ success: true })
         } catch (error) {
           logger.error({ err: error instanceof Error ? error : String(error) }, 'Delete category error')

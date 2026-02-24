@@ -160,6 +160,7 @@ export const Route = createFileRoute('/api/auth/callback/google')({
 
           deleteCookie('oauth-state')
 
+          logger.info({ email: user.email }, 'Google OAuth login successful')
           return new Response(null, {
             status: 302,
             headers: { Location: `${origin}${returnUrl}` },

@@ -250,6 +250,7 @@ export const Route = createFileRoute('/api/admin/ai/refine')({
             )
           }
 
+          const aiStartTime = Date.now()
           const client = createMistralClient()
 
           const aiResponse = await client.chat.complete({
@@ -298,6 +299,8 @@ export const Route = createFileRoute('/api/admin/ai/refine')({
           try {
             const updates = validateRefineResponse(parsedJson)
 
+            const durationMs = Date.now() - aiStartTime
+            logger.info({ durationMs, recipeName: updates.recipe_name }, 'Recipe refined successfully')
             // Map to form data format
             return Response.json({
               updates: {
