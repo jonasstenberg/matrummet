@@ -82,6 +82,24 @@ function IntegritetspolicyPage() {
 
           <section>
             <h2 className="text-xl font-semibold text-foreground mb-3">
+              Serverloggar
+            </h2>
+            <p className="mb-3">
+              För att hålla tjänsten stabil och säker loggar servern teknisk
+              information: felmeddelanden, inloggningsförsök, svarstider för
+              AI-anrop och liknande driftdata. Loggarna kan innehålla din
+              e-postadress i samband med inloggning och AI-funktioner.
+            </p>
+            <p>
+              Loggarna lagras i 30 dagar och raderas sedan automatiskt. De
+              används enbart för felsökning, säkerhet och driftövervakning —
+              aldrig för marknadsföring eller profilering. Rättslig grund:
+              berättigat intresse (GDPR artikel 6.1f).
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-foreground mb-3">
               Vad jag inte gör
             </h2>
             <p>
@@ -119,7 +137,7 @@ function IntegritetspolicyPage() {
         </div>
 
         <p className="text-sm text-muted-foreground mt-10">
-          Senast uppdaterad: 8 februari 2026
+          Senast uppdaterad: 24 februari 2026
         </p>
       </article>
     </div>
