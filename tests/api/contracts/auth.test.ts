@@ -976,4 +976,73 @@ describe("Auth RPCs Contract Tests", () => {
       expect(result.data).toBeNull();
     });
   });
+
+  // ============================================================================
+  // current_user_info()
+  // V50: Converted to SECURITY INVOKER — RLS on users table enforces access.
+  // ============================================================================
+  describe("current_user_info()", () => {
+    it("should return email and name for authenticated user", async () => {
+      const authClient = await createAuthenticatedClient(AUTH_TEST_USER.email);
+      const result = await authClient.rpc<{ email: string; name: string }>(
+        "current_user_info"
+      );
+
+      expectSuccess(result, "current_user_info should succeed");
+
+      expect(result.data).toMatchObject({
+        email: AUTH_TEST_USER.email,
+        name: AUTH_TEST_USER.name,
+      });
+    });
+
+    it("should return correct shape with email and name fields", async () => {
+      const authClient = await createAuthenticatedClient(AUTH_TEST_USER.email);
+      const result = await authClient.rpc<{ email: string; name: string }>(
+        "current_user_info"
+      );
+
+      expectSuccess(result);
+
+      expect(typeof result.data!.email).toBe("string");
+      expect(typeof result.data!.name).toBe("string");
+      // Should not leak extra fields
+      const keys = Object.keys(result.data!);
+      expect(keys).toContain("email");
+      expect(keys).toContain("name");
+      expect(keys).toHaveLength(2);
+    });
+
+    it("should only return the authenticated user's own info", async () => {
+      const clientA = await createAuthenticatedClient(AUTH_TEST_USER.email);
+      const result = await clientA.rpc<{ email: string; name: string }>(
+        "current_user_info"
+      );
+
+      expectSuccess(result);
+      expect(result.data!.email).toBe(AUTH_TEST_USER.email);
+      // Cannot see other users' info
+      expect(result.data!.email).not.toBe("test-user-a@example.com");
+    });
+
+    it("should be denied for anonymous users", async () => {
+      const result = await anonClient.rpc<{ email: string; name: string }>(
+        "current_user_info"
+      );
+
+      expect(result.error).not.toBeNull();
+      expect(result.error?.message).toContain("permission denied");
+    });
+
+    it("should return null for non-existent user (JWT with unknown email)", async () => {
+      const fakeClient = await createAuthenticatedClient("non-existent-user@example.com");
+      const result = await fakeClient.rpc<{ email: string; name: string } | null>(
+        "current_user_info"
+      );
+
+      // RLS blocks the SELECT — no matching row, so result is null
+      expect(result.error).toBeNull();
+      expect(result.data).toBeNull();
+    });
+  });
 });
