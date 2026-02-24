@@ -47,3 +47,8 @@ user-stories/
 
 # deploy
 deploy
+
+# Expo
+.expo
+apps/mobile/android/
+apps/mobile/ios/
