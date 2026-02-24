@@ -3,11 +3,11 @@ import type { Instruction, InstructionGroup } from '@matrummet/types/types'
 
 interface InstructionListProps {
   instructions: Instruction[]
-  groups: InstructionGroup[]
+  groups: InstructionGroup[] | undefined
 }
 
 export function InstructionList({ instructions: rawInstructions, groups: rawGroups }: InstructionListProps) {
-  const instructions = rawInstructions ?? []
+  const instructions = rawInstructions
   const groups = rawGroups ?? []
   const groupMap = new Map(groups.map((g) => [g.id, g.name]))
 

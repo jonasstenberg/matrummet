@@ -15,7 +15,11 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.matrummet.app"
+      "bundleIdentifier": "com.matrummet.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Matrummet behöver kameraåtkomst för att ta bilder av recept.",
+        "NSPhotoLibraryUsageDescription": "Matrummet behöver åtkomst till bilder för att importera receptfoton."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -30,7 +34,14 @@
     },
     "plugins": [
       "expo-router",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Matrummet behöver kameraåtkomst för att ta bilder av recept.",
+          "photosPermission": "Matrummet behöver åtkomst till bilder för att importera receptfoton."
+        }
+      ]
     ]
   }
 }

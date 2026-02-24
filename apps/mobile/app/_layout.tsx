@@ -35,6 +35,55 @@ function RootLayoutNav() {
             headerBackTitle: 'Tillbaka',
           }}
         />
+        <Stack.Screen
+          name="recipe/new"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="recipe/import"
+          options={{
+            headerShown: true,
+            title: 'Importera recept',
+            headerBackTitle: 'Tillbaka',
+            presentation: 'modal',
+          }}
+        />
+        <Stack.Screen
+          name="recipe/manual"
+          options={{
+            headerShown: true,
+            title: 'Nytt recept',
+            headerBackTitle: 'Tillbaka',
+            presentation: 'modal',
+          }}
+        />
+        <Stack.Screen
+          name="recipe/edit/[id]"
+          options={{
+            headerShown: true,
+            title: 'Redigera recept',
+            headerBackTitle: 'Tillbaka',
+            presentation: 'modal',
+          }}
+        />
+        <Stack.Screen
+          name="settings/change-password"
+          options={{
+            headerShown: true,
+            title: 'Byt lösenord',
+            headerBackTitle: 'Tillbaka',
+            presentation: 'modal',
+          }}
+        />
+        <Stack.Screen
+          name="settings/delete-account"
+          options={{
+            headerShown: true,
+            title: 'Radera konto',
+            headerBackTitle: 'Tillbaka',
+            presentation: 'modal',
+          }}
+        />
       </Stack>
     </>
   )

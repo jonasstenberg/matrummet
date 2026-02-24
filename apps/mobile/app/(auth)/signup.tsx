@@ -39,7 +39,7 @@ export default function SignupScreen() {
     setLoading(true)
     try {
       await signup(name.trim(), email.trim(), password)
-    } catch (_err) {
+    } catch {
       Alert.alert('Registrering misslyckades', 'Försök igen med en annan e-postadress.')
     } finally {
       setLoading(false)
@@ -110,7 +110,7 @@ export default function SignupScreen() {
 
           <TouchableOpacity
             style={styles.button}
-            onPress={handleSignup}
+            onPress={() => void handleSignup()}
             disabled={loading}
           >
             {loading ? (

@@ -11,11 +11,15 @@
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
+    "@expo/vector-icons": "^14.0.0",
     "@matrummet/api-client": "workspace:*",
     "@matrummet/types": "workspace:*",
+    "@react-navigation/bottom-tabs": "^7.0.0",
     "expo": "~54.0.0",
     "expo-blur": "~15.0.8",
     "expo-constants": "~18.0.0",
+    "expo-image-picker": "~17.0.10",
+    "expo-linear-gradient": "~15.0.8",
     "expo-linking": "~8.0.0",
     "expo-router": "~6.0.0",
     "expo-secure-store": "~15.0.0",
@@ -30,8 +34,18 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@eslint/js": "^9.39.2",
+    "@matrummet/eslint": "workspace:*",
+    "@types/node": "^25.3.0",
     "@types/react": "~19.1.0",
+    "@typescript-eslint/eslint-plugin": "^8.56.1",
+    "@typescript-eslint/parser": "^8.56.1",
     "eslint": "^9.39.2",
-    "typescript": "~5.9.3"
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.26",
+    "globals": "^16.5.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.56.1"
   }
 }

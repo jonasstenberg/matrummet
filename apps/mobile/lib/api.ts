@@ -13,13 +13,13 @@ function fixLocalhost(url: string): string {
 // In dev: Next.js serves static files from public/ at the root URL.
 // In prod: point to your CDN/storage URL (e.g. https://cdn.matrummet.se/uploads).
 const IMAGE_BASE_URL = fixLocalhost(
-  process.env.EXPO_PUBLIC_IMAGE_BASE_URL ?? 'http://localhost:3000/uploads'
+  String(process.env.EXPO_PUBLIC_IMAGE_BASE_URL ?? 'http://localhost:3000/uploads')
 )
 
 export const api = new PostgrestClient({
-  postgrestUrl: fixLocalhost(process.env.EXPO_PUBLIC_POSTGREST_URL ?? 'http://localhost:4444'),
-  jwtSecret: process.env.EXPO_PUBLIC_JWT_SECRET ?? '',
-  postgrestJwtSecret: process.env.EXPO_PUBLIC_POSTGREST_JWT_SECRET ?? '',
+  postgrestUrl: fixLocalhost(String(process.env.EXPO_PUBLIC_POSTGREST_URL ?? 'http://localhost:4444')),
+  jwtSecret: String(process.env.EXPO_PUBLIC_JWT_SECRET ?? ''),
+  postgrestJwtSecret: String(process.env.EXPO_PUBLIC_POSTGREST_JWT_SECRET ?? ''),
   tokenStorage: mobileTokenStorage,
 })
 

@@ -82,7 +82,7 @@ export default function RecipesScreen() {
       showSub.remove()
       hideSub.remove()
     }
-  }, [tabBarHeight])
+  }, [tabBarHeight, keyboardOffset])
 
   // Cleanup debounce timer
   useEffect(() => {
@@ -112,8 +112,8 @@ export default function RecipesScreen() {
   }, [offset])
 
   useEffect(() => {
-    if (user) loadRecipes(true)
-  }, [user])
+    if (user) void loadRecipes(true)
+  }, [user, loadRecipes])
 
   const onRefresh = useCallback(() => {
     setRefreshing(true)
@@ -237,6 +237,7 @@ export default function RecipesScreen() {
             { paddingBottom: FLOATING_BAR_HEIGHT + (isSearchMode ? 52 : 0) },
           ]}
           style={styles.list}
+          contentInsetAdjustmentBehavior="never"
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"

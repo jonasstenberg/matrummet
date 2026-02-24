@@ -3,11 +3,11 @@ import type { Ingredient, IngredientGroup } from '@matrummet/types/types'
 
 interface IngredientListProps {
   ingredients: Ingredient[]
-  groups: IngredientGroup[]
+  groups: IngredientGroup[] | undefined
 }
 
 export function IngredientList({ ingredients: rawIngredients, groups: rawGroups }: IngredientListProps) {
-  const ingredients = rawIngredients ?? []
+  const ingredients = rawIngredients
   const groups = rawGroups ?? []
   // Group ingredients by group_id
   const groupMap = new Map(groups.map((g) => [g.id, g.name]))

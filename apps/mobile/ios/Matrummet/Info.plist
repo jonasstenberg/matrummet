@@ -45,6 +45,10 @@
       <key>NSAllowsLocalNetworking</key>
       <true/>
     </dict>
+    <key>NSCameraUsageDescription</key>
+    <string>Matrummet behöver kameraåtkomst för att ta bilder av recept.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Matrummet behöver åtkomst till bilder för att importera receptfoton.</string>
     <key>NSFaceIDUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your Face ID biometric data.</string>
     <key>NSUserActivityTypes</key>

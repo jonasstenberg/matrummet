@@ -1,10 +1,28 @@
+import { useState } from 'react'
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
+import { Ionicons } from '@expo/vector-icons'
 import type { Recipe } from '@matrummet/types/types'
 import { getImageUrl } from '@/lib/api'
 
 interface RecipeCardProps {
   recipe: Recipe
   onPress: () => void
+}
+
+function PlaceholderImage() {
+  return (
+    <LinearGradient
+      colors={['#f3f4f6', '#e8e8ec', '#dcdce2']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.image}
+    >
+      <View style={styles.placeholderIconContainer}>
+        <Ionicons name="restaurant-outline" size={32} color="rgba(22, 163, 74, 0.4)" />
+      </View>
+    </LinearGradient>
+  )
 }
 
 export function RecipeCard({ recipe, onPress }: RecipeCardProps) {
@@ -14,6 +32,8 @@ export function RecipeCard({ recipe, onPress }: RecipeCardProps) {
   ].filter(Boolean).join(' + ')
 
   const imageUrl = getImageUrl(recipe.image, 'medium')
+  const [imageError, setImageError] = useState(false)
+  const showImage = imageUrl && !imageError
 
   return (
     <TouchableOpacity
@@ -21,12 +41,15 @@ export function RecipeCard({ recipe, onPress }: RecipeCardProps) {
       onPress={onPress}
       activeOpacity={0.7}
     >
-      {imageUrl && (
+      {showImage ? (
         <Image
           source={{ uri: imageUrl }}
           style={styles.image}
           resizeMode="cover"
+          onError={() => setImageError(true)}
         />
+      ) : (
+        <PlaceholderImage />
       )}
       <View style={styles.body}>
         <Text style={styles.name} numberOfLines={2}>
@@ -68,6 +91,11 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: 160,
+  },
+  placeholderIconContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   body: {
     padding: 12,

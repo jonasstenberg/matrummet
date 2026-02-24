@@ -26,8 +26,8 @@ export default function ShoppingListScreen() {
     try {
       const data = await api.getShoppingList()
       setItems(data)
-    } catch (_err) {
-      console.error('Failed to load shopping list:', _err)
+    } catch (err) {
+      console.error('Failed to load shopping list:', err)
     } finally {
       setLoading(false)
       setRefreshing(false)
@@ -47,8 +47,8 @@ export default function ShoppingListScreen() {
     )
     try {
       await api.toggleShoppingListItem(itemId)
-    } catch (_err) {
-      loadItems() // Revert on error
+    } catch {
+      void loadItems() // Revert on error
     }
   }, [loadItems])
 
@@ -60,7 +60,7 @@ export default function ShoppingListScreen() {
     try {
       await api.addCustomShoppingListItem(name)
       await loadItems()
-    } catch (_err) {
+    } catch {
       Alert.alert('Fel', 'Kunde inte lägga till varan.')
     }
   }, [newItemName, loadItems])
@@ -77,13 +77,15 @@ export default function ShoppingListScreen() {
         {
           text: 'Rensa',
           style: 'destructive',
-          onPress: async () => {
-            try {
-              await api.clearCheckedItems()
-              await loadItems()
-            } catch (_err) {
-              Alert.alert('Fel', 'Kunde inte rensa varor.')
-            }
+          onPress: () => {
+            void (async () => {
+              try {
+                await api.clearCheckedItems()
+                await loadItems()
+              } catch {
+                Alert.alert('Fel', 'Kunde inte rensa varor.')
+              }
+            })()
           },
         },
       ]
@@ -110,11 +112,11 @@ export default function ShoppingListScreen() {
           value={newItemName}
           onChangeText={setNewItemName}
           returnKeyType="done"
-          onSubmitEditing={addItem}
+          onSubmitEditing={() => void addItem()}
         />
         <TouchableOpacity
           style={styles.addButton}
-          onPress={addItem}
+          onPress={() => void addItem()}
         >
           <Text style={styles.addButtonText}>Lägg till</Text>
         </TouchableOpacity>
@@ -124,7 +126,7 @@ export default function ShoppingListScreen() {
       {checkedCount > 0 && (
         <TouchableOpacity
           style={styles.clearButton}
-          onPress={clearChecked}
+          onPress={() => void clearChecked()}
         >
           <Text style={styles.clearButtonText}>
             Rensa {checkedCount} avprickade
@@ -136,14 +138,14 @@ export default function ShoppingListScreen() {
         data={items}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <ShoppingItem item={item} onToggle={() => toggleItem(item.id)} />
+          <ShoppingItem item={item} onToggle={() => void toggleItem(item.id)} />
         )}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={() => {
               setRefreshing(true)
-              loadItems()
+              void loadItems()
             }}
             tintColor="#16a34a"
           />
