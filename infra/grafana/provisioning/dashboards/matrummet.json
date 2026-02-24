@@ -690,7 +690,7 @@
       },
       "gridPos": {
         "h": 7,
-        "w": 24,
+        "w": 12,
         "x": 0,
         "y": 40
       },
@@ -700,8 +700,8 @@
           "calcs": [
             "sum"
           ],
-          "displayMode": "table",
-          "placement": "right",
+          "displayMode": "list",
+          "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
@@ -889,9 +889,9 @@
       },
       "gridPos": {
         "h": 7,
-        "w": 24,
-        "x": 0,
-        "y": 47
+        "w": 12,
+        "x": 12,
+        "y": 40
       },
       "id": 16,
       "options": {
@@ -900,8 +900,8 @@
             "mean",
             "max"
           ],
-          "displayMode": "table",
-          "placement": "right",
+          "displayMode": "list",
+          "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
@@ -935,7 +935,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 54
+        "y": 47
       },
       "id": 8,
       "options": {
