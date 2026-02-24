@@ -2,6 +2,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import { setCookie, deleteCookie } from '@tanstack/react-start/server'
 import { signToken } from '@/lib/auth'
+import { PostgrestClient } from '@matrummet/api-client'
 import { env } from '@/lib/env'
 import { loginInputSchema, emailSchema, changePasswordSchema, signupInputSchema } from '@/lib/schemas'
 import { actionAuthMiddleware } from './middleware'
@@ -276,45 +277,18 @@ export const changePasswordFn = createServerFn({ method: 'POST' })
         return { error: 'Du måste vara inloggad' }
       }
 
-      const postgrestResponse = await fetch(`${env.POSTGREST_URL}/rpc/reset_password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${postgrestToken}`,
-        },
-        body: JSON.stringify({
-          p_email: context.session.email,
-          p_old_password: result.data.oldPassword,
-          p_new_password: result.data.newPassword,
-        }),
+      const client = new PostgrestClient({
+        postgrestUrl: env.POSTGREST_URL,
+        postgrestToken,
+        session: context.session,
       })
+      await client.changePassword(result.data.oldPassword, result.data.newPassword)
 
-      if (!postgrestResponse.ok) {
-        const errorText = await postgrestResponse.text()
-        log.error({ responseBody: errorText }, 'Password change failed')
-
-        try {
-          const errorJson = JSON.parse(errorText)
-          const errorCode = errorJson.code || errorJson.message
-
-          if (errorCode === 'invalid-credentials' || errorText.includes('invalid-credentials')) {
-            return { error: 'Fel nuvarande lösenord' }
-          }
-          if (errorCode === 'password-not-meet-requirements' || errorText.includes('password-not-meet-requirements')) {
-            return { error: 'Nytt lösenord uppfyller inte kraven' }
-          }
-        } catch (parseErr) {
-          log.debug({ err: parseErr instanceof Error ? parseErr.message : String(parseErr) }, 'Could not parse PostgREST error response as JSON')
-        }
-
-        return { error: 'Kunde inte byta lösenord' }
-      }
-
-      log.info({ email: context.session?.email }, 'Password changed successfully')
+      log.info({ email: context.session.email }, 'Password changed successfully')
       return { success: true }
     } catch (error) {
       log.error({ err: error instanceof Error ? error : String(error) }, 'Password change error')
-      return { error: 'Ett oväntat fel uppstod' }
+      return { error: error instanceof Error ? error.message : 'Ett oväntat fel uppstod' }
     }
   })
 
@@ -349,48 +323,20 @@ export const deleteAccountFn = createServerFn({ method: 'POST' })
         return { error: 'Du måste vara inloggad' }
       }
 
-      const postgrestResponse = await fetch(`${env.POSTGREST_URL}/rpc/delete_account`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${postgrestToken}`,
-        },
-        body: JSON.stringify({
-          p_password: data.password || null,
-          p_delete_data: data.deleteData ?? false,
-        }),
+      const client = new PostgrestClient({
+        postgrestUrl: env.POSTGREST_URL,
+        postgrestToken,
+        session: context.session,
       })
+      await client.deleteAccount(data.password ?? undefined)
 
-      if (!postgrestResponse.ok) {
-        let errorMessage = 'Ett fel uppstod vid radering av konto'
-
-        try {
-          const errorData = await postgrestResponse.json()
-          const dbMessage = errorData?.message || ''
-
-          if (dbMessage.includes('not-authenticated')) {
-            errorMessage = 'Ej autentiserad'
-          } else if (dbMessage.includes('user-not-found')) {
-            errorMessage = 'Användaren hittades inte'
-          } else if (dbMessage.includes('invalid-password')) {
-            errorMessage = 'Fel lösenord'
-          } else if (dbMessage.includes('password-required')) {
-            errorMessage = 'Lösenord krävs'
-          }
-        } catch (parseErr) {
-          log.debug({ err: parseErr instanceof Error ? parseErr.message : String(parseErr) }, 'Could not parse PostgREST error response as JSON')
-        }
-
-        return { error: errorMessage }
-      }
-
-      log.info({ email: context.session?.email }, 'Account deleted successfully')
+      log.info({ email: context.session.email }, 'Account deleted successfully')
       deleteCookie('auth-token')
 
       return { success: true }
     } catch (error) {
       log.error({ err: error instanceof Error ? error : String(error) }, 'Account deletion error')
-      return { error: 'Ett oväntat fel uppstod' }
+      return { error: error instanceof Error ? error.message : 'Ett oväntat fel uppstod' }
     }
   })
 

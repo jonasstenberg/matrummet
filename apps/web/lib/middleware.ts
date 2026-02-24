@@ -1,8 +1,8 @@
 import { createMiddleware } from '@tanstack/react-start'
 import { createServerFn } from '@tanstack/react-start'
 import { redirect } from '@tanstack/react-router'
-import { getRequestUrl } from '@tanstack/react-start/server'
-import { getSession, signPostgrestToken, type JWTPayload } from '@/lib/auth'
+import { getRequestUrl, getRequestHeader } from '@tanstack/react-start/server'
+import { getSession, signPostgrestToken, verifyToken, type JWTPayload } from '@/lib/auth'
 import { logger as rootLogger } from '@/lib/logger'
 import type { Logger } from 'pino'
 
@@ -151,7 +151,14 @@ export const actionAdminMiddleware = createMiddleware({ type: 'function' }).serv
  */
 export const apiAuthMiddleware = createMiddleware().server(
   async ({ next }) => {
-    const session = await getSession()
+    // Try cookie first, then Bearer JWT (used by mobile app)
+    let session = await getSession()
+    if (!session) {
+      const authHeader = getRequestHeader('authorization')
+      if (authHeader?.startsWith('Bearer ')) {
+        session = await verifyToken(authHeader.slice(7))
+      }
+    }
     if (!session) {
       const path = new URL(getRequestUrl()).pathname
       logger.warn({ path }, 'API auth denied: no session (401)')

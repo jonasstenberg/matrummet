@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { setCookie } from '@tanstack/react-start/server'
 import { ApiKey } from '@/lib/types'
 import { signToken } from '@/lib/auth'
+import { PostgrestClient } from '@matrummet/api-client'
 import { actionAuthMiddleware } from './middleware'
 import { apiKeysArraySchema } from './schemas'
 import { env } from '@/lib/env'
@@ -157,41 +158,18 @@ const updateProfileFn = createServerFn({ method: 'POST' })
         return { error: 'Namn är obligatoriskt' }
       }
 
-      if (!postgrestToken) {
+      if (!postgrestToken || !context.session?.email) {
         return { error: 'Du måste vara inloggad för att uppdatera profil' }
       }
 
-      const response = await fetch(
-        `${env.POSTGREST_URL}/users?email=eq.${encodeURIComponent(context.session?.email ?? '')}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${postgrestToken}`,
-            Prefer: 'return=representation',
-          },
-          body: JSON.stringify({ name: name.trim() }),
-        }
-      )
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        log.error({ responseBody: errorText }, 'Failed to update profile')
-        return { error: 'Kunde inte uppdatera profil. Försök igen.' }
-      }
-
-      const updatedUsers = await response.json()
-      const updatedUser = updatedUsers[0]
-
-      if (!updatedUser) {
-        return { error: 'Användaren hittades inte' }
-      }
-
-      const newToken = await signToken({
-        email: updatedUser.email,
-        name: updatedUser.name,
-        role: updatedUser.role,
+      const client = new PostgrestClient({
+        postgrestUrl: env.POSTGREST_URL,
+        postgrestToken,
+        session: context.session,
       })
+      const updated = await client.updateProfile(name)
+
+      const newToken = await signToken(updated)
 
       setCookie('auth-token', newToken, {
         httpOnly: true,
@@ -204,7 +182,7 @@ const updateProfileFn = createServerFn({ method: 'POST' })
       return { success: true }
     } catch (error) {
       log.error({ err: error instanceof Error ? error : String(error) }, 'Error updating profile')
-      return { error: 'Ett oväntat fel uppstod. Försök igen.' }
+      return { error: error instanceof Error ? error.message : 'Ett oväntat fel uppstod. Försök igen.' }
     }
   })
 

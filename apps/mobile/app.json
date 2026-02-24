@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "Matrummet",
+    "slug": "matrummet",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "matrummet",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.matrummet.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Matrummet behöver kameraåtkomst för att ta bilder av recept.",
+        "NSPhotoLibraryUsageDescription": "Matrummet behöver åtkomst till bilder för att importera receptfoton."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.matrummet.app"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Matrummet behöver kameraåtkomst för att ta bilder av recept.",
+          "photosPermission": "Matrummet behöver åtkomst till bilder för att importera receptfoton."
+        }
+      ]
+    ]
+  }
+}
