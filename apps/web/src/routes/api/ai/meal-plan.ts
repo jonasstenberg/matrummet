@@ -97,7 +97,7 @@ export const Route = createFileRoute('/api/ai/meal-plan')({
           )
 
           const durationMs = Date.now() - aiStartTime
-          logger.info({ durationMs, planId, entryCount: result.entries.length, email: userEmail }, 'Meal plan generated successfully')
+          logger.info({ durationMs, ...result.usage, planId, entryCount: result.entries.length, email: userEmail }, 'Meal plan generated successfully')
           return Response.json({
             plan_id: planId,
             entries: result.entries,

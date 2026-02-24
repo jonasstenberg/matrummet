@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { apiAdminMiddleware } from '@/lib/middleware'
 import { env } from '@/lib/env'
-import { createMistralClient, MISTRAL_MODEL } from '@/lib/ai-client'
+import { createMistralClient, MISTRAL_MODEL, getUsageCost } from '@/lib/ai-client'
 import { z, toJSONSchema } from 'zod'
 import { logger as rootLogger } from '@/lib/logger'
 
@@ -300,7 +300,8 @@ export const Route = createFileRoute('/api/admin/ai/refine')({
             const updates = validateRefineResponse(parsedJson)
 
             const durationMs = Date.now() - aiStartTime
-            logger.info({ durationMs, recipeName: updates.recipe_name }, 'Recipe refined successfully')
+            const usage = getUsageCost(aiResponse.usage)
+            logger.info({ durationMs, ...usage, recipeName: updates.recipe_name }, 'Recipe refined successfully')
             // Map to form data format
             return Response.json({
               updates: {

@@ -6,7 +6,7 @@ import {
   validateParsedRecipe,
 } from '@/lib/recipe-parser/prompt'
 import { RECIPE_JSON_SCHEMA } from '@/lib/recipe-parser/types'
-import { createMistralClient, MISTRAL_MODEL } from '@/lib/ai-client'
+import { createMistralClient, MISTRAL_MODEL, getUsageCost } from '@/lib/ai-client'
 import { logger as rootLogger } from '@/lib/logger'
 const logger = rootLogger.child({ module: 'api:ai:generate' })
 
@@ -163,6 +163,7 @@ export const Route = createFileRoute('/api/ai/generate')({
           const client = createMistralClient()
 
           let parsedJson: unknown
+          let aiUsage: ReturnType<typeof getUsageCost> = null
 
           if (imageData) {
             // Image path: use OCR endpoint with structured extraction
@@ -222,6 +223,7 @@ export const Route = createFileRoute('/api/ai/generate')({
               },
             })
 
+            aiUsage = getUsageCost(response.usage)
             const generatedText = response.choices?.[0]?.message?.content
             if (!generatedText || typeof generatedText !== 'string') {
               return Response.json(
@@ -251,7 +253,7 @@ export const Route = createFileRoute('/api/ai/generate')({
             )
 
             const durationMs = Date.now() - aiStartTime
-            logger.info({ durationMs, recipeName: recipe.recipe_name, mode: imageData ? 'image' : 'text', email: context.session?.email }, 'Recipe generated successfully')
+            logger.info({ durationMs, ...aiUsage, recipeName: recipe.recipe_name, mode: imageData ? 'image' : 'text', email: context.session?.email }, 'Recipe generated successfully')
             return Response.json({
               recipe,
               remainingCredits: deductResult.success ? deductResult.remainingCredits : creditCheck.balance - 1,

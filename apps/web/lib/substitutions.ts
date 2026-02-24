@@ -1,6 +1,6 @@
 import { env } from '@/lib/env'
 import type { IngredientSubstitution, SubstitutionSuggestion, SubstitutionResponse } from '@/lib/ingredient-search-types'
-import { createMistralClient, MISTRAL_MODEL } from '@/lib/ai-client'
+import { createMistralClient, MISTRAL_MODEL, getUsageCost } from '@/lib/ai-client'
 import { z, toJSONSchema } from 'zod'
 import { logger as rootLogger } from '@/lib/logger'
 
@@ -110,7 +110,7 @@ async function fetchRecipeInfo(
  */
 export async function getSubstitutionSuggestions(
   input: SubstitutionInput
-): Promise<SubstitutionResponse | { error: string; status?: number }> {
+): Promise<SubstitutionResponse & { usage: ReturnType<typeof getUsageCost> } | { error: string; status?: number }> {
   if (!input.recipe_id) {
     return { error: 'recipe_id kravs', status: 400 }
   }
@@ -178,6 +178,7 @@ Foresla ersattningar for varje saknad ingrediens.`
     },
   })
 
+  const usage = getUsageCost(response.usage)
   const generatedText = response.choices?.[0]?.message?.content
 
   if (!generatedText || typeof generatedText !== 'string') {
@@ -217,5 +218,5 @@ Foresla ersattningar for varje saknad ingrediens.`
     })
   )
 
-  return { substitutions: validatedSubstitutions }
+  return { substitutions: validatedSubstitutions, usage }
 }

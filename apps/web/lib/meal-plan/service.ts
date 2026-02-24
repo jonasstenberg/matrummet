@@ -1,5 +1,5 @@
 import { env } from "@/lib/env"
-import { createMistralClient, MISTRAL_MODEL } from "@/lib/ai-client"
+import { createMistralClient, MISTRAL_MODEL, getUsageCost } from "@/lib/ai-client"
 import { buildMealPlanPrompt } from "@/lib/meal-plan/prompt"
 import { MEAL_PLAN_JSON_SCHEMA, MealPlanResponseSchema } from "@/lib/meal-plan/types"
 import type { MealPlanResponse, SuggestedRecipe } from "@/lib/meal-plan/types"
@@ -52,6 +52,7 @@ export type EnrichedEntry = MealPlanResponse["entries"][number] & {
 export interface GenerateMealPlanResult {
   entries: EnrichedEntry[]
   summary: string
+  usage: ReturnType<typeof getUsageCost>
 }
 
 // ── Data fetching ──────────────────────────────────────────────────
@@ -285,6 +286,7 @@ export async function generateMealPlan(params: {
     },
   })
 
+  const usage = getUsageCost(response.usage)
   const generatedText = response.choices?.[0]?.message?.content
   if (!generatedText || typeof generatedText !== "string") {
     throw new MealPlanGenerationError("no_response", "Inget svar fran AI")
@@ -312,6 +314,7 @@ export async function generateMealPlan(params: {
   return {
     entries: enrichedEntries,
     summary: parsed.summary,
+    usage,
   }
 }
 

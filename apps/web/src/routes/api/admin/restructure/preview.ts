@@ -14,7 +14,7 @@ import {
   convertInstructionsToUpdateFormat,
 } from '@/lib/ingredient-restructure'
 import type { Recipe } from '@/lib/types'
-import { createMistralClient, MISTRAL_MODEL } from '@/lib/ai-client'
+import { createMistralClient, MISTRAL_MODEL, getUsageCost } from '@/lib/ai-client'
 import { logger as rootLogger } from '@/lib/logger'
 
 const logger = rootLogger.child({ module: 'api:admin:restructure-preview' })
@@ -121,6 +121,10 @@ export const Route = createFileRoute('/api/admin/restructure/preview')({
             },
           }
 
+          let totalPromptTokens = 0
+          let totalCompletionTokens = 0
+          let totalCostUsd = 0
+
           // Process ingredients if requested
           if (includeIngredients) {
             const promptText = formatIngredientsForPrompt(
@@ -152,6 +156,12 @@ export const Route = createFileRoute('/api/admin/restructure/preview')({
               },
             })
 
+            const ingredientUsage = getUsageCost(aiResponse.usage)
+            if (ingredientUsage) {
+              totalPromptTokens += ingredientUsage.promptTokens
+              totalCompletionTokens += ingredientUsage.completionTokens
+              totalCostUsd += ingredientUsage.costUsd
+            }
             const generatedText = aiResponse.choices?.[0]?.message?.content
 
             if (!generatedText || typeof generatedText !== 'string') {
@@ -225,6 +235,12 @@ export const Route = createFileRoute('/api/admin/restructure/preview')({
               },
             })
 
+            const instructionUsage = getUsageCost(aiResponse.usage)
+            if (instructionUsage) {
+              totalPromptTokens += instructionUsage.promptTokens
+              totalCompletionTokens += instructionUsage.completionTokens
+              totalCostUsd += instructionUsage.costUsd
+            }
             const generatedText = aiResponse.choices?.[0]?.message?.content
 
             if (!generatedText || typeof generatedText !== 'string') {
@@ -268,7 +284,7 @@ export const Route = createFileRoute('/api/admin/restructure/preview')({
           }
 
           const durationMs = Date.now() - aiStartTime
-          logger.info({ durationMs, recipeId, includeIngredients, includeInstructions }, 'Restructure preview generated')
+          logger.info({ durationMs, promptTokens: totalPromptTokens, completionTokens: totalCompletionTokens, costUsd: Math.round(totalCostUsd * 1_000_000) / 1_000_000, recipeId, includeIngredients, includeInstructions }, 'Restructure preview generated')
           return Response.json(responseData)
         } catch (error) {
           logger.error({ err: error instanceof Error ? error : String(error) }, 'Preview restructure error')
