@@ -32,6 +32,5 @@ export function getImageUrl(
   size: 'thumb' | 'small' | 'medium' | 'large' | 'full' = 'medium'
 ): string | null {
   if (!image) return null
-  const imageId = image.replace(/\.webp$/, '')
-  return `${IMAGE_BASE_URL}/${imageId}/${size}.webp`
+  return `${IMAGE_BASE_URL}/${image}/${size}`
 }
