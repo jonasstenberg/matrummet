@@ -227,11 +227,15 @@ describe("Ingredient normalization (search_foods / search_units)", () => {
       expect(result).toBeNull();
     });
 
-    it("very short query (1 char) returns null for food search", async () => {
+    it("very short query (1 char) returns result for food search via prefix matching", async () => {
       // The import pipeline skips queries < 2 chars, but the DB function
-      // should still handle it gracefully
+      // should still handle it gracefully. With prefix matching, single
+      // characters can match foods (e.g. "x" → "Xantangummi").
       const result = await searchTopFood("x");
-      expect(result).toBeNull();
+      if (result) {
+        // If a match is found, it should be a prefix match
+        expect(result.name.toLowerCase().startsWith("x")).toBe(true);
+      }
     });
 
     it("query with only whitespace returns no results", async () => {

@@ -561,6 +561,30 @@ export async function createPendingFoodForUser(
 }
 
 /**
+ * Create an approved food.
+ * Uses admin client to INSERT directly with status 'approved'.
+ */
+export async function createApprovedFood(
+  name: string
+): Promise<{ id: string; name: string }> {
+  const adminCli = await createAdminClient(TEST_USERS.admin.email);
+
+  const result = await adminCli
+    .from("foods")
+    .insert({ name, status: "approved" })
+    .select("id, name")
+    .single();
+
+  if (result.error) {
+    throw new Error(`Failed to create approved food: ${result.error.message}`);
+  }
+
+  const food = result.data as { id: string; name: string };
+  createdResources.foods.push(food.id);
+  return food;
+}
+
+/**
  * Clean up all created test data
  */
 export async function cleanupTestData(userEmail: string): Promise<void> {

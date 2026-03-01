@@ -241,6 +241,398 @@ describe("Food RPCs", () => {
       });
     });
 
+    describe("prefix matching — real Swedish foods", () => {
+      // Tests use actual food names from the seed data to verify
+      // real-world search behavior users would encounter.
+
+      it("searching 'Citron' returns Citron and all citron-prefixed foods at rank 2.0", async () => {
+        const response = await clientA.rpc<SearchFoodResult[]>("search_foods", {
+          p_query: "Citron",
+          p_limit: 20,
+        });
+
+        expectSuccess(response);
+
+        // All citron-prefixed foods should be rank 2.0
+        const citronNames = ["Citron", "Citrongräs", "Citronolja", "Citronsyra", "Citronextrakt", "Citronverbena"];
+        for (const name of citronNames) {
+          const result = response.data.find((f) => f.name === name);
+          expect(result).toBeDefined();
+          expect(result!.rank).toBe(2);
+        }
+
+        // Meyer-citron does NOT prefix-match (starts with "Meyer")
+        const meyerResult = response.data.find((f) => f.name === "Meyer-citron");
+        if (meyerResult) {
+          expect(meyerResult.rank).toBeLessThan(2);
+        }
+      });
+
+      it("searching 'Ägg' returns all ägg-prefixed foods first", async () => {
+        const response = await clientA.rpc<SearchFoodResult[]>("search_foods", {
+          p_query: "Ägg",
+          p_limit: 20,
+        });
+
+        expectSuccess(response);
+
+        // Prefix matches at rank 2.0
+        const prefixed = ["Ägg", "Äggnudel", "Äggtoddy", "Äggtofu"];
+        for (const name of prefixed) {
+          const result = response.data.find((f) => f.name === name);
+          expect(result).toBeDefined();
+          expect(result!.rank).toBe(2);
+        }
+
+        // Compound matches (Ankägg, Inlagt ägg) should rank lower
+        const ankAgg = response.data.find((f) => f.name === "Ankägg");
+        if (ankAgg) {
+          expect(ankAgg.rank).toBeLessThan(2);
+        }
+      });
+
+      it("searching 'ägg' (lowercase) is case-insensitive for Ä/ä", async () => {
+        const response = await clientA.rpc<SearchFoodResult[]>("search_foods", {
+          p_query: "ägg",
+          p_limit: 10,
+        });
+
+        expectSuccess(response);
+        const aggResult = response.data.find((f) => f.name === "Ägg");
+        expect(aggResult).toBeDefined();
+        expect(aggResult!.rank).toBe(2);
+      });
+
+      it("searching 'ål' (lowercase) is case-insensitive for Å/å", async () => {
+        const response = await clientA.rpc<SearchFoodResult[]>("search_foods", {
+          p_query: "ål",
+          p_limit: 10,
+        });
+
+        expectSuccess(response);
+        const alResult = response.data.find((f) => f.name === "Ål");
+        expect(alResult).toBeDefined();
+        expect(alResult!.rank).toBe(2);
+      });
+
+      it("searching 'öl' (lowercase) is case-insensitive for Ö/ö", async () => {
+        const response = await clientA.rpc<SearchFoodResult[]>("search_foods", {
+          p_query: "öl",
+          p_limit: 10,
+        });
+
+        expectSuccess(response);
+        const olResult = response.data.find((f) => f.name === "Öl");
+        expect(olResult).toBeDefined();
+        expect(olResult!.rank).toBe(2);
+      });
+
+      it("searching 'Potatis' prefix-matches both Potatis and Potatismjöl", async () => {
+        const response = await clientA.rpc<SearchFoodResult[]>("search_foods", {
+          p_query: "Potatis",
+          p_limit: 20,
+        });
+
+        expectSuccess(response);
+
+        const potatis = response.data.find((f) => f.name === "Potatis");
+        const potatismjol = response.data.find((f) => f.name === "Potatismjöl");
+
+        expect(potatis).toBeDefined();
+        expect(potatis!.rank).toBe(2);
+        expect(potatismjol).toBeDefined();
+        expect(potatismjol!.rank).toBe(2);
+      });
+
+      it("searching 'Mjöl' prefix-matches Mjöl and Mjölk", async () => {
+        const response = await clientA.rpc<SearchFoodResult[]>("search_foods", {
+          p_query: "Mjöl",
+          p_limit: 20,
+        });
+
+        expectSuccess(response);
+
+        const mjol = response.data.find((f) => f.name === "Mjöl");
+        const mjolk = response.data.find((f) => f.name === "Mjölk");
+
+        expect(mjol).toBeDefined();
+        expect(mjol!.rank).toBe(2);
+        expect(mjolk).toBeDefined();
+        expect(mjolk!.rank).toBe(2);
+      });
+
+      it("searching 'Lök' prefix-matches Lök but not Rödlök, Vitlök, Gul lök", async () => {
+        const response = await clientA.rpc<SearchFoodResult[]>("search_foods", {
+          p_query: "Lök",
+          p_limit: 20,
+        });
+
+        expectSuccess(response);
+
+        const lok = response.data.find((f) => f.name === "Lök");
+        expect(lok).toBeDefined();
+        expect(lok!.rank).toBe(2);
+
+        // These don't start with "Lök"
+        for (const name of ["Rödlök", "Vitlök", "Gul lök"]) {
+          const result = response.data.find((f) => f.name === name);
+          if (result) {
+            expect(result.rank).toBeLessThan(2);
+          }
+        }
+      });
+
+      it("searching 'Grädde' prefix-matches Grädde but not Gräddfil", async () => {
+        const response = await clientA.rpc<SearchFoodResult[]>("search_foods", {
+          p_query: "Grädde",
+          p_limit: 20,
+        });
+
+        expectSuccess(response);
+
+        const gradde = response.data.find((f) => f.name === "Grädde");
+        expect(gradde).toBeDefined();
+        expect(gradde!.rank).toBe(2);
+
+        // "Gräddfil" starts with "Grädd", not "Grädde"
+        const graddfil = response.data.find((f) => f.name === "Gräddfil");
+        if (graddfil) {
+          expect(graddfil.rank).toBeLessThan(2);
+        }
+      });
+    });
+
+    describe("word similarity — compound Swedish food names", () => {
+      it("finds 'ägg' in multi-word 'Inlagt ägg'", async () => {
+        const response = await clientA.rpc<SearchFoodResult[]>("search_foods", {
+          p_query: "ägg",
+          p_limit: 20,
+        });
+
+        expectSuccess(response);
+        const found = response.data.find((f) => f.name === "Inlagt ägg");
+        expect(found).toBeDefined();
+      });
+
+      it("finds 'citron' in 'Meyer-citron' via word similarity", async () => {
+        const response = await clientA.rpc<SearchFoodResult[]>("search_foods", {
+          p_query: "citron",
+          p_limit: 20,
+        });
+
+        expectSuccess(response);
+        const found = response.data.find((f) => f.name === "Meyer-citron");
+        expect(found).toBeDefined();
+        // Not a prefix match, so rank < 2
+        expect(found!.rank).toBeLessThan(2);
+        expect(found!.rank).toBeGreaterThan(0);
+      });
+
+      it("finds 'grädde' in 'Vispgrädde'", async () => {
+        const response = await clientA.rpc<SearchFoodResult[]>("search_foods", {
+          p_query: "grädde",
+          p_limit: 20,
+        });
+
+        expectSuccess(response);
+        const found = response.data.find((f) => f.name === "Vispgrädde");
+        expect(found).toBeDefined();
+      });
+    });
+
+    describe("false positive prevention — issue #13 regression tests", () => {
+      it("searching 'lägg' does NOT rank 'Ägg' at 1.0", async () => {
+        // Core regression test for issue #13: "Lägg is interpreted as ägg"
+        // Bug: word_similarity(food_name, query) gave short foods rank 1.0
+        const response = await clientA.rpc<SearchFoodResult[]>("search_foods", {
+          p_query: "lägg",
+          p_limit: 20,
+        });
+
+        expectSuccess(response);
+        const agg = response.data.find((f) => f.name === "Ägg");
+        if (agg) {
+          expect(agg.rank).toBeLessThan(1.0);
+        }
+      });
+
+      it("searching 'lägg' does NOT rank 'Ål' at 1.0", async () => {
+        const response = await clientA.rpc<SearchFoodResult[]>("search_foods", {
+          p_query: "lägg",
+          p_limit: 20,
+        });
+
+        expectSuccess(response);
+        const al = response.data.find((f) => f.name === "Ål");
+        if (al) {
+          expect(al.rank).toBeLessThan(1.0);
+        }
+      });
+
+      it("searching 'lägg' does NOT rank 'Öl' at 1.0", async () => {
+        const response = await clientA.rpc<SearchFoodResult[]>("search_foods", {
+          p_query: "lägg",
+          p_limit: 20,
+        });
+
+        expectSuccess(response);
+        const ol = response.data.find((f) => f.name === "Öl");
+        if (ol) {
+          expect(ol.rank).toBeLessThan(1.0);
+        }
+      });
+
+      it("searching 'Mjöl' ranks 'Mjöl' >= 'Mjölk'", async () => {
+        const response = await clientA.rpc<SearchFoodResult[]>("search_foods", {
+          p_query: "Mjöl",
+          p_limit: 20,
+        });
+
+        expectSuccess(response);
+        const mjol = response.data.find((f) => f.name === "Mjöl");
+        const mjolk = response.data.find((f) => f.name === "Mjölk");
+
+        expect(mjol).toBeDefined();
+        if (mjolk) {
+          expect(mjol!.rank).toBeGreaterThanOrEqual(mjolk.rank);
+        }
+      });
+
+      it("searching 'Peppar' does not return unrelated foods like Grädde or Ris", async () => {
+        const response = await clientA.rpc<SearchFoodResult[]>("search_foods", {
+          p_query: "Peppar",
+          p_limit: 10,
+        });
+
+        expectSuccess(response);
+        // Peppar and Pepparrot should be found
+        const pepparrot = response.data.find((f) => f.name === "Pepparrot");
+        expect(pepparrot).toBeDefined();
+
+        // Completely unrelated foods should not appear
+        for (const name of ["Grädde", "Ris", "Ost", "Ägg"]) {
+          const found = response.data.find((f) => f.name === name);
+          expect(found).toBeUndefined();
+        }
+      });
+
+      it("prefix matches always appear before fuzzy-only matches in result order", async () => {
+        const response = await clientA.rpc<SearchFoodResult[]>("search_foods", {
+          p_query: "Tomat",
+          p_limit: 20,
+        });
+
+        expectSuccess(response);
+        // Tomat and Tomater are prefix matches at rank 2
+        const tomat = response.data.find((f) => f.name === "Tomat");
+        const tomater = response.data.find((f) => f.name === "Tomater");
+        expect(tomat).toBeDefined();
+        expect(tomat!.rank).toBe(2);
+        if (tomater) {
+          expect(tomater.rank).toBe(2);
+        }
+
+        // All rank-2 results should come before non-rank-2 results
+        let seenNonPrefix = false;
+        for (const r of response.data) {
+          if (r.rank < 2) seenNonPrefix = true;
+          if (seenNonPrefix) {
+            expect(r.rank).toBeLessThan(2);
+          }
+        }
+      });
+
+      it("searching 'Lök' finds it before 'Mjölk' in results", async () => {
+        const response = await clientA.rpc<SearchFoodResult[]>("search_foods", {
+          p_query: "Lök",
+          p_limit: 20,
+        });
+
+        expectSuccess(response);
+        const lokIdx = response.data.findIndex((f) => f.name === "Lök");
+        const mjolkIdx = response.data.findIndex((f) => f.name === "Mjölk");
+
+        expect(lokIdx).toBeGreaterThanOrEqual(0);
+        if (mjolkIdx >= 0) {
+          expect(lokIdx).toBeLessThan(mjolkIdx);
+        }
+      });
+
+      it("searching 'Smör' returns it as a prefix match", async () => {
+        const response = await clientA.rpc<SearchFoodResult[]>("search_foods", {
+          p_query: "Smör",
+          p_limit: 10,
+        });
+
+        expectSuccess(response);
+        const smor = response.data.find((f) => f.name === "Smör");
+        expect(smor).toBeDefined();
+        expect(smor!.rank).toBe(2);
+      });
+
+      it("searching 'Salt' returns Salt as top result", async () => {
+        const response = await clientA.rpc<SearchFoodResult[]>("search_foods", {
+          p_query: "Salt",
+          p_limit: 10,
+        });
+
+        expectSuccess(response);
+        expect(response.data.length).toBeGreaterThan(0);
+        // Salt should be in the results as a prefix match
+        const salt = response.data.find((f) => f.name === "Salt");
+        expect(salt).toBeDefined();
+        expect(salt!.rank).toBe(2);
+      });
+
+      it("searching 'Sill' returns Sill as prefix match", async () => {
+        const response = await clientA.rpc<SearchFoodResult[]>("search_foods", {
+          p_query: "Sill",
+          p_limit: 10,
+        });
+
+        expectSuccess(response);
+        const sill = response.data.find((f) => f.name === "Sill");
+        expect(sill).toBeDefined();
+        expect(sill!.rank).toBe(2);
+      });
+
+      it("searching 'Dijonsenap' returns exact match", async () => {
+        const response = await clientA.rpc<SearchFoodResult[]>("search_foods", {
+          p_query: "Dijonsenap",
+          p_limit: 10,
+        });
+
+        expectSuccess(response);
+        const dijon = response.data.find((f) => f.name === "Dijonsenap");
+        expect(dijon).toBeDefined();
+        expect(dijon!.rank).toBe(2);
+      });
+
+      it("searching 'Kokosmjölk' returns prefix match", async () => {
+        const response = await clientA.rpc<SearchFoodResult[]>("search_foods", {
+          p_query: "Kokosmjölk",
+          p_limit: 10,
+        });
+
+        expectSuccess(response);
+        const kokos = response.data.find((f) => f.name === "Kokosmjölk");
+        expect(kokos).toBeDefined();
+        expect(kokos!.rank).toBe(2);
+      });
+
+      it("searching 'Grönkål' returns prefix match", async () => {
+        const response = await clientA.rpc<SearchFoodResult[]>("search_foods", {
+          p_query: "Grönkål",
+          p_limit: 10,
+        });
+
+        expectSuccess(response);
+        const gronkal = response.data.find((f) => f.name === "Grönkål");
+        expect(gronkal).toBeDefined();
+        expect(gronkal!.rank).toBe(2);
+      });
+    });
+
     describe("pending food visibility", () => {
       it("shows user's own pending foods", async () => {
         const uniqueName = `MyPending${randomString(8)}`;
