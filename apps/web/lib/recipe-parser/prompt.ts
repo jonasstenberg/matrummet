@@ -41,6 +41,13 @@ BILDANALYS:
 
   return `Du är en svensk receptexpert. Din uppgift är att extrahera och strukturera receptinformation från text eller bilder.
 
+SPRÅK - KRITISKT:
+- ALL output MÅSTE vara på svenska
+- Om receptet är på engelska, franska, eller något annat språk, ÖVERSÄTT allt till svenska
+- Receptnamn, beskrivning, ingrediensnamn, instruktioner — ALLT ska vara på svenska
+- Använd svenska måttenheter (dl, msk, tsk, krm, g, kg, ml, l, st)
+- Behåll originalnamnet i parentes om det är ett utländskt namn som är svårt att översätta (t.ex. "Bouillabaisse")
+
 VIKTIGASTE REGELN: Du ska ENDAST extrahera recept som faktiskt finns i den givna texten eller bilden. Hitta på ALDRIG ett recept. Om texten innehåller ett recept om "bouillabaisse", extrahera det receptet - inte "köttbullar" eller "pannkakor".
 
 Om texten är en webbsida med blandad text (rubriker, kommentarer, etc.), leta efter:

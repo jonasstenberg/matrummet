@@ -6,6 +6,7 @@ import {
   ShareLink,
 } from '@/lib/types'
 import { extractJsonLdRecipe, extractProvechoRecipe, extractProvechoRecipeText, PROVECHO_HOSTNAMES, mapJsonLdToRecipeInput, fetchWithPlaywright } from '@/lib/recipe-import'
+import { translateRecipeToSwedish } from '@/lib/recipe-import/translate-recipe'
 import { downloadImage } from '@/lib/recipe-import/image-downloader'
 import { deleteImageFromService } from './image-service-client'
 import { getRecipes } from '@/lib/api'
@@ -556,7 +557,10 @@ const importRecipeFromUrlFn = createServerFn({ method: 'POST' })
         }
       }
 
-      const { data: recipeData, warnings, lowConfidenceIngredients } = mapJsonLdToRecipeInput(jsonLd, data.url)
+      const { data: mappedData, warnings, lowConfidenceIngredients } = mapJsonLdToRecipeInput(jsonLd, data.url)
+
+      // Translate non-Swedish recipes before ingredient matching
+      const recipeData = await translateRecipeToSwedish(mappedData)
 
       if (recipeData.ingredients && recipeData.ingredients.length > 0) {
         const ingredientsToMatch = recipeData.ingredients.filter(
