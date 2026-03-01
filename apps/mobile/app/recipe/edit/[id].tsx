@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { View, ActivityIndicator, Text, StyleSheet } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import type { Recipe } from '@matrummet/types/types'
-import { api } from '@/lib/api'
+import { api, uploadImage } from '@/lib/api'
 import { RecipeForm } from '@/components/recipe-form'
 import type { RecipeFormData } from '@/components/recipe-form'
 
@@ -23,6 +23,14 @@ export default function EditRecipeScreen() {
   const handleSave = useCallback(async (data: RecipeFormData) => {
     if (!id) return
 
+    // Upload new image if it's a local file, keep existing if unchanged
+    let image: string | undefined
+    if (data.imageUri?.startsWith('file://')) {
+      image = await uploadImage(data.imageUri)
+    } else if (data.imageUri === null) {
+      image = undefined // Image removed
+    }
+
     await api.updateRecipe({
       recipe_id: id,
       recipe_name: data.name,
@@ -30,6 +38,7 @@ export default function EditRecipeScreen() {
       recipe_yield: data.servings || null,
       prep_time: data.prepTime ? parseInt(data.prepTime, 10) : null,
       cook_time: data.cookTime ? parseInt(data.cookTime, 10) : null,
+      ...(image !== undefined ? { image } : {}),
       categories: data.categories.length > 0 ? data.categories : [],
       ingredients: data.ingredients.map(i => ({
         name: i.name,

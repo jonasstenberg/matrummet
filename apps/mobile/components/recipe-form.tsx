@@ -5,6 +5,7 @@ import {
   TextInput,
   ScrollView,
   TouchableOpacity,
+  Image,
   Alert,
   ActivityIndicator,
   Platform,
@@ -13,8 +14,9 @@ import {
 } from 'react-native'
 import { Stack } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
+import * as ImagePicker from 'expo-image-picker'
 import type { CategoryGroup, Recipe } from '@matrummet/types/types'
-import { api } from '@/lib/api'
+import { api, getImageUrl } from '@/lib/api'
 import { CategoryPicker } from '@/components/category-picker'
 
 interface IngredientRow {
@@ -42,6 +44,7 @@ export interface RecipeFormData {
   categories: string[]
   ingredients: IngredientRow[]
   instructions: InstructionRow[]
+  imageUri: string | null
 }
 
 const isIOS = Platform.OS === 'ios'
@@ -65,6 +68,9 @@ export function RecipeForm({ title, recipe, onSave }: RecipeFormProps) {
 
   const [name, setName] = useState(recipe?.name ?? '')
   const [description, setDescription] = useState(recipe?.description ?? '')
+  const [imageUri, setImageUri] = useState<string | null>(
+    recipe?.image ? getImageUrl(recipe.image, 'large') : null
+  )
   const [servings, setServings] = useState(recipe?.recipe_yield?.toString() ?? '')
   const [prepTime, setPrepTime] = useState(recipe?.prep_time?.toString() ?? '')
   const [cookTime, setCookTime] = useState(recipe?.cook_time?.toString() ?? '')
@@ -80,6 +86,34 @@ export function RecipeForm({ title, recipe, onSave }: RecipeFormProps) {
   const [instructions, setInstructions] = useState<InstructionRow[]>(
     recipe ? instructionsFromRecipe(recipe) : [{ step: '' }],
   )
+
+  const pickImage = useCallback(async (source: 'camera' | 'library') => {
+    if (source === 'camera') {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync()
+      if (status !== 'granted') {
+        Alert.alert('Behörighet saknas', 'Ge appen tillgång till kameran i inställningarna.')
+        return
+      }
+    }
+
+    const options: ImagePicker.ImagePickerOptions = {
+      mediaTypes: ['images'],
+      quality: 0.8,
+      allowsEditing: false,
+    }
+
+    try {
+      const result = source === 'camera'
+        ? await ImagePicker.launchCameraAsync(options)
+        : await ImagePicker.launchImageLibraryAsync(options)
+
+      if (!result.canceled && result.assets[0]) {
+        setImageUri(result.assets[0].uri)
+      }
+    } catch {
+      Alert.alert('Kamera ej tillgänglig', 'Kameran kan inte användas på denna enhet.')
+    }
+  }, [])
 
   useEffect(() => {
     void api.getCategories().then(setCategoryGroups)
@@ -146,6 +180,7 @@ export function RecipeForm({ title, recipe, onSave }: RecipeFormProps) {
           measurement: i.measurement.trim(),
         })),
         instructions: validInstructions.map(i => ({ step: i.step.trim() })),
+        imageUri,
       })
     } catch (err) {
       Alert.alert('Fel', err instanceof Error ? err.message : 'Kunde inte spara receptet.')
@@ -179,6 +214,46 @@ export function RecipeForm({ title, recipe, onSave }: RecipeFormProps) {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Image */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Bild</Text>
+            {imageUri ? (
+              <View style={styles.imagePreviewContainer}>
+                <Image source={{ uri: imageUri }} style={styles.imagePreview} resizeMode="cover" />
+                <TouchableOpacity
+                  style={styles.removeImageButton}
+                  onPress={() => setImageUri(null)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="close-circle" size={28} color="#ffffff" />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.imageButtonsRow}>
+                <TouchableOpacity
+                  style={styles.imageButton}
+                  onPress={() => void pickImage('camera')}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.imageButtonInner}>
+                    <Ionicons name="camera" size={28} color="#16a34a" />
+                    <Text style={styles.imageButtonText}>Ta foto</Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.imageButton}
+                  onPress={() => void pickImage('library')}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.imageButtonInner}>
+                    <Ionicons name="images" size={28} color="#16a34a" />
+                    <Text style={styles.imageButtonText}>Välj bild</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+
           {/* Basic info */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Grundläggande</Text>
@@ -531,6 +606,47 @@ const styles = StyleSheet.create({
   },
   removeButton: {
     marginTop: 4,
+  },
+  imagePreviewContainer: {
+    borderRadius: Platform.select({ ios: 12, android: 16 }),
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  imagePreview: {
+    width: '100%',
+    height: 200,
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    borderRadius: 14,
+    width: 28,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imageButtonsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  imageButton: {
+    flex: 1,
+    backgroundColor: '#f0fdf4',
+    borderRadius: Platform.select({ ios: 12, android: 16 }),
+    overflow: 'hidden',
+  },
+  imageButtonInner: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 28,
+    gap: 6,
+  },
+  imageButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#16a34a',
   },
   bottomSpacer: {
     height: 40,

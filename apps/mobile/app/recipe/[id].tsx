@@ -10,6 +10,7 @@ import {
   Platform,
   ActionSheetIOS,
   StyleSheet,
+  useWindowDimensions,
 } from 'react-native'
 import { useLocalSearchParams, Stack, useRouter, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
@@ -23,17 +24,14 @@ const isIOS = Platform.OS === 'ios'
 export default function RecipeDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
+  const { width, height } = useWindowDimensions()
+  const isLandscape = width > height
   const [recipe, setRecipe] = useState<Recipe | null>(null)
   const [loading, setLoading] = useState(true)
-  const [liked, setLiked] = useState(false)
-
   const loadRecipe = useCallback(() => {
     if (!id) return
     api.getRecipe(id)
-      .then((r) => {
-        setRecipe(r)
-        setLiked(r?.is_liked ?? false)
-      })
+      .then((r) => setRecipe(r))
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [id])
@@ -41,18 +39,6 @@ export default function RecipeDetailScreen() {
   useFocusEffect(useCallback(() => {
     loadRecipe()
   }, [loadRecipe]))
-
-  const toggleLike = useCallback(async () => {
-    if (!id) return
-    const newLiked = !liked
-    setLiked(newLiked)
-    try {
-      await api.toggleRecipeLike(id)
-    } catch {
-      setLiked(!newLiked)
-      Alert.alert('Fel', 'Kunde inte uppdatera gilla-markering.')
-    }
-  }, [id, liked])
 
   const handleDelete = useCallback(async () => {
     if (!id) return
@@ -171,24 +157,15 @@ export default function RecipeDetailScreen() {
           return imageUri ? (
             <Image
               source={{ uri: imageUri }}
-              style={styles.heroImage}
+              style={isLandscape ? styles.heroImageLandscape : styles.heroImage}
               resizeMode="cover"
             />
           ) : null
         })()}
 
-        <View style={styles.content}>
+        <View style={[styles.content, isLandscape && styles.contentLandscape]}>
           {/* Header */}
-          <View style={styles.headerRow}>
-            <Text style={styles.recipeName}>{recipe.name}</Text>
-            <TouchableOpacity onPress={() => void toggleLike()} style={styles.likeButton}>
-              <Ionicons
-                name={liked ? 'heart' : 'heart-outline'}
-                size={26}
-                color={liked ? '#ef4444' : '#9ca3af'}
-              />
-            </TouchableOpacity>
-          </View>
+          <Text style={styles.recipeName}>{recipe.name}</Text>
 
           {recipe.description ? (
             <Text style={styles.description}>{recipe.description}</Text>
@@ -223,19 +200,38 @@ export default function RecipeDetailScreen() {
             </View>
           )}
 
-          {/* Ingredients */}
-          <Text style={styles.sectionTitle}>Ingredienser</Text>
-          <IngredientList
-            ingredients={recipe.ingredients}
-            groups={recipe.ingredient_groups}
-          />
-
-          {/* Instructions */}
-          <Text style={styles.sectionTitleWithMargin}>Instruktioner</Text>
-          <InstructionList
-            instructions={recipe.instructions}
-            groups={recipe.instruction_groups}
-          />
+          {/* Ingredients & Instructions */}
+          {isLandscape ? (
+            <View style={styles.columnsRow}>
+              <View style={styles.ingredientsColumn}>
+                <Text style={styles.sectionTitle}>Ingredienser</Text>
+                <IngredientList
+                  ingredients={recipe.ingredients}
+                  groups={recipe.ingredient_groups}
+                />
+              </View>
+              <View style={styles.instructionsColumn}>
+                <Text style={styles.sectionTitle}>Instruktioner</Text>
+                <InstructionList
+                  instructions={recipe.instructions}
+                  groups={recipe.instruction_groups}
+                />
+              </View>
+            </View>
+          ) : (
+            <>
+              <Text style={styles.sectionTitle}>Ingredienser</Text>
+              <IngredientList
+                ingredients={recipe.ingredients}
+                groups={recipe.ingredient_groups}
+              />
+              <Text style={styles.sectionTitleWithMargin}>Instruktioner</Text>
+              <InstructionList
+                instructions={recipe.instructions}
+                groups={recipe.instruction_groups}
+              />
+            </>
+          )}
         </View>
       </ScrollView>
     </>
@@ -261,8 +257,17 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 256,
   },
+  heroImageLandscape: {
+    width: '100%',
+    height: 180,
+  },
   content: {
-    padding: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  contentLandscape: {
+    paddingHorizontal: 24,
+    paddingTop: 12,
   },
   headerActions: {
     flexDirection: 'row',
@@ -272,21 +277,11 @@ const styles = StyleSheet.create({
   headerButton: {
     padding: 2,
   },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
   recipeName: {
     fontSize: 24,
     fontWeight: '700',
-    flex: 1,
-    marginRight: 12,
+    marginBottom: 8,
     color: '#111827',
-  },
-  likeButton: {
-    paddingTop: 4,
   },
   description: {
     color: '#4b5563',
@@ -319,7 +314,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6,
-    marginBottom: 24,
+    marginBottom: 28,
   },
   categoryChip: {
     backgroundColor: '#f0fdf4',
@@ -344,5 +339,19 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 12,
     color: '#111827',
+  },
+  columnsRow: {
+    flexDirection: 'row',
+    gap: 0,
+  },
+  ingredientsColumn: {
+    flex: 1,
+    paddingRight: 20,
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderRightColor: '#e5e7eb',
+  },
+  instructionsColumn: {
+    flex: 2,
+    paddingLeft: 20,
   },
 })

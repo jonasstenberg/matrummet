@@ -17,6 +17,7 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated'
+import { BlurView } from 'expo-blur'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs'
@@ -28,7 +29,7 @@ import { CategoryChips } from '@/components/category-chips'
 
 const PAGE_SIZE = 20
 const isIOS = Platform.OS === 'ios'
-const FLOATING_BAR_HEIGHT = 64
+const FLOATING_BAR_HEIGHT = 68
 
 export default function RecipesScreen() {
   const router = useRouter()
@@ -39,7 +40,7 @@ export default function RecipesScreen() {
   const [recipes, setRecipes] = useState<Recipe[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
-  const [offset, setOffset] = useState(0)
+  const offsetRef = useRef(0)
   const [hasMore, setHasMore] = useState(true)
 
   // Search state
@@ -93,7 +94,7 @@ export default function RecipesScreen() {
 
   // Browse: load recipes
   const loadRecipes = useCallback(async (reset = false) => {
-    const newOffset = reset ? 0 : offset
+    const newOffset = reset ? 0 : offsetRef.current
     try {
       const data = await api.getRecipes({ limit: PAGE_SIZE, offset: newOffset })
       if (reset) {
@@ -102,14 +103,14 @@ export default function RecipesScreen() {
         setRecipes((prev) => [...prev, ...data])
       }
       setHasMore(data.length === PAGE_SIZE)
-      setOffset(newOffset + data.length)
+      offsetRef.current = newOffset + data.length
     } catch (err) {
       console.error('Failed to load recipes:', err)
     } finally {
       setLoading(false)
       setRefreshing(false)
     }
-  }, [offset])
+  }, [])
 
   useEffect(() => {
     if (user) void loadRecipes(true)
@@ -117,7 +118,6 @@ export default function RecipesScreen() {
 
   const onRefresh = useCallback(() => {
     setRefreshing(true)
-    setOffset(0)
     loadRecipes(true)
   }, [loadRecipes])
 
@@ -251,42 +251,44 @@ export default function RecipesScreen() {
           ListEmptyComponent={listEmptyComponent}
         />
         <Animated.View style={[styles.iosFloatingContainer, floatingBarStyle]}>
-          {isSearchMode && categoryGroups.length > 0 && (
-            <CategoryChips
-              groups={categoryGroups}
-              selected={selectedCategories}
-              onToggle={toggleCategory}
-            />
-          )}
-          <View style={styles.iosFloatingRow}>
-            <View style={styles.iosSearchPill}>
-              <Ionicons name="search" size={17} color="#8e8e93" style={styles.searchIcon} />
-              <TextInput
-                ref={searchInputRef}
-                style={styles.iosSearchInput}
-                placeholder="Sök recept"
-                placeholderTextColor="#8e8e93"
-                value={query}
-                onChangeText={onQueryChange}
-                onFocus={onSearchFocus}
-                returnKeyType="search"
-                autoCorrect={false}
+          <BlurView intensity={100} tint="systemChromeMaterial" style={styles.iosBlurFill}>
+            {isSearchMode && categoryGroups.length > 0 && (
+              <CategoryChips
+                groups={categoryGroups}
+                selected={selectedCategories}
+                onToggle={toggleCategory}
               />
-              {query.length > 0 && (
-                <TouchableOpacity
-                  onPress={clearQuery}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <Ionicons name="close-circle" size={17} color="#8e8e93" />
+            )}
+            <View style={styles.iosFloatingRow}>
+              <View style={styles.iosSearchPill}>
+                <Ionicons name="search" size={17} color="#8e8e93" style={styles.searchIcon} />
+                <TextInput
+                  ref={searchInputRef}
+                  style={styles.iosSearchInput}
+                  placeholder="Sök recept"
+                  placeholderTextColor="#8e8e93"
+                  value={query}
+                  onChangeText={onQueryChange}
+                  onFocus={onSearchFocus}
+                  returnKeyType="search"
+                  autoCorrect={false}
+                />
+                {query.length > 0 && (
+                  <TouchableOpacity
+                    onPress={clearQuery}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Ionicons name="close-circle" size={17} color="#8e8e93" />
+                  </TouchableOpacity>
+                )}
+              </View>
+              {isSearchActive && (
+                <TouchableOpacity onPress={cancelSearch} style={styles.cancelButton}>
+                  <Text style={styles.iosCancelText}>Avbryt</Text>
                 </TouchableOpacity>
               )}
             </View>
-            {isSearchActive && (
-              <TouchableOpacity onPress={cancelSearch} style={styles.cancelButton}>
-                <Text style={styles.iosCancelText}>Avbryt</Text>
-              </TouchableOpacity>
-            )}
-          </View>
+          </BlurView>
         </Animated.View>
       </View>
     )
@@ -399,10 +401,11 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingBottom: 8,
-    backgroundColor: 'rgba(242,242,247,0.85)',
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(60,60,67,0.29)',
+    overflow: 'hidden',
+  },
+  iosBlurFill: {
+    paddingTop: 10,
+    paddingBottom: 10,
   },
   iosFloatingRow: {
     flexDirection: 'row',
@@ -413,14 +416,10 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.8)',
-    borderRadius: 12,
+    backgroundColor: 'rgba(120,120,128,0.12)',
+    borderRadius: 10,
     paddingHorizontal: 10,
-    height: 44,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
+    height: 36,
   },
   iosSearchInput: {
     flex: 1,
