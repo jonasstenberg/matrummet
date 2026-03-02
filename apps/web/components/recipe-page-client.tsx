@@ -80,6 +80,7 @@ export function RecipePageClient({
               members: prev.members ?? undefined,
             }),
             replace: true,
+            resetScroll: false,
           })
         }
       } catch (error) {
