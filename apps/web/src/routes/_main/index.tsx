@@ -16,9 +16,14 @@ import { LandingPage } from '@/components/landing-page'
 
 const PAGE_SIZE = 24
 
+const searchSchema = z.object({
+  offset: z.number().int().positive().optional().catch(undefined),
+  members: z.string().optional().catch(undefined),
+})
+
 const fetchHomeData = createServerFn({ method: 'GET' })
   .inputValidator(
-    z.object({ offset: z.string().optional(), members: z.string().optional() }),
+    z.object({ offset: z.number().optional(), members: z.string().optional() }),
   )
   .handler(async ({ data: { offset: offsetParam, members: membersParam } }) => {
     const session = await getSession()
@@ -30,7 +35,7 @@ const fetchHomeData = createServerFn({ method: 'GET' })
 
     const token = await signPostgrestToken(session.email)
     const initialLimit = offsetParam
-      ? Math.max(PAGE_SIZE, parseInt(offsetParam, 10))
+      ? Math.max(PAGE_SIZE, offsetParam)
       : PAGE_SIZE
 
     const [memberData, categories, pantryResult] = await Promise.all([
@@ -68,21 +73,17 @@ const fetchHomeData = createServerFn({ method: 'GET' })
   })
 
 export const Route = createFileRoute('/_main/')({
-  validateSearch: (search) =>
-    z
-      .object({
-        offset: z.string().optional().catch(undefined),
-        members: z.string().optional().catch(undefined),
-      })
-      .parse(search),
+  validateSearch: (search) => searchSchema.parse(search),
   loaderDeps: ({ search }) => ({
-    offset: search.offset,
+    // offset is intentionally excluded: "load more" updates the URL without
+    // re-running the loader. The loader reads offset from location on fresh
+    // page loads (e.g. back-navigation) to restore the full list.
     members: search.members,
   }),
-  loader: ({ deps }) =>
-    fetchHomeData({
-      data: { offset: deps.offset, members: deps.members },
-    }),
+  loader: ({ deps, location }) => {
+    const { offset } = location.search as z.infer<typeof searchSchema>
+    return fetchHomeData({ data: { offset, members: deps.members } })
+  },
   pendingMs: 0,
   pendingMinMs: 300,
   pendingComponent: HomePageSkeleton,

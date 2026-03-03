@@ -1,6 +1,6 @@
 
 import { useState, useCallback, useMemo, useEffect, useTransition } from 'react'
-import { useRouter } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import { MemberFilter } from '@/components/member-filter'
 import { RecipeGrid } from '@/components/recipe-grid'
 import { CategoryFilter } from '@/components/category-filter'
@@ -41,7 +41,7 @@ export function RecipePageClient({
     handleMinMatchChange,
   } = useRecipeFilters()
 
-  const router = useRouter()
+  const navigate = useNavigate()
 
   // Pagination state
   const [allRecipes, setAllRecipes] = useState<Recipe[]>(initialRecipes)
@@ -72,11 +72,13 @@ export function RecipePageClient({
           const newOffset = offset + newRecipes.length
           setOffset(newOffset)
 
-          // Persist offset in URL so back-navigation restores pagination
-          router.navigate({
+          // Persist offset in URL so back-navigation restores pagination.
+          // offset is not in loaderDeps, so this won't re-run the loader
+          // or show the skeleton — avoiding the scroll reset.
+          navigate({
             to: '/',
-            search: (prev: { offset?: string; members?: string }) => ({
-              offset: String(newOffset),
+            search: (prev) => ({
+              offset: newOffset,
               members: prev.members ?? undefined,
             }),
             replace: true,
@@ -87,7 +89,7 @@ export function RecipePageClient({
         console.error('Failed to load more recipes:', error)
       }
     })
-  }, [offset, pageSize, selectedMemberIds, router])
+  }, [offset, pageSize, selectedMemberIds, navigate])
 
   // Prepare recipes for display
   const displayRecipes = useMemo(() => {
