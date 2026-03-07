@@ -320,12 +320,18 @@ curl -s https://api.matrummet.se/rpc/insert_recipe \\
     "p_description": "Klassisk italiensk pasta",
     "p_categories": ["Pasta", "Middag"],
     "p_ingredients": [
+      {"group": "Pasta"},
       {"name": "Spaghetti", "quantity": 400, "measurement": "g"},
-      {"name": "Pancetta", "quantity": 150, "measurement": "g"}
+      {"group": "Sås"},
+      {"name": "Pancetta", "quantity": 150, "measurement": "g"},
+      {"name": "Ägg", "quantity": 3, "measurement": "st"}
     ],
     "p_instructions": [
+      {"group": "Pasta"},
       {"step": "Koka pastan al dente."},
-      {"step": "Stek pancettan krispig."}
+      {"group": "Sås"},
+      {"step": "Stek pancettan krispig."},
+      {"step": "Blanda ägg, ost och peppar."}
     ],
     "p_cuisine": "Italienskt"
   }'`}</CodeBlock>
@@ -749,18 +755,22 @@ curl -s https://api.matrummet.se/rpc/insert_recipe \\
                 <h3 className="text-lg font-medium text-foreground mb-2">
                   Ingrediensobjekt
                 </h3>
-                <CodeBlock title="json">{`{
-  "name": "Spaghetti",
-  "quantity": 400,
-  "measurement": "g"
-}`}</CodeBlock>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Ingredienser kan vara antingen rader eller grupprubriker.
+                  Rader efter en gruppering tillhör den gruppen.
+                </p>
+                <CodeBlock title="json">{`// Ingrediens
+{"name": "Spaghetti", "quantity": 400, "measurement": "g"}
+
+// Gruppering (efterföljande ingredienser hamnar under denna rubrik)
+{"group": "Sås"}`}</CodeBlock>
                 <div className="mt-3">
                   <ParamTable
                     params={[
                       {
                         name: 'name',
                         type: 'string',
-                        required: 'ja',
+                        required: '*',
                         description: 'Ingrediensnamn',
                       },
                       {
@@ -776,13 +786,24 @@ curl -s https://api.matrummet.se/rpc/insert_recipe \\
                         description: 'Enhet (t.ex. "g", "dl", "st")',
                       },
                       {
-                        name: 'group_name',
+                        name: 'form',
                         type: 'string | null',
                         required: 'nej',
-                        description: 'Grupp (t.ex. "Sås", "Topping")',
+                        description: 'Tillagningsform (t.ex. "hackad", "skivad")',
+                      },
+                      {
+                        name: 'group',
+                        type: 'string',
+                        required: '*',
+                        description:
+                          'Grupprubrik (t.ex. "Sås", "Topping"). Efterföljande ingredienser tillhör denna grupp.',
                       },
                     ]}
                   />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    * Varje objekt ska ha antingen <Code>name</Code> eller{' '}
+                    <Code>group</Code>, inte båda.
+                  </p>
                 </div>
               </div>
 
@@ -790,20 +811,37 @@ curl -s https://api.matrummet.se/rpc/insert_recipe \\
                 <h3 className="text-lg font-medium text-foreground mb-2">
                   Instruktionsobjekt
                 </h3>
-                <CodeBlock title="json">{`{
-  "step": "Koka pastan al dente."
-}`}</CodeBlock>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Instruktioner kan vara antingen steg eller grupprubriker.
+                  Steg efter en gruppering tillhör den gruppen.
+                </p>
+                <CodeBlock title="json">{`// Steg
+{"step": "Koka pastan al dente."}
+
+// Gruppering (efterföljande steg hamnar under denna rubrik)
+{"group": "Sås"}`}</CodeBlock>
                 <div className="mt-3">
                   <ParamTable
                     params={[
                       {
                         name: 'step',
                         type: 'string',
-                        required: 'ja',
+                        required: '*',
                         description: 'Instruktionstexten',
+                      },
+                      {
+                        name: 'group',
+                        type: 'string',
+                        required: '*',
+                        description:
+                          'Grupprubrik (t.ex. "Sås", "Pasta"). Efterföljande steg tillhör denna grupp.',
                       },
                     ]}
                   />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    * Varje objekt ska ha antingen <Code>step</Code> eller{' '}
+                    <Code>group</Code>, inte båda.
+                  </p>
                 </div>
               </div>
             </div>

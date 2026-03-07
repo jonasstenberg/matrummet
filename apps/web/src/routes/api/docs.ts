@@ -140,12 +140,18 @@ curl -s https://api.matrummet.se/rpc/insert_recipe \\
     "p_description": "Classic Italian pasta",
     "p_categories": ["Pasta", "Middag"],
     "p_ingredients": [
-      {"name": "Spaghetti", "quantity": 400, "measurement": "g", "group_name": null},
-      {"name": "Pancetta", "quantity": 150, "measurement": "g", "group_name": null}
+      {"group": "Pasta"},
+      {"name": "Spaghetti", "quantity": 400, "measurement": "g"},
+      {"group": "Sås"},
+      {"name": "Pancetta", "quantity": 150, "measurement": "g"},
+      {"name": "Ägg", "quantity": 3, "measurement": "st"}
     ],
     "p_instructions": [
+      {"group": "Pasta"},
       {"step": "Koka pastan al dente."},
-      {"step": "Stek pancettan krispig."}
+      {"group": "Sås"},
+      {"step": "Stek pancettan krispig."},
+      {"step": "Blanda ägg, ost och peppar."}
     ],
     "p_cuisine": "Italienskt"
   }'
@@ -271,33 +277,40 @@ curl -s https://api.matrummet.se/rpc/toggle_recipe_like \\
 
 ### Ingredient object (for insert_recipe / update_recipe)
 
+Ingredients can be either items or group headers. Items after a group header belong to that group.
+
 \`\`\`json
-{
-  "name": "Spaghetti",
-  "quantity": 400,
-  "measurement": "g",
-  "group_name": null
-}
+// Ingredient item
+{"name": "Spaghetti", "quantity": 400, "measurement": "g"}
+
+// Group header (subsequent items belong to this group)
+{"group": "Sås"}
 \`\`\`
 
 | Field | Type | Description |
 |-------|------|-------------|
-| name | string | Ingredient name |
+| name | string | Ingredient name (use \`name\` or \`group\`, not both) |
 | quantity | number or null | Amount |
 | measurement | string or null | Unit (e.g. "g", "dl", "st") |
-| group_name | string or null | Group heading (e.g. "Sas", "Topping") |
+| form | string or null | Preparation form (e.g. "hackad", "skivad") |
+| group | string | Group heading (e.g. "Sås", "Topping"). Subsequent items belong to this group. |
 
 ### Instruction object
 
+Instructions can be either steps or group headers. Steps after a group header belong to that group.
+
 \`\`\`json
-{
-  "step": "Koka pastan al dente."
-}
+// Step
+{"step": "Koka pastan al dente."}
+
+// Group header (subsequent steps belong to this group)
+{"group": "Sås"}
 \`\`\`
 
 | Field | Type | Description |
 |-------|------|-------------|
-| step | string | Instruction text |
+| step | string | Instruction text (use \`step\` or \`group\`, not both) |
+| group | string | Group heading (e.g. "Sås", "Pasta"). Subsequent steps belong to this group. |
 
 ## Recipe Sharing
 
