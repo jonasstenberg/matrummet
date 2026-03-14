@@ -212,11 +212,11 @@ export function UnifiedImportForm({ onImport }: UnifiedImportFormProps) {
                   : "bg-muted/40 hover:bg-muted/60"
               )}
             >
-              <ImageIcon className="mb-1.5 h-6 w-6 text-muted-foreground/60" />
+              <ImageIcon className="mb-1.5 h-6 w-6 text-muted-foreground" />
               <p className="text-sm font-medium text-muted-foreground">
                 Släpp bild här eller klicka
               </p>
-              <p className="text-xs text-muted-foreground/60 mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 AI läser av texten i bilden
               </p>
             </div>
@@ -250,7 +250,7 @@ export function UnifiedImportForm({ onImport }: UnifiedImportFormProps) {
 
           <div className="flex items-center gap-3">
             <div className="h-px flex-1 bg-border/50" />
-            <span className="text-xs text-muted-foreground/70">
+            <span className="text-xs text-muted-foreground">
               {imageUpload.pendingFile ? "och/eller" : "eller"}
             </span>
             <div className="h-px flex-1 bg-border/50" />

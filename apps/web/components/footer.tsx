@@ -36,13 +36,13 @@ export function Footer() {
         <div className="border-t border-background/15" />
 
         {/* Copyright bar */}
-        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-4 text-xs text-background/45">
+        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-4 text-xs text-background/60">
           <p>Copyright &copy; {new Date().getFullYear()} Matrummet. Alla rättigheter förbehållna.</p>
           <a
             href="https://github.com/jonasstenberg/matrummet"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-background/45 hover:text-background transition-colors"
+            className="text-background/60 hover:text-background transition-colors"
             aria-label="GitHub"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

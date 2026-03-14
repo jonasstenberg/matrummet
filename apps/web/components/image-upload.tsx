@@ -255,7 +255,7 @@ export function ImageUpload({
           <p className="mb-0.5 text-sm font-medium text-foreground">
             {isDragging ? 'Släpp bilden här' : 'Dra och släpp en bild här'}
           </p>
-          <p className="text-xs text-muted-foreground/70">
+          <p className="text-xs text-muted-foreground">
             eller klicka för att välja — max 20 MB
           </p>
         </div>
@@ -272,7 +272,7 @@ export function ImageUpload({
           <p className="mb-0.5 text-sm font-medium text-foreground">
             Importera bild från URL
           </p>
-          <p className="mb-4 text-center text-xs text-muted-foreground/70">
+          <p className="mb-4 text-center text-xs text-muted-foreground">
             Klistra in en länk till en bild
           </p>
           <div className="flex w-full gap-2">

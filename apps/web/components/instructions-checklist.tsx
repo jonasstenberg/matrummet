@@ -244,7 +244,7 @@ export function InstructionsChecklist({
                             "px-2 py-0 text-[11px] font-medium",
                             isChecked
                               ? "border-border/30 text-muted-foreground/40"
-                              : "border-primary/30 text-primary/70"
+                              : "border-primary/40 text-primary"
                           )}
                         >
                           {[ing.quantity ? scaleQuantity(ing.quantity, scaleFactor) : null, ing.measurement, ing.name]

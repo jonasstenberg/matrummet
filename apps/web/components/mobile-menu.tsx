@@ -85,7 +85,7 @@ export function MobileMenu() {
               homes.map((home) => (
                 <div key={home.home_id}>
                   {homes.length > 1 && (
-                    <div className="px-3 py-1 text-xs font-medium text-muted-foreground/70">
+                    <div className="px-3 py-1 text-xs font-medium text-muted-foreground">
                       {home.home_name}
                     </div>
                   )}
