@@ -52,9 +52,9 @@ export function ProfileForm() {
       {/* Email row */}
       <div className="px-5 py-4">
         <div className="flex items-center gap-3">
-          <Mail className="h-4 w-4 text-muted-foreground/60" />
+          <Mail className="h-4 w-4 text-muted-foreground" />
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-medium text-muted-foreground/70 mb-0.5">
+            <div className="text-xs font-medium text-muted-foreground mb-0.5">
               E-postadress
             </div>
             <div className="text-[15px] text-foreground/70 truncate">
@@ -67,9 +67,9 @@ export function ProfileForm() {
       {/* Name row */}
       <div className="border-t border-border/40 px-5 py-4">
         <div className="flex items-center gap-3">
-          <User className="h-4 w-4 text-muted-foreground/60" />
+          <User className="h-4 w-4 text-muted-foreground" />
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-medium text-muted-foreground/70 mb-0.5">
+            <div className="text-xs font-medium text-muted-foreground mb-0.5">
               Namn
             </div>
             {isEditing ? (
@@ -108,6 +108,7 @@ export function ProfileForm() {
                 <button
                   type="button"
                   onClick={() => setIsEditing(true)}
+                  aria-label="Redigera namn"
                   className="rounded-full p-1.5 text-muted-foreground/0 transition-all group-hover:text-muted-foreground hover:bg-muted/30"
                 >
                   <Pencil className="h-3.5 w-3.5" />

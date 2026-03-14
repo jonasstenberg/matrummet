@@ -24,9 +24,9 @@ function SettingsLayout() {
       <div className="md:hidden">
         <SettingsPillNav />
       </div>
-      <main className="min-w-0 space-y-6">
+      <div className="min-w-0 space-y-6">
         <Outlet />
-      </main>
+      </div>
     </div>
   )
 }

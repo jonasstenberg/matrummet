@@ -59,7 +59,7 @@ export function SecurityForm() {
         <div className="px-5 py-4">
           <label
             htmlFor="oldPassword"
-            className="block text-xs font-medium text-muted-foreground/70 mb-1.5"
+            className="block text-xs font-medium text-muted-foreground mb-1.5"
           >
             Nuvarande lösenord
           </label>
@@ -79,7 +79,7 @@ export function SecurityForm() {
         <div className="border-t border-border/40 px-5 py-4">
           <label
             htmlFor="newPassword"
-            className="block text-xs font-medium text-muted-foreground/70 mb-1.5"
+            className="block text-xs font-medium text-muted-foreground mb-1.5"
           >
             Nytt lösenord
           </label>
@@ -99,7 +99,7 @@ export function SecurityForm() {
         <div className="border-t border-border/40 px-5 py-4">
           <label
             htmlFor="confirmNewPassword"
-            className="block text-xs font-medium text-muted-foreground/70 mb-1.5"
+            className="block text-xs font-medium text-muted-foreground mb-1.5"
           >
             Bekräfta nytt lösenord
           </label>
