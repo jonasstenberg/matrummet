@@ -61,6 +61,21 @@ const SheetContent = React.forwardRef<
     <SheetPrimitive.Content
       ref={ref}
       className={cn(sheetVariants({ side }), className)}
+      onOpenAutoFocus={(e) => {
+        // When the sheet opens, set inert on aria-hidden siblings
+        // to prevent keyboard focus on hidden content (WCAG 2 A)
+        document.querySelectorAll('[data-aria-hidden="true"]').forEach((el) => {
+          (el as HTMLElement).inert = true
+        })
+        props.onOpenAutoFocus?.(e)
+      }}
+      onCloseAutoFocus={(e) => {
+        // Remove inert when sheet closes
+        document.querySelectorAll('[inert]').forEach((el) => {
+          (el as HTMLElement).inert = false
+        })
+        props.onCloseAutoFocus?.(e)
+      }}
       {...props}
     >
       {children}
