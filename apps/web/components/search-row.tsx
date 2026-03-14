@@ -3,7 +3,7 @@ import { Suspense } from "react";
 
 export function SearchRow() {
   return (
-    <div className="w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <search className="w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto max-w-7xl px-4 py-3">
         <div className="mx-auto max-w-2xl">
           <Suspense
@@ -15,6 +15,6 @@ export function SearchRow() {
           </Suspense>
         </div>
       </div>
-    </div>
+    </search>
   );
 }
