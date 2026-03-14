@@ -92,43 +92,31 @@ export function ShoppingList({ items, listId, pantryMap, homeId }: ShoppingListP
       {/* Checked items — collapsible section */}
       {checkedItems.length > 0 && (
         <div className="rounded-2xl bg-card shadow-(--shadow-card)">
-          <button
-            type="button"
-            onClick={() => setCheckedCollapsed((prev) => !prev)}
-            className="flex w-full items-center justify-between px-5 py-3.5 text-sm text-muted-foreground transition-colors hover:bg-muted/30"
-          >
-            <span className="font-medium">
-              Avbockade ({checkedItems.length})
-            </span>
-            <div className="flex items-center gap-3">
-              {!checkedCollapsed && (
-                <span
-                  role="button"
-                  tabIndex={0}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleClearChecked()
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.stopPropagation()
-                      handleClearChecked()
-                    }
-                  }}
-                  className={cn(
-                    'text-xs font-medium text-muted-foreground/70 hover:text-destructive transition-colors',
-                    isPending && 'opacity-50 pointer-events-none'
-                  )}
-                >
-                  Rensa
-                </span>
-              )}
+          <div className="flex w-full items-center justify-between px-5 py-3.5">
+            <button
+              type="button"
+              onClick={() => setCheckedCollapsed((prev) => !prev)}
+              className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <span className="font-medium">
+                Avbockade ({checkedItems.length})
+              </span>
               <ChevronDown className={cn(
                 'h-4 w-4 transition-transform',
                 checkedCollapsed && '-rotate-90'
               )} />
-            </div>
-          </button>
+            </button>
+            {!checkedCollapsed && (
+              <button
+                type="button"
+                onClick={handleClearChecked}
+                disabled={isPending}
+                className="text-xs font-medium text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+              >
+                Rensa
+              </button>
+            )}
+          </div>
           {!checkedCollapsed && (
             <div className="divide-y divide-border/40 border-t border-border/40">
               {checkedItems.map((item) => (
