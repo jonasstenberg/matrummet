@@ -52,40 +52,56 @@ interface SheetContentProps
   extends React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content>,
     VariantProps<typeof sheetVariants> {}
 
+/**
+ * Sync `inert` attribute with Radix's `aria-hidden` on body children.
+ * Radix Dialog sets aria-hidden on siblings of the portal when modal is open,
+ * but doesn't set `inert`, leaving focusable elements keyboard-reachable (WCAG 2 A).
+ */
+function useInertOnAriaHidden() {
+  React.useEffect(() => {
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.attributeName === 'aria-hidden') {
+          const el = mutation.target as HTMLElement
+          el.inert = el.getAttribute('aria-hidden') === 'true'
+        }
+      }
+    })
+
+    // Observe direct children of body for aria-hidden changes
+    for (const node of document.body.children) {
+      if (node instanceof HTMLElement) {
+        observer.observe(node, { attributes: true, attributeFilter: ['aria-hidden'] })
+      }
+    }
+
+    return () => observer.disconnect()
+  }, [])
+}
+
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Content>,
   SheetContentProps
->(({ side = "right", className, children, ...props }, ref) => (
-  <SheetPortal>
-    <SheetOverlay />
-    <SheetPrimitive.Content
-      ref={ref}
-      className={cn(sheetVariants({ side }), className)}
-      onOpenAutoFocus={(e) => {
-        // When the sheet opens, set inert on aria-hidden siblings
-        // to prevent keyboard focus on hidden content (WCAG 2 A)
-        document.querySelectorAll('[data-aria-hidden="true"]').forEach((el) => {
-          (el as HTMLElement).inert = true
-        })
-        props.onOpenAutoFocus?.(e)
-      }}
-      onCloseAutoFocus={(e) => {
-        // Remove inert when sheet closes
-        document.querySelectorAll('[inert]').forEach((el) => {
-          (el as HTMLElement).inert = false
-        })
-        props.onCloseAutoFocus?.(e)
-      }}
-      {...props}
-    >
-      {children}
-      <SheetPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-        <X className="h-4 w-4" />
-        <span className="sr-only">Close</span>
-      </SheetPrimitive.Close>
-    </SheetPrimitive.Content>
-  </SheetPortal>
-))
+>(({ side = "right", className, children, ...props }, ref) => {
+  useInertOnAriaHidden()
+
+  return (
+    <SheetPortal>
+      <SheetOverlay />
+      <SheetPrimitive.Content
+        ref={ref}
+        className={cn(sheetVariants({ side }), className)}
+        {...props}
+      >
+        {children}
+        <SheetPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </SheetPrimitive.Close>
+      </SheetPrimitive.Content>
+    </SheetPortal>
+  )
+})
 SheetContent.displayName = SheetPrimitive.Content.displayName
 
 const SheetHeader = ({
