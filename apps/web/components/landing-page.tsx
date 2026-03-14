@@ -11,7 +11,7 @@ interface LandingPageProps {
 
 export function LandingPage({ recipes = [] }: LandingPageProps) {
   return (
-    <div className="flex flex-col -mt-8 -mx-4 px-4 md:-mx-8 md:px-8 bg-orange-50/40">
+    <div className="flex flex-col -mt-8 -mx-4 px-4 md:-mx-8 md:px-8 bg-orange-50/40 overflow-x-hidden">
       {/* Hero */}
       <section className="py-16 md:py-24">
         <div className="mx-auto max-w-2xl text-center">
@@ -23,7 +23,7 @@ export function LandingPage({ recipes = [] }: LandingPageProps) {
               Recept
             </span>
           </div>
-          <h1 className="font-heading text-5xl font-bold tracking-tight text-neutral-800 md:text-6xl">
+          <h1 className="font-heading text-5xl font-bold tracking-tight text-neutral-800 md:text-6xl leading-tight">
             Dina recept,
             <br />
             samlade.
