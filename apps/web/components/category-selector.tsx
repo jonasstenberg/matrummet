@@ -55,9 +55,9 @@ export function CategorySelector({
       ) : (
         groups.map((group) => (
           <div key={group.name}>
-            <h4 className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <h2 className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
               {group.name}
-            </h4>
+            </h2>
             <div className="flex flex-wrap gap-1.5">
               {group.categories.map((category) => {
                 const isSelected = selectedCategories.includes(category);

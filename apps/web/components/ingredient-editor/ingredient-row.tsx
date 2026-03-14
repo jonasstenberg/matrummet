@@ -73,7 +73,7 @@ export function IngredientRow({
               value={ingredient.form || ""}
               onChange={(e) => updateIngredient(index, "form", e.target.value)}
               className={cn(isInGroup && "bg-background")}
-              title="T.ex. klyftor, zest, strimlad"
+              aria-label="Form, t.ex. klyftor, zest, strimlad"
             />
           </div>
         </div>
