@@ -150,7 +150,7 @@ export function IngredientSearch({
 
       {showDropdown && inputValue && addSuggestions.length > 0 && (
         <div className="absolute bottom-full z-50 mb-1 w-full overflow-hidden rounded-lg border border-border/50 bg-card shadow-md">
-          <ul role="listbox" className="py-1">
+          <ul role="listbox" aria-label="Sökresultat" className="py-1">
             {addSuggestions.map((item, index) => {
               const isExpanded = expandedItemId === item.id
 

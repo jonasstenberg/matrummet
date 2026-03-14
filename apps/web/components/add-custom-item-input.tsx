@@ -172,7 +172,7 @@ export function AddCustomItemInput({ listId, onItemAdded, homeId }: AddCustomIte
 
       {showDropdown && inputValue && suggestions.length > 0 && (
         <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-lg border border-border/50 bg-card shadow-md">
-          <ul role="listbox" className="py-1">
+          <ul role="listbox" aria-label="Sökresultat" className="py-1">
             {suggestions.map((item, index) => (
               <li
                 key={item.id}

@@ -123,7 +123,7 @@ export function ShoppingListManager({
           >
             <TabsList className="h-auto flex-wrap justify-start">
               {lists.map((list) => (
-                <div key={list.id} className="group relative">
+                <div key={list.id} className="group relative" role="presentation">
                   <TabsTrigger
                     value={list.id}
                     className="relative pr-8"
