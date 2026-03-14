@@ -84,7 +84,7 @@ export function HomeSettingsClient({ home: initialHome, userEmail }: HomeSetting
       <div className="rounded-2xl bg-card shadow-(--shadow-card)">
         {/* Name row */}
         <div className="px-5 py-4">
-          <div className="text-xs font-medium text-muted-foreground/70 mb-1.5">
+          <div className="text-xs font-medium text-muted-foreground mb-1.5">
             Namn
           </div>
           <HomeNameEditor name={home.name} onSave={handleUpdateName} />

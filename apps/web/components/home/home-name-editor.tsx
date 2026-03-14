@@ -77,6 +77,7 @@ export function HomeNameEditor({ name, onSave }: HomeNameEditorProps) {
       <button
         type="button"
         onClick={() => setIsEditing(true)}
+        aria-label="Redigera namn"
         className="rounded-full p-1.5 text-muted-foreground/0 transition-all group-hover:text-muted-foreground hover:bg-muted/30"
       >
         <Pencil className="h-3.5 w-3.5" />
