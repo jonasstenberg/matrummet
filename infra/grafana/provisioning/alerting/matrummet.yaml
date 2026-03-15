@@ -44,6 +44,16 @@ groups:
             model:
               expr: 'sum(count_over_time({unit=~"matrummet.*"} | json | level = `error` [5m]))'
               refId: errors
+          - refId: reduced
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 0
+              to: 0
+            model:
+              type: reduce
+              expression: errors
+              reducer: last
+              refId: reduced
           - refId: threshold
             datasourceUid: __expr__
             relativeTimeRange:
@@ -51,7 +61,7 @@ groups:
               to: 0
             model:
               type: threshold
-              expression: errors
+              expression: reduced
               conditions:
                 - evaluator:
                     type: gt
@@ -59,4 +69,4 @@ groups:
                       - 3
               refId: threshold
         noDataState: OK
-        execErrState: Alerting
+        execErrState: Error
