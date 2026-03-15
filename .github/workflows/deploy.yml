@@ -647,12 +647,16 @@ jobs:
           scp infra/nginx/matrummet.conf $REMOTE:$STAGING/matrummet
           scp infra/nginx/api.conf $REMOTE:$STAGING/api.matrummet.se
           scp infra/nginx/proxy-cache.conf $REMOTE:$STAGING/proxy-cache.conf
+          scp infra/nginx/upstream.conf $REMOTE:$STAGING/matrummet-upstream.conf
+          scp infra/nginx/app-proxy-common.conf $REMOTE:$STAGING/matrummet-app-proxy.conf
           CHANGED=$(ssh $REMOTE "
             changed=false
             diff -q $STAGING/matrummet-locations.conf /etc/nginx/snippets/matrummet-locations.conf >/dev/null 2>&1 || changed=true
             diff -q $STAGING/matrummet /etc/nginx/sites-enabled/matrummet >/dev/null 2>&1 || changed=true
             diff -q $STAGING/api.matrummet.se /etc/nginx/sites-enabled/api.matrummet.se >/dev/null 2>&1 || changed=true
             diff -q $STAGING/proxy-cache.conf /etc/nginx/conf.d/proxy-cache.conf >/dev/null 2>&1 || changed=true
+            diff -q $STAGING/matrummet-upstream.conf /etc/nginx/conf.d/matrummet-upstream.conf >/dev/null 2>&1 || changed=true
+            diff -q $STAGING/matrummet-app-proxy.conf /etc/nginx/snippets/matrummet-app-proxy.conf >/dev/null 2>&1 || changed=true
             echo \$changed
           ")
           if [[ "$CHANGED" == "true" ]]; then
@@ -663,6 +667,8 @@ jobs:
               sudo cp $STAGING/matrummet /etc/nginx/sites-enabled/matrummet &&
               sudo cp $STAGING/api.matrummet.se /etc/nginx/sites-enabled/api.matrummet.se &&
               sudo cp $STAGING/proxy-cache.conf /etc/nginx/conf.d/proxy-cache.conf &&
+              sudo cp $STAGING/matrummet-upstream.conf /etc/nginx/conf.d/matrummet-upstream.conf &&
+              sudo cp $STAGING/matrummet-app-proxy.conf /etc/nginx/snippets/matrummet-app-proxy.conf &&
               sudo nginx -t && sudo systemctl reload nginx
             "
           else

@@ -39,6 +39,7 @@ COPY db-proxy-common.conf   /etc/nginx/snippets/matrummet-db-proxy.conf
 # conf.d files
 COPY proxy-cache.conf /etc/nginx/conf.d/proxy-cache.conf
 COPY rate-limit.conf  /etc/nginx/conf.d/rate-limit.conf
+COPY upstream.conf    /etc/nginx/conf.d/matrummet-upstream.conf
 
 # Site configs (unmodified production files)
 COPY matrummet.conf /etc/nginx/sites-enabled/matrummet
