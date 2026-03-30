@@ -2,7 +2,8 @@ import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import { setCookie } from '@tanstack/react-start/server'
 import { ApiKey } from '@/lib/types'
-import { signToken } from '@/lib/auth'
+import { signToken, ACCESS_TOKEN_COOKIE, getAccessTokenCookieOptions } from '@/lib/auth'
+
 import { PostgrestClient } from '@matrummet/api-client'
 import { actionAuthMiddleware } from './middleware'
 import { apiKeysArraySchema } from './schemas'
@@ -171,13 +172,7 @@ const updateProfileFn = createServerFn({ method: 'POST' })
 
       const newToken = await signToken(updated)
 
-      setCookie('auth-token', newToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7,
-        path: '/',
-      })
+      setCookie(ACCESS_TOKEN_COOKIE, newToken, getAccessTokenCookieOptions())
 
       return { success: true }
     } catch (error) {

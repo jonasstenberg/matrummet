@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { getCookie, setCookie, deleteCookie } from '@tanstack/react-start/server'
-import { signToken } from '@/lib/auth'
+import { getCookie, deleteCookie } from '@tanstack/react-start/server'
+import { createSessionTokens, setSessionCookies } from '@/lib/auth'
 import { env } from '@/lib/env'
 import { logger as rootLogger } from '@/lib/logger'
 
@@ -144,19 +144,8 @@ export const Route = createFileRoute('/api/auth/callback/google')({
 
           const user = await postgrestResponse.json()
 
-          const token = await signToken({
-            email: user.email,
-            name: user.name,
-            role: user.role,
-          })
-
-          setCookie('auth-token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            maxAge: 60 * 60 * 24 * 7,
-            path: '/',
-          })
+          const { accessToken, refreshRaw } = await createSessionTokens(user.email, user.name, user.role)
+          setSessionCookies(accessToken, refreshRaw)
 
           deleteCookie('oauth-state')
 

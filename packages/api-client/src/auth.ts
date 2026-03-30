@@ -41,14 +41,14 @@ function signHS256(data: string, secret: string): string {
 }
 
 /**
- * Sign an app JWT token (7-day expiry).
+ * Sign an app JWT token (1-hour expiry).
  */
 export async function signToken(payload: JWTPayload, secret: string): Promise<string> {
   const now = Math.floor(Date.now() / 1000)
   const claims = {
     ...payload,
     iat: now,
-    exp: now + 7 * 24 * 60 * 60, // 7 days
+    exp: now + 60 * 60, // 1 hour
   }
   const header = base64urlEncode(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
   const body = base64urlEncode(JSON.stringify(claims))
@@ -91,6 +91,24 @@ export async function verifyToken(token: string, secret: string): Promise<JWTPay
   } catch {
     return null
   }
+}
+
+/**
+ * SHA-256 hash a string and return hex. Uses @noble/hashes (works on Hermes/React Native).
+ */
+export function sha256Hex(input: string): string {
+  const data = new TextEncoder().encode(input)
+  const hash = sha256(data)
+  return Array.from(hash, b => b.toString(16).padStart(2, '0')).join('')
+}
+
+/**
+ * Generate a random hex string (32 bytes = 64 hex chars).
+ */
+export function randomHex(): string {
+  const bytes = new Uint8Array(32)
+  crypto.getRandomValues(bytes)
+  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('')
 }
 
 /**

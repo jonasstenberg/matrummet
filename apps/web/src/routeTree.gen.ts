@@ -52,6 +52,7 @@ import { Route as ApiCreditsGrantRouteImport } from './routes/api/credits/grant'
 import { Route as ApiCreditsCheckoutRouteImport } from './routes/api/credits/checkout'
 import { Route as ApiCreditsBalanceRouteImport } from './routes/api/credits/balance'
 import { Route as ApiAuthRegistreraRouteImport } from './routes/api/auth/registrera'
+import { Route as ApiAuthRefreshRouteImport } from './routes/api/auth/refresh'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
 import { Route as ApiAuthGoogleRouteImport } from './routes/api/auth/google'
@@ -320,6 +321,11 @@ const ApiCreditsBalanceRoute = ApiCreditsBalanceRouteImport.update({
 const ApiAuthRegistreraRoute = ApiAuthRegistreraRouteImport.update({
   id: '/api/auth/registrera',
   path: '/api/auth/registrera',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthRefreshRoute = ApiAuthRefreshRouteImport.update({
+  id: '/api/auth/refresh',
+  path: '/api/auth/refresh',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthLogoutRoute = ApiAuthLogoutRouteImport.update({
@@ -670,6 +676,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/google': typeof ApiAuthGoogleRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/refresh': typeof ApiAuthRefreshRoute
   '/api/auth/registrera': typeof ApiAuthRegistreraRoute
   '/api/credits/balance': typeof ApiCreditsBalanceRoute
   '/api/credits/checkout': typeof ApiCreditsCheckoutRoute
@@ -767,6 +774,7 @@ export interface FileRoutesByTo {
   '/api/auth/google': typeof ApiAuthGoogleRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/refresh': typeof ApiAuthRefreshRoute
   '/api/auth/registrera': typeof ApiAuthRegistreraRoute
   '/api/credits/balance': typeof ApiCreditsBalanceRoute
   '/api/credits/checkout': typeof ApiCreditsCheckoutRoute
@@ -869,6 +877,7 @@ export interface FileRoutesById {
   '/api/auth/google': typeof ApiAuthGoogleRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/refresh': typeof ApiAuthRefreshRoute
   '/api/auth/registrera': typeof ApiAuthRegistreraRoute
   '/api/credits/balance': typeof ApiCreditsBalanceRoute
   '/api/credits/checkout': typeof ApiCreditsCheckoutRoute
@@ -970,6 +979,7 @@ export interface FileRouteTypes {
     | '/api/auth/google'
     | '/api/auth/login'
     | '/api/auth/logout'
+    | '/api/auth/refresh'
     | '/api/auth/registrera'
     | '/api/credits/balance'
     | '/api/credits/checkout'
@@ -1067,6 +1077,7 @@ export interface FileRouteTypes {
     | '/api/auth/google'
     | '/api/auth/login'
     | '/api/auth/logout'
+    | '/api/auth/refresh'
     | '/api/auth/registrera'
     | '/api/credits/balance'
     | '/api/credits/checkout'
@@ -1168,6 +1179,7 @@ export interface FileRouteTypes {
     | '/api/auth/google'
     | '/api/auth/login'
     | '/api/auth/logout'
+    | '/api/auth/refresh'
     | '/api/auth/registrera'
     | '/api/credits/balance'
     | '/api/credits/checkout'
@@ -1233,6 +1245,7 @@ export interface RootRouteChildren {
   ApiAuthGoogleRoute: typeof ApiAuthGoogleRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
+  ApiAuthRefreshRoute: typeof ApiAuthRefreshRoute
   ApiAuthRegistreraRoute: typeof ApiAuthRegistreraRoute
   ApiCreditsBalanceRoute: typeof ApiCreditsBalanceRoute
   ApiCreditsCheckoutRoute: typeof ApiCreditsCheckoutRoute
@@ -1552,6 +1565,13 @@ declare module '@tanstack/react-router' {
       path: '/api/auth/registrera'
       fullPath: '/api/auth/registrera'
       preLoaderRoute: typeof ApiAuthRegistreraRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/refresh': {
+      id: '/api/auth/refresh'
+      path: '/api/auth/refresh'
+      fullPath: '/api/auth/refresh'
+      preLoaderRoute: typeof ApiAuthRefreshRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/logout': {
@@ -2177,6 +2197,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthGoogleRoute: ApiAuthGoogleRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
+  ApiAuthRefreshRoute: ApiAuthRefreshRoute,
   ApiAuthRegistreraRoute: ApiAuthRegistreraRoute,
   ApiCreditsBalanceRoute: ApiCreditsBalanceRoute,
   ApiCreditsCheckoutRoute: ApiCreditsCheckoutRoute,

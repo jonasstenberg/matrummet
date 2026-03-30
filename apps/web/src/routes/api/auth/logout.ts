@@ -1,5 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { deleteCookie } from '@tanstack/react-start/server'
+import { getCookie } from '@tanstack/react-start/server'
+import {
+  clearSessionCookies,
+  revokeSingleRefreshToken,
+  REFRESH_TOKEN_COOKIE,
+} from '@/lib/auth'
 import { logger as rootLogger } from '@/lib/logger'
 
 const logger = rootLogger.child({ module: 'api:auth:logout' })
@@ -9,14 +14,19 @@ export const Route = createFileRoute('/api/auth/logout')({
     handlers: {
       POST: async () => {
         try {
-          deleteCookie('auth-token')
+          // Revoke the current device's refresh token
+          const refreshTokenRaw = getCookie(REFRESH_TOKEN_COOKIE)
+          if (refreshTokenRaw) {
+            await revokeSingleRefreshToken(refreshTokenRaw)
+          }
+
+          clearSessionCookies()
           return Response.json({ success: true })
         } catch (error) {
           logger.error({ err: error instanceof Error ? error : String(error) }, 'Logout error')
-          return Response.json(
-            { error: 'Ett fel uppstod vid utloggning' },
-            { status: 500 },
-          )
+          // Still clear cookies on error
+          clearSessionCookies()
+          return Response.json({ success: true })
         }
       },
     },

@@ -7,12 +7,14 @@ import type {
   ShoppingList,
 } from '@matrummet/types/types'
 import type { TokenStorage } from './token-storage'
-import { signToken, signPostgrestToken, verifyToken } from './auth'
+import { signToken, signPostgrestToken, verifyToken, sha256Hex, randomHex } from './auth'
 import type { JWTPayload } from './auth'
 
 /** Mobile/client config — manages its own JWT tokens via storage. */
 export interface PostgrestClientConfig {
   postgrestUrl: string
+  /** Base URL of the web app API (e.g. https://matrummet.se), for refresh endpoint. */
+  apiUrl: string
   jwtSecret: string
   postgrestJwtSecret: string
   tokenStorage: TokenStorage
@@ -42,9 +44,16 @@ export class PostgrestClient {
   // Lifecycle hooks (mobile sets these, server leaves them null)
   private onTokenUpdated: ((payload: JWTPayload) => Promise<void>) | null
   private onTokenCleared: (() => Promise<void>) | null
+  // Token storage reference (mobile only, null in server mode)
+  private tokenStorage: TokenStorage | null
+  // Mobile refresh support
+  private refreshTokensFn: (() => Promise<boolean>) | null
+  private isRefreshing = false
+  private refreshPromise: Promise<boolean> | null = null
 
   constructor(config: PostgrestClientConfig | ServerPostgrestConfig) {
     this.postgrestUrl = config.postgrestUrl
+    this.refreshTokensFn = null
 
     if ('postgrestToken' in config) {
       // Server mode: pre-authenticated, no token management
@@ -56,9 +65,11 @@ export class PostgrestClient {
       this.getCurrentUserFn = async () => session
       this.onTokenUpdated = null
       this.onTokenCleared = null
+      this.tokenStorage = null
     } else {
       // Mobile mode: manages tokens via storage
-      const { jwtSecret, postgrestJwtSecret, tokenStorage } = config
+      const { apiUrl, jwtSecret, postgrestJwtSecret, tokenStorage } = config
+      this.tokenStorage = tokenStorage
 
       this.getCurrentUserFn = async () => {
         const token = await tokenStorage.getAppToken()
@@ -83,6 +94,39 @@ export class PostgrestClient {
 
       this.onTokenCleared = async () => {
         await tokenStorage.removeAppToken()
+        await tokenStorage.removeRefreshToken()
+      }
+
+      // Refresh function: call the web app's /api/auth/refresh endpoint
+      this.refreshTokensFn = async () => {
+        const refreshToken = await tokenStorage.getRefreshToken()
+        if (!refreshToken) return false
+
+        try {
+          const res = await fetch(`${apiUrl}/api/auth/refresh`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh_token: refreshToken }),
+          })
+
+          if (!res.ok) {
+            // Refresh failed — clear tokens
+            await tokenStorage.removeAppToken()
+            await tokenStorage.removeRefreshToken()
+            return false
+          }
+
+          const data = await res.json()
+          if (data.access_token && data.refresh_token) {
+            await tokenStorage.setAppToken(data.access_token)
+            await tokenStorage.setRefreshToken(data.refresh_token)
+            return true
+          }
+
+          return false
+        } catch {
+          return false
+        }
       }
     }
   }
@@ -110,6 +154,7 @@ export class PostgrestClient {
 
     if (this.onTokenUpdated) {
       await this.onTokenUpdated(payload)
+      await this.createAndStoreRefreshToken(payload.email)
     }
 
     return payload
@@ -136,6 +181,7 @@ export class PostgrestClient {
 
     if (this.onTokenUpdated) {
       await this.onTokenUpdated(payload)
+      await this.createAndStoreRefreshToken(payload.email)
     }
 
     return payload
@@ -147,11 +193,62 @@ export class PostgrestClient {
     }
   }
 
+  /**
+   * Attempt to refresh tokens using the stored refresh token.
+   * Coalesces concurrent refresh calls to avoid race conditions.
+   * Returns true if refresh succeeded, false otherwise.
+   */
+  async refreshTokens(): Promise<boolean> {
+    if (!this.refreshTokensFn) return false
+
+    // Coalesce concurrent refresh calls
+    if (this.isRefreshing && this.refreshPromise) {
+      return this.refreshPromise
+    }
+
+    this.isRefreshing = true
+    this.refreshPromise = this.refreshTokensFn().finally(() => {
+      this.isRefreshing = false
+      this.refreshPromise = null
+    })
+
+    return this.refreshPromise
+  }
+
   async getCurrentUser(): Promise<JWTPayload | null> {
     return this.getCurrentUserFn()
   }
 
   // ---- Private ----
+
+  /**
+   * Create a refresh token via PostgREST and store it in token storage.
+   * Only used in mobile mode where we manage tokens client-side.
+   */
+  private async createAndStoreRefreshToken(userEmail: string): Promise<void> {
+    if (!this.tokenStorage) return
+
+    try {
+      const raw = randomHex()
+      const hash = sha256Hex(raw)
+      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+
+      const headers = await this.getAuthHeadersFn()
+      await fetch(`${this.postgrestUrl}/rpc/create_refresh_token`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          p_user_email: userEmail,
+          p_token_hash: hash,
+          p_expires_at: expiresAt,
+        }),
+      })
+
+      await this.tokenStorage.setRefreshToken(raw)
+    } catch {
+      // Non-fatal: user can still use access token until it expires
+    }
+  }
 
   private async getAuthHeaders(homeId?: string): Promise<Record<string, string>> {
     const headers = await this.getAuthHeadersFn()

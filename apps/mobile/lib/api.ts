@@ -19,6 +19,7 @@ const IMAGE_BASE_URL = fixLocalhost(
 
 export const api = new PostgrestClient({
   postgrestUrl: fixLocalhost(String(process.env.EXPO_PUBLIC_POSTGREST_URL ?? 'http://localhost:4444')),
+  apiUrl: fixLocalhost(String(process.env.EXPO_PUBLIC_APP_URL ?? 'http://localhost:3000')),
   jwtSecret: String(process.env.EXPO_PUBLIC_JWT_SECRET ?? ''),
   postgrestJwtSecret: String(process.env.EXPO_PUBLIC_POSTGREST_JWT_SECRET ?? ''),
   tokenStorage: mobileTokenStorage,

@@ -1,7 +1,14 @@
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
-import { setCookie, deleteCookie } from '@tanstack/react-start/server'
-import { signToken } from '@/lib/auth'
+import { getCookie } from '@tanstack/react-start/server'
+import {
+  createSessionTokens,
+  setSessionCookies,
+  clearSessionCookies,
+  revokeSingleRefreshToken,
+  revokeAllRefreshTokens,
+  REFRESH_TOKEN_COOKIE,
+} from '@/lib/auth'
 import { PostgrestClient } from '@matrummet/api-client'
 import { env } from '@/lib/env'
 import { loginInputSchema, emailSchema, changePasswordSchema, signupInputSchema } from '@/lib/schemas'
@@ -45,19 +52,8 @@ export const loginFn = createServerFn({ method: 'POST' })
 
       const user = await postgrestResponse.json()
 
-      const token = await signToken({
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      })
-
-      setCookie('auth-token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7,
-        path: '/',
-      })
+      const { accessToken, refreshRaw } = await createSessionTokens(user.email, user.name, user.role)
+      setSessionCookies(accessToken, refreshRaw)
 
       logger.info({ email: user.email }, 'User logged in')
       return {}
@@ -227,19 +223,8 @@ export const signupFn = createServerFn({ method: 'POST' })
 
       const user = await postgrestResponse.json()
 
-      const token = await signToken({
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      })
-
-      setCookie('auth-token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7,
-        path: '/',
-      })
+      const { accessToken, refreshRaw } = await createSessionTokens(user.email, user.name, user.role)
+      setSessionCookies(accessToken, refreshRaw)
 
       logger.info({ email: user.email }, 'User signed up')
       return {}
@@ -284,7 +269,16 @@ export const changePasswordFn = createServerFn({ method: 'POST' })
       })
       await client.changePassword(result.data.oldPassword, result.data.newPassword)
 
-      log.info({ email: context.session.email }, 'Password changed successfully')
+      // Revoke all refresh tokens — forces re-login on other devices
+      await revokeAllRefreshTokens(context.session.email)
+
+      // Re-issue fresh tokens for the current session
+      const { accessToken, refreshRaw } = await createSessionTokens(
+        context.session.email, context.session.name, context.session.role,
+      )
+      setSessionCookies(accessToken, refreshRaw)
+
+      log.info({ email: context.session.email }, 'Password changed, all sessions revoked')
       return { success: true }
     } catch (error) {
       log.error({ err: error instanceof Error ? error : String(error) }, 'Password change error')
@@ -297,12 +291,22 @@ export interface LogoutState {
 }
 
 export const logoutFn = createServerFn({ method: 'POST' })
-  .handler(async (): Promise<LogoutState> => {
+  .middleware([actionAuthMiddleware])
+  .handler(async ({ context }): Promise<LogoutState> => {
     try {
-      deleteCookie('auth-token')
+      // Revoke only the current device's refresh token
+      const refreshTokenRaw = getCookie(REFRESH_TOKEN_COOKIE)
+      if (refreshTokenRaw) {
+        await revokeSingleRefreshToken(refreshTokenRaw)
+        logger.debug({ email: context.session?.email }, 'Refresh token revoked on logout')
+      }
+
+      clearSessionCookies()
       return {}
     } catch {
-      return { error: 'Utloggning misslyckades' }
+      // Still clear cookies even if revocation fails
+      clearSessionCookies()
+      return {}
     }
   })
 
@@ -331,7 +335,8 @@ export const deleteAccountFn = createServerFn({ method: 'POST' })
       await client.deleteAccount(data.password ?? undefined)
 
       log.info({ email: context.session.email }, 'Account deleted successfully')
-      deleteCookie('auth-token')
+      // Refresh tokens cascade-deleted via FK, just clear cookies
+      clearSessionCookies()
 
       return { success: true }
     } catch (error) {
@@ -339,4 +344,3 @@ export const deleteAccountFn = createServerFn({ method: 'POST' })
       return { error: error instanceof Error ? error.message : 'Ett oväntat fel uppstod' }
     }
   })
-

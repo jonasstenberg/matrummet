@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { deleteCookie } from '@tanstack/react-start/server'
 import { apiAuthMiddleware } from '@/lib/middleware'
+import { clearSessionCookies } from '@/lib/auth'
 import { env } from '@/lib/env'
 import { logger as rootLogger } from '@/lib/logger'
 const logger = rootLogger.child({ module: 'api:user:delete-account' })
@@ -69,8 +69,8 @@ export const Route = createFileRoute('/api/user/delete-account')({
             )
           }
 
-          // Clear the auth cookie on success
-          deleteCookie('auth-token')
+          // Refresh tokens cascade-deleted via FK, just clear cookies
+          clearSessionCookies()
 
           logger.info({ email: context.session?.email }, 'Account deleted via API')
           return Response.json({ success: true })
