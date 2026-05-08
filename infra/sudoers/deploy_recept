@@ -1,6 +1,9 @@
 # Service management
 deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart postgrest-matrummet
 deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart matrummet
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart matrummet@3001
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart matrummet@3002
+deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart matrummet@3001 matrummet@3002
 deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart matrummet-email
 deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart matrummet-events
 deploy_recept ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart matrummet-image
