@@ -309,9 +309,11 @@ export async function getSession(): Promise<JWTPayload | null> {
   try {
     const result = await rotateRefreshToken(refreshTokenRaw)
     if (!result) {
-      // Token was invalid/expired/revoked — clear cookies
-      logger.debug('Refresh token invalid or revoked, clearing cookies')
-      clearSessionCookies()
+      // Rotation can return no rows when another in-flight request already
+      // rotated this refresh token. Do not clear cookies here; a later
+      // response from this request could otherwise overwrite the winning
+      // response's fresh session cookies.
+      logger.debug('Refresh token rotation returned no session')
       return null
     }
 

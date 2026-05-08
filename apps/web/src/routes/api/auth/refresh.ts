@@ -3,7 +3,6 @@ import { getCookie } from '@tanstack/react-start/server'
 import {
   rotateRefreshToken,
   setSessionCookies,
-  clearSessionCookies,
   REFRESH_TOKEN_COOKIE,
 } from '@/lib/auth'
 import { logger as rootLogger } from '@/lib/logger'
@@ -53,10 +52,10 @@ export const Route = createFileRoute('/api/auth/refresh')({
           const result = await rotateRefreshToken(refreshTokenRaw)
 
           if (!result) {
-            logger.debug('Refresh token invalid or revoked')
-            if (!isMobileClient) {
-              clearSessionCookies()
-            }
+            // A web refresh can lose a concurrent rotation race. Returning 401
+            // without clearing cookies avoids overwriting the winning response's
+            // fresh cookies with deleted cookies.
+            logger.debug('Refresh token rotation returned no session')
             return Response.json(
               { error: 'Invalid or expired refresh token' },
               { status: 401 },
