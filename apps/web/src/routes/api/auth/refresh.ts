@@ -1,8 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { getCookie } from '@tanstack/react-start/server'
+import { getCookie, setCookie } from '@tanstack/react-start/server'
 import {
   rotateRefreshToken,
   setSessionCookies,
+  getAccessTokenCookieOptions,
+  ACCESS_TOKEN_COOKIE,
   REFRESH_TOKEN_COOKIE,
 } from '@/lib/auth'
 import { logger as rootLogger } from '@/lib/logger'
@@ -52,9 +54,9 @@ export const Route = createFileRoute('/api/auth/refresh')({
           const result = await rotateRefreshToken(refreshTokenRaw)
 
           if (!result) {
-            // A web refresh can lose a concurrent rotation race. Returning 401
-            // without clearing cookies avoids overwriting the winning response's
-            // fresh cookies with deleted cookies.
+            // Token invalid, expired, or revoked beyond the grace window.
+            // Never clear cookies here — that could overwrite a concurrent
+            // response's fresh cookies with deleted ones.
             logger.debug('Refresh token rotation returned no session')
             return Response.json(
               { error: 'Invalid or expired refresh token' },
@@ -62,17 +64,24 @@ export const Route = createFileRoute('/api/auth/refresh')({
             )
           }
 
+          // refreshRaw is null on grace-window reuse: a concurrent request won
+          // the rotation, so its refresh token must be left untouched.
           if (isMobileClient) {
-            // Mobile: return tokens in body
+            // Mobile: return tokens in body (refresh_token omitted on grace
+            // reuse — the client keeps its stored token)
             logger.debug({ email: result.session.email }, 'Mobile token refreshed')
             return Response.json({
               access_token: result.accessToken,
-              refresh_token: result.refreshRaw,
+              ...(result.refreshRaw ? { refresh_token: result.refreshRaw } : {}),
             })
           }
 
           // Web: set cookies
-          setSessionCookies(result.accessToken, result.refreshRaw)
+          if (result.refreshRaw) {
+            setSessionCookies(result.accessToken, result.refreshRaw)
+          } else {
+            setCookie(ACCESS_TOKEN_COOKIE, result.accessToken, getAccessTokenCookieOptions())
+          }
           logger.debug({ email: result.session.email }, 'Web token refreshed via API')
           return Response.json({ success: true })
         } catch (error) {

@@ -212,10 +212,15 @@ export function clearSessionCookies(): void {
  * Rotate a refresh token in the database atomically.
  * Returns the new session, access token, and raw refresh token,
  * or null if rotation failed (token invalid/expired/revoked).
+ *
+ * When a concurrent request already rotated the token within the DB's grace
+ * window, returns the session with `refreshRaw: null` — the caller gets a
+ * fresh access token but must not touch the refresh token cookie/storage
+ * (the winning request's token is the live one).
  */
 export async function rotateRefreshToken(
   oldTokenRaw: string,
-): Promise<{ session: JWTPayload; accessToken: string; refreshRaw: string } | null> {
+): Promise<{ session: JWTPayload; accessToken: string; refreshRaw: string | null } | null> {
   const oldHash = await hashRefreshToken(oldTokenRaw)
   const { raw: newRaw, hash: newHash } = await generateRefreshToken()
   const newExpiresAt = new Date(Date.now() + REFRESH_TOKEN_MAX_AGE_MS).toISOString()
@@ -241,7 +246,7 @@ export async function rotateRefreshToken(
     return null
   }
 
-  const { user_email, user_name, user_role } = rows[0]
+  const { token_id, user_email, user_name, user_role } = rows[0]
   const session: JWTPayload = {
     email: user_email,
     name: user_name,
@@ -249,7 +254,8 @@ export async function rotateRefreshToken(
   }
 
   const accessToken = await signToken(session)
-  return { session, accessToken, refreshRaw: newRaw }
+  // NULL token_id means grace-window reuse: no new refresh token was issued
+  return { session, accessToken, refreshRaw: token_id ? newRaw : null }
 }
 
 // ---------------------------------------------------------------------------
@@ -309,16 +315,20 @@ export async function getSession(): Promise<JWTPayload | null> {
   try {
     const result = await rotateRefreshToken(refreshTokenRaw)
     if (!result) {
-      // Rotation can return no rows when another in-flight request already
-      // rotated this refresh token. Do not clear cookies here; a later
-      // response from this request could otherwise overwrite the winning
-      // response's fresh session cookies.
+      // Token invalid, expired, or revoked beyond the grace window.
+      // Do not clear cookies here; a later response from this request could
+      // otherwise overwrite another response's fresh session cookies.
       logger.debug('Refresh token rotation returned no session')
       return null
     }
 
-    // Set new cookies on the outgoing response
-    setSessionCookies(result.accessToken, result.refreshRaw)
+    if (result.refreshRaw) {
+      setSessionCookies(result.accessToken, result.refreshRaw)
+    } else {
+      // Grace-window reuse: a concurrent request won the rotation and its
+      // refresh cookie is the live one — only refresh the access token.
+      setCookie(ACCESS_TOKEN_COOKIE, result.accessToken, getAccessTokenCookieOptions())
+    }
     logger.debug({ email: result.session.email }, 'Session refreshed via refresh token')
     return result.session
   } catch (error) {

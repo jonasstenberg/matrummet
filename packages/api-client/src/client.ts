@@ -117,9 +117,13 @@ export class PostgrestClient {
           }
 
           const data = await res.json()
-          if (data.access_token && data.refresh_token) {
+          if (data.access_token) {
             await tokenStorage.setAppToken(data.access_token)
-            await tokenStorage.setRefreshToken(data.refresh_token)
+            // refresh_token is omitted when a concurrent refresh already
+            // rotated the token — keep the stored one in that case
+            if (data.refresh_token) {
+              await tokenStorage.setRefreshToken(data.refresh_token)
+            }
             return true
           }
 
