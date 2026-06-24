@@ -42,7 +42,7 @@ groups:
               from: 300
               to: 0
             model:
-              expr: 'sum(count_over_time({unit=~"matrummet.*"} | json | level = `error` [5m]))'
+              expr: 'sum(count_over_time({unit=~"matrummet.*", level="error"} [5m]))'
               refId: errors
           - refId: reduced
             datasourceUid: __expr__
