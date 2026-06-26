@@ -58,43 +58,20 @@ export async function getRecipes(options?: {
     return recipes;
   }
 
-  // Regular fetch without search
-  const params = new URLSearchParams();
-  params.set("order", "date_published.desc");
-
-  // Exclude non-owned featured recipes (featured recipes are only for the landing page)
-  const andConditions: string[] = [];
-  andConditions.push("or(is_featured.eq.false,is_owner.eq.true)");
-
-  // Multi-category filter with OR logic
-  if (options?.categories && options.categories.length > 0) {
-    if (options.categories.length === 1) {
-      params.set("categories", `cs.{"${options.categories[0]}"}`);
-    } else {
-      const orConditions = options.categories
-        .map(cat => `categories.cs.{"${cat}"}`)
-        .join(',');
-      andConditions.push(`or(${orConditions})`);
-    }
-  }
-  if (andConditions.length > 0) {
-    params.set("and", `(${andConditions.join(',')})`);
-  }
-  if (options?.ownerIds && options.ownerIds.length > 0) {
-    params.set("owner_id", `in.(${options.ownerIds.join(',')})`);
-  } else if (options?.owner) {
-    // Filter by is_owner instead of exposing email in query
-    params.set("is_owner", "eq.true");
-  }
-  if (options?.limit) {
-    params.set("limit", String(options.limit));
-  }
-  if (options?.offset) {
-    params.set("offset", String(options.offset));
-  }
-
-  const res = await fetch(`${env.POSTGREST_URL}/user_recipes?${params}`, {
+  // Regular fetch (no search) — use the list_recipes RPC, which materialises the page
+  // of recipe ids from the base table first and only hydrates the heavy user_recipes
+  // view for that page (vs. building the view for every matching recipe).
+  const hasOwnerIds = !!(options?.ownerIds && options.ownerIds.length > 0);
+  const res = await fetch(`${env.POSTGREST_URL}/rpc/list_recipes`, {
+    method: 'POST',
     headers,
+    body: JSON.stringify({
+      p_owner_only: !!options?.owner && !hasOwnerIds,
+      p_categories: options?.categories && options.categories.length > 0 ? options.categories : null,
+      p_limit: options?.limit ?? 50,
+      p_offset: options?.offset ?? 0,
+      p_owner_ids: hasOwnerIds ? options!.ownerIds : null,
+    }),
     cache: 'no-store',
   });
 
@@ -341,7 +318,6 @@ export async function getRecipesWithCount(options?: {
 }): Promise<RecipeResult> {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    'Prefer': 'count=exact',
   };
   if (options?.token) {
     headers['Authorization'] = `Bearer ${options.token}`;
@@ -353,52 +329,37 @@ export async function getRecipesWithCount(options?: {
     return { recipes, totalCount: recipes.length };
   }
 
-  // Regular fetch with count
-  const params = new URLSearchParams();
-  params.set("order", "date_published.desc");
+  // Page (list_recipes) + total (count_recipes) in parallel. Both select from the base
+  // recipes table first, so the heavy user_recipes view is only built for the page.
+  const hasOwnerIds = !!(options?.ownerIds && options.ownerIds.length > 0);
+  const p_owner_only = !!options?.owner && !hasOwnerIds;
+  const p_categories = options?.categories && options.categories.length > 0 ? options.categories : null;
+  const p_owner_ids = hasOwnerIds ? options!.ownerIds : null;
 
-  // Exclude non-owned featured recipes (featured recipes are only for the landing page)
-  const andConditions: string[] = [];
-  andConditions.push("or(is_featured.eq.false,is_owner.eq.true)");
+  const [listRes, countRes] = await Promise.all([
+    fetch(`${env.POSTGREST_URL}/rpc/list_recipes`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ p_owner_only, p_categories, p_limit: options?.limit ?? 50, p_offset: options?.offset ?? 0, p_owner_ids }),
+      cache: 'no-store',
+    }),
+    fetch(`${env.POSTGREST_URL}/rpc/count_recipes`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ p_owner_only, p_categories, p_owner_ids }),
+      cache: 'no-store',
+    }),
+  ]);
 
-  if (options?.categories && options.categories.length > 0) {
-    if (options.categories.length === 1) {
-      params.set("categories", `cs.{"${options.categories[0]}"}`);
-    } else {
-      const orConditions = options.categories
-        .map(cat => `categories.cs.{"${cat}"}`)
-        .join(',');
-      andConditions.push(`or(${orConditions})`);
-    }
-  }
-  if (andConditions.length > 0) {
-    params.set("and", `(${andConditions.join(',')})`);
-  }
-  if (options?.ownerIds && options.ownerIds.length > 0) {
-    params.set("owner_id", `in.(${options.ownerIds.join(',')})`);
-  } else if (options?.owner) {
-    params.set("is_owner", "eq.true");
-  }
-  if (options?.limit) {
-    params.set("limit", String(options.limit));
-  }
-  if (options?.offset) {
-    params.set("offset", String(options.offset));
+  if (!listRes.ok || !countRes.ok) {
+    const failed = listRes.ok ? countRes : listRes;
+    const errorText = await failed.text();
+    logger.error({ responseBody: errorText, status: failed.status }, 'Failed to fetch recipes with count');
+    throw new Error(`Failed to fetch recipes with count: ${failed.status} ${errorText}`);
   }
 
-  const res = await fetch(`${env.POSTGREST_URL}/user_recipes?${params}`, {
-    headers,
-    cache: 'no-store',
-  });
-
-  if (!res.ok) {
-    const errorText = await res.text();
-    logger.error({ responseBody: errorText, status: res.status }, 'Failed to fetch recipes with count');
-    throw new Error(`Failed to fetch recipes with count: ${res.status} ${errorText}`);
-  }
-
-  const recipes: Recipe[] = await res.json();
-  const totalCount = parseContentRange(res.headers.get('Content-Range'));
+  const recipes: Recipe[] = await listRes.json();
+  const totalCount = Number(await countRes.json());
 
   return { recipes, totalCount };
 }
