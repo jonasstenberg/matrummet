@@ -1,6 +1,6 @@
 import { getHomeInfo, getCurrentUserId, getUserHomes, getSharedBookUsers } from '@/lib/home-api'
 
-export type MemberEntry = { id: string; name: string; isCurrentUser: boolean; type: 'household' | 'shared-book' }
+export type MemberEntry = { id: string; name: string; isCurrentUser: boolean; type: 'household' | 'shared-book' | 'collection' }
 
 export async function buildMemberData(
   session: { email: string; name: string }
@@ -37,7 +37,7 @@ export async function buildMemberData(
             id: m.id,
             name: m.name,
             isCurrentUser: m.is_current_user ?? m.email === info.userEmail,
-            type: 'household',
+            type: m.is_collection ? 'collection' : 'household',
           });
         }
       }

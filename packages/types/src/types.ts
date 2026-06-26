@@ -253,6 +253,7 @@ export interface HomeMember {
   name: string
   joined_at?: string
   is_current_user?: boolean
+  is_collection?: boolean
 }
 
 export interface HomeInvitation {

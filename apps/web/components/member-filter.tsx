@@ -1,10 +1,10 @@
 
 import { useRouter, useLocation, useSearch } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
-import { BookOpen, Home } from '@/lib/icons'
+import { BookOpen, Home, Library } from '@/lib/icons'
 
 interface MemberFilterProps {
-  members: Array<{ id: string; name: string; isCurrentUser: boolean; type?: 'household' | 'shared-book' }>
+  members: Array<{ id: string; name: string; isCurrentUser: boolean; type?: 'household' | 'shared-book' | 'collection' }>
   selectedIds: string[]
 }
 
@@ -46,13 +46,18 @@ export function MemberFilter({ members, selectedIds }: MemberFilterProps) {
     router.navigate({ to: pathname, search: newSearch })
   }
 
-  // Sort: current user first, then household alphabetically, then shared-book alphabetically
+  // Sort: current user first, then by tier (household → collection → shared-book), then alphabetically
+  const TYPE_RANK: Record<'household' | 'collection' | 'shared-book', number> = {
+    household: 0,
+    collection: 1,
+    'shared-book': 2,
+  }
   const sortedMembers = [...members].sort((a, b) => {
     if (a.isCurrentUser) return -1
     if (b.isCurrentUser) return 1
-    const aType = a.type ?? 'household'
-    const bType = b.type ?? 'household'
-    if (aType !== bType) return aType === 'household' ? -1 : 1
+    const aRank = TYPE_RANK[a.type ?? 'household']
+    const bRank = TYPE_RANK[b.type ?? 'household']
+    if (aRank !== bRank) return aRank - bRank
     return a.name.localeCompare(b.name, 'sv')
   })
 
@@ -61,7 +66,7 @@ export function MemberFilter({ members, selectedIds }: MemberFilterProps) {
       {sortedMembers.map((member) => {
         const isSelected = selectedIds.includes(member.id)
         const label = member.isCurrentUser ? 'Mina recept' : member.name
-        const isSharedBook = member.type === 'shared-book'
+        const memberType = member.type ?? 'household'
         return (
           <button
             key={member.id}
@@ -75,8 +80,9 @@ export function MemberFilter({ members, selectedIds }: MemberFilterProps) {
             )}
             aria-pressed={isSelected}
           >
-            {!member.isCurrentUser && isSharedBook && <BookOpen className={cn('h-3.5 w-3.5', isSelected ? 'text-background/70' : 'text-warm')} />}
-            {!member.isCurrentUser && !isSharedBook && <Home className={cn('h-3.5 w-3.5', isSelected ? 'text-background/70' : 'text-muted-foreground')} />}
+            {!member.isCurrentUser && memberType === 'shared-book' && <BookOpen className={cn('h-3.5 w-3.5', isSelected ? 'text-background/70' : 'text-warm')} />}
+            {!member.isCurrentUser && memberType === 'collection' && <Library className={cn('h-3.5 w-3.5', isSelected ? 'text-background/70' : 'text-warm')} />}
+            {!member.isCurrentUser && memberType === 'household' && <Home className={cn('h-3.5 w-3.5', isSelected ? 'text-background/70' : 'text-muted-foreground')} />}
             {label}
           </button>
         )
