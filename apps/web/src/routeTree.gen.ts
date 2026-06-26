@@ -36,6 +36,7 @@ import { Route as MainAiPoangRouteImport } from './routes/_main/ai-poang'
 import { Route as MainAdminRouteImport } from './routes/_main/admin'
 import { Route as AuthRegistreraRouteImport } from './routes/_auth/registrera'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
+import { Route as MainSamlingarIndexRouteImport } from './routes/_main/samlingar/index'
 import { Route as MainMinaReceptIndexRouteImport } from './routes/_main/mina-recept/index'
 import { Route as MainInstallningarIndexRouteImport } from './routes/_main/installningar/index'
 import { Route as MainHushallIndexRouteImport } from './routes/_main/hushall/index'
@@ -64,6 +65,7 @@ import { Route as ApiAdminRestructureRouteImport } from './routes/api/admin/rest
 import { Route as ApiAdminFoodsRouteImport } from './routes/api/admin/foods'
 import { Route as ApiAdminDashboardRouteImport } from './routes/api/admin/dashboard'
 import { Route as ApiAdminCategoriesRouteImport } from './routes/api/admin/categories'
+import { Route as MainSamlingarIdRouteImport } from './routes/_main/samlingar/$id'
 import { Route as MainMinaReceptSokRouteImport } from './routes/_main/mina-recept/sok'
 import { Route as MainJoinCodeRouteImport } from './routes/_main/join/$code'
 import { Route as MainInstallningarHemmetRouteImport } from './routes/_main/installningar_.hemmet'
@@ -106,6 +108,7 @@ import { Route as MainHemHomeIdSkafferiRouteImport } from './routes/_main/hem/$h
 import { Route as MainHemHomeIdMatplanRouteImport } from './routes/_main/hem/$homeId/matplan'
 import { Route as MainHemHomeIdInstallningarRouteImport } from './routes/_main/hem/$homeId/installningar'
 import { Route as MainHemHomeIdInkopslistaRouteImport } from './routes/_main/hem/$homeId/inkopslista'
+import { Route as MainDelaSamlingTokenRouteImport } from './routes/_main/dela/samling/$token'
 import { Route as MainDelaBokTokenRouteImport } from './routes/_main/dela/bok/$token'
 import { Route as MainAdminReceptIdRouteImport } from './routes/_main/admin/recept/$id'
 import { Route as ApiAdminAiReviewRunsIdApplyRouteImport } from './routes/api/admin/ai-review/runs/$id/apply'
@@ -242,6 +245,11 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => AuthRoute,
+} as any)
+const MainSamlingarIndexRoute = MainSamlingarIndexRouteImport.update({
+  id: '/samlingar/',
+  path: '/samlingar/',
+  getParentRoute: () => MainRoute,
 } as any)
 const MainMinaReceptIndexRoute = MainMinaReceptIndexRouteImport.update({
   id: '/mina-recept/',
@@ -382,6 +390,11 @@ const ApiAdminCategoriesRoute = ApiAdminCategoriesRouteImport.update({
   id: '/api/admin/categories',
   path: '/api/admin/categories',
   getParentRoute: () => rootRouteImport,
+} as any)
+const MainSamlingarIdRoute = MainSamlingarIdRouteImport.update({
+  id: '/samlingar/$id',
+  path: '/samlingar/$id',
+  getParentRoute: () => MainRoute,
 } as any)
 const MainMinaReceptSokRoute = MainMinaReceptSokRouteImport.update({
   id: '/mina-recept/sok',
@@ -601,6 +614,11 @@ const MainHemHomeIdInkopslistaRoute =
     path: '/inkopslista',
     getParentRoute: () => MainHemHomeIdRoute,
   } as any)
+const MainDelaSamlingTokenRoute = MainDelaSamlingTokenRouteImport.update({
+  id: '/dela/samling/$token',
+  path: '/dela/samling/$token',
+  getParentRoute: () => MainRoute,
+} as any)
 const MainDelaBokTokenRoute = MainDelaBokTokenRouteImport.update({
   id: '/dela/bok/$token',
   path: '/dela/bok/$token',
@@ -665,6 +683,7 @@ export interface FileRoutesByFullPath {
   '/installningar/hemmet': typeof MainInstallningarHemmetRoute
   '/join/$code': typeof MainJoinCodeRoute
   '/mina-recept/sok': typeof MainMinaReceptSokRoute
+  '/samlingar/$id': typeof MainSamlingarIdRoute
   '/api/admin/categories': typeof ApiAdminCategoriesRoute
   '/api/admin/dashboard': typeof ApiAdminDashboardRoute
   '/api/admin/foods': typeof ApiAdminFoodsRouteWithChildren
@@ -693,8 +712,10 @@ export interface FileRoutesByFullPath {
   '/hushall/': typeof MainHushallIndexRoute
   '/installningar/': typeof MainInstallningarIndexRoute
   '/mina-recept/': typeof MainMinaReceptIndexRoute
+  '/samlingar/': typeof MainSamlingarIndexRoute
   '/admin/recept/$id': typeof MainAdminReceptIdRoute
   '/dela/bok/$token': typeof MainDelaBokTokenRoute
+  '/dela/samling/$token': typeof MainDelaSamlingTokenRoute
   '/hem/$homeId/inkopslista': typeof MainHemHomeIdInkopslistaRoute
   '/hem/$homeId/installningar': typeof MainHemHomeIdInstallningarRoute
   '/hem/$homeId/matplan': typeof MainHemHomeIdMatplanRoute
@@ -763,6 +784,7 @@ export interface FileRoutesByTo {
   '/installningar/hemmet': typeof MainInstallningarHemmetRoute
   '/join/$code': typeof MainJoinCodeRoute
   '/mina-recept/sok': typeof MainMinaReceptSokRoute
+  '/samlingar/$id': typeof MainSamlingarIdRoute
   '/api/admin/categories': typeof ApiAdminCategoriesRoute
   '/api/admin/dashboard': typeof ApiAdminDashboardRoute
   '/api/admin/foods': typeof ApiAdminFoodsRouteWithChildren
@@ -791,8 +813,10 @@ export interface FileRoutesByTo {
   '/hushall': typeof MainHushallIndexRoute
   '/installningar': typeof MainInstallningarIndexRoute
   '/mina-recept': typeof MainMinaReceptIndexRoute
+  '/samlingar': typeof MainSamlingarIndexRoute
   '/admin/recept/$id': typeof MainAdminReceptIdRoute
   '/dela/bok/$token': typeof MainDelaBokTokenRoute
+  '/dela/samling/$token': typeof MainDelaSamlingTokenRoute
   '/hem/$homeId/inkopslista': typeof MainHemHomeIdInkopslistaRoute
   '/hem/$homeId/installningar': typeof MainHemHomeIdInstallningarRoute
   '/hem/$homeId/matplan': typeof MainHemHomeIdMatplanRoute
@@ -866,6 +890,7 @@ export interface FileRoutesById {
   '/_main/installningar_/hemmet': typeof MainInstallningarHemmetRoute
   '/_main/join/$code': typeof MainJoinCodeRoute
   '/_main/mina-recept/sok': typeof MainMinaReceptSokRoute
+  '/_main/samlingar/$id': typeof MainSamlingarIdRoute
   '/api/admin/categories': typeof ApiAdminCategoriesRoute
   '/api/admin/dashboard': typeof ApiAdminDashboardRoute
   '/api/admin/foods': typeof ApiAdminFoodsRouteWithChildren
@@ -894,8 +919,10 @@ export interface FileRoutesById {
   '/_main/hushall/': typeof MainHushallIndexRoute
   '/_main/installningar/': typeof MainInstallningarIndexRoute
   '/_main/mina-recept/': typeof MainMinaReceptIndexRoute
+  '/_main/samlingar/': typeof MainSamlingarIndexRoute
   '/_main/admin/recept/$id': typeof MainAdminReceptIdRoute
   '/_main/dela/bok/$token': typeof MainDelaBokTokenRoute
+  '/_main/dela/samling/$token': typeof MainDelaSamlingTokenRoute
   '/_main/hem/$homeId/inkopslista': typeof MainHemHomeIdInkopslistaRoute
   '/_main/hem/$homeId/installningar': typeof MainHemHomeIdInstallningarRoute
   '/_main/hem/$homeId/matplan': typeof MainHemHomeIdMatplanRoute
@@ -968,6 +995,7 @@ export interface FileRouteTypes {
     | '/installningar/hemmet'
     | '/join/$code'
     | '/mina-recept/sok'
+    | '/samlingar/$id'
     | '/api/admin/categories'
     | '/api/admin/dashboard'
     | '/api/admin/foods'
@@ -996,8 +1024,10 @@ export interface FileRouteTypes {
     | '/hushall/'
     | '/installningar/'
     | '/mina-recept/'
+    | '/samlingar/'
     | '/admin/recept/$id'
     | '/dela/bok/$token'
+    | '/dela/samling/$token'
     | '/hem/$homeId/inkopslista'
     | '/hem/$homeId/installningar'
     | '/hem/$homeId/matplan'
@@ -1066,6 +1096,7 @@ export interface FileRouteTypes {
     | '/installningar/hemmet'
     | '/join/$code'
     | '/mina-recept/sok'
+    | '/samlingar/$id'
     | '/api/admin/categories'
     | '/api/admin/dashboard'
     | '/api/admin/foods'
@@ -1094,8 +1125,10 @@ export interface FileRouteTypes {
     | '/hushall'
     | '/installningar'
     | '/mina-recept'
+    | '/samlingar'
     | '/admin/recept/$id'
     | '/dela/bok/$token'
+    | '/dela/samling/$token'
     | '/hem/$homeId/inkopslista'
     | '/hem/$homeId/installningar'
     | '/hem/$homeId/matplan'
@@ -1168,6 +1201,7 @@ export interface FileRouteTypes {
     | '/_main/installningar_/hemmet'
     | '/_main/join/$code'
     | '/_main/mina-recept/sok'
+    | '/_main/samlingar/$id'
     | '/api/admin/categories'
     | '/api/admin/dashboard'
     | '/api/admin/foods'
@@ -1196,8 +1230,10 @@ export interface FileRouteTypes {
     | '/_main/hushall/'
     | '/_main/installningar/'
     | '/_main/mina-recept/'
+    | '/_main/samlingar/'
     | '/_main/admin/recept/$id'
     | '/_main/dela/bok/$token'
+    | '/_main/dela/samling/$token'
     | '/_main/hem/$homeId/inkopslista'
     | '/_main/hem/$homeId/installningar'
     | '/_main/hem/$homeId/matplan'
@@ -1455,6 +1491,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_main/samlingar/': {
+      id: '/_main/samlingar/'
+      path: '/samlingar'
+      fullPath: '/samlingar/'
+      preLoaderRoute: typeof MainSamlingarIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
     '/_main/mina-recept/': {
       id: '/_main/mina-recept/'
       path: '/mina-recept'
@@ -1650,6 +1693,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/admin/categories'
       preLoaderRoute: typeof ApiAdminCategoriesRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_main/samlingar/$id': {
+      id: '/_main/samlingar/$id'
+      path: '/samlingar/$id'
+      fullPath: '/samlingar/$id'
+      preLoaderRoute: typeof MainSamlingarIdRouteImport
+      parentRoute: typeof MainRoute
     }
     '/_main/mina-recept/sok': {
       id: '/_main/mina-recept/sok'
@@ -1945,6 +1995,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainHemHomeIdInkopslistaRouteImport
       parentRoute: typeof MainHemHomeIdRoute
     }
+    '/_main/dela/samling/$token': {
+      id: '/_main/dela/samling/$token'
+      path: '/dela/samling/$token'
+      fullPath: '/dela/samling/$token'
+      preLoaderRoute: typeof MainDelaSamlingTokenRouteImport
+      parentRoute: typeof MainRoute
+    }
     '/_main/dela/bok/$token': {
       id: '/_main/dela/bok/$token'
       path: '/dela/bok/$token'
@@ -2074,11 +2131,14 @@ interface MainRouteChildren {
   MainInstallningarHemmetRoute: typeof MainInstallningarHemmetRoute
   MainJoinCodeRoute: typeof MainJoinCodeRoute
   MainMinaReceptSokRoute: typeof MainMinaReceptSokRoute
+  MainSamlingarIdRoute: typeof MainSamlingarIdRoute
   MainAllaReceptIndexRoute: typeof MainAllaReceptIndexRoute
   MainHemmetIndexRoute: typeof MainHemmetIndexRoute
   MainHushallIndexRoute: typeof MainHushallIndexRoute
   MainMinaReceptIndexRoute: typeof MainMinaReceptIndexRoute
+  MainSamlingarIndexRoute: typeof MainSamlingarIndexRoute
   MainDelaBokTokenRoute: typeof MainDelaBokTokenRoute
+  MainDelaSamlingTokenRoute: typeof MainDelaSamlingTokenRoute
   MainReceptIdRedigeraRoute: typeof MainReceptIdRedigeraRoute
   MainReceptNyttManuelltRoute: typeof MainReceptNyttManuelltRoute
   MainReceptIdIndexRoute: typeof MainReceptIdIndexRoute
@@ -2109,11 +2169,14 @@ const MainRouteChildren: MainRouteChildren = {
   MainInstallningarHemmetRoute: MainInstallningarHemmetRoute,
   MainJoinCodeRoute: MainJoinCodeRoute,
   MainMinaReceptSokRoute: MainMinaReceptSokRoute,
+  MainSamlingarIdRoute: MainSamlingarIdRoute,
   MainAllaReceptIndexRoute: MainAllaReceptIndexRoute,
   MainHemmetIndexRoute: MainHemmetIndexRoute,
   MainHushallIndexRoute: MainHushallIndexRoute,
   MainMinaReceptIndexRoute: MainMinaReceptIndexRoute,
+  MainSamlingarIndexRoute: MainSamlingarIndexRoute,
   MainDelaBokTokenRoute: MainDelaBokTokenRoute,
+  MainDelaSamlingTokenRoute: MainDelaSamlingTokenRoute,
   MainReceptIdRedigeraRoute: MainReceptIdRedigeraRoute,
   MainReceptNyttManuelltRoute: MainReceptNyttManuelltRoute,
   MainReceptIdIndexRoute: MainReceptIdIndexRoute,

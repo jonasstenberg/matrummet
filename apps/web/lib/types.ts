@@ -26,5 +26,9 @@ export type {
   ShareLink,
   BookShareConnection,
   BookShareInfo,
+  Collection,
+  CollectionForRecipe,
+  CollectionShareInfo,
+  SharedCollection,
   SharedRecipe,
 } from '@matrummet/types/types'

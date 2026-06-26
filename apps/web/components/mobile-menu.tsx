@@ -10,7 +10,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { isAdmin } from "@/lib/is-admin";
 import { cn } from "@/lib/utils";
-import { BookOpen, CalendarDays, Home, LogOut, Menu, PenLine, Settings, ShoppingCart, Sparkles, UtensilsCrossed, UserCog } from "@/lib/icons";
+import { BookOpen, CalendarDays, Home, Library, LogOut, Menu, PenLine, Settings, ShoppingCart, Sparkles, UtensilsCrossed, UserCog } from "@/lib/icons";
 import { Link, useLocation } from "@tanstack/react-router";
 import type { FileRouteTypes } from '@/src/routeTree.gen'
 import { useState } from "react";
@@ -152,6 +152,14 @@ export function MobileMenu() {
 
             <Separator className="my-2" />
 
+            <MobileNavItem
+              to="/samlingar"
+              icon={Library}
+              isActive={pathname.startsWith('/samlingar')}
+              onClick={() => setOpen(false)}
+            >
+              Samlingar
+            </MobileNavItem>
             <MobileNavItem
               to="/hushall"
               icon={Home}

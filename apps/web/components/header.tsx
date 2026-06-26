@@ -25,6 +25,7 @@ import {
   Home,
   Shield,
   BookOpen,
+  Library,
 } from "@/lib/icons";
 import { Suspense, lazy } from "react";
 import { Link } from "@tanstack/react-router";
@@ -183,6 +184,12 @@ export function Header() {
                       </>
                     )}
                     <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/samlingar" className="flex items-center gap-2">
+                        <Library className="h-4 w-4" />
+                        Samlingar
+                      </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link to="/hushall" className="flex items-center gap-2">
                         <Home className="h-4 w-4" />

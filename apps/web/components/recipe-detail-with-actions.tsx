@@ -1,3 +1,4 @@
+import { AddToCollectionDialog } from "@/components/add-to-collection-dialog";
 import { AddToShoppingListButton } from "@/components/add-to-shopping-list-button";
 import { useAuth } from "@/components/auth-provider";
 import { CopyRecipeButton } from "@/components/copy-recipe-button";
@@ -23,7 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { deleteRecipe } from "@/lib/actions";
-import { Copy, EllipsisVertical, Pencil, Share2, Trash2 } from "@/lib/icons";
+import { Copy, EllipsisVertical, Library, Pencil, Share2, Trash2 } from "@/lib/icons";
 import { Recipe } from "@/lib/types";
 import { Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
@@ -42,6 +43,7 @@ export function RecipeDetailWithActions({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [copyDialogOpen, setCopyDialogOpen] = useState(false);
+  const [collectionDialogOpen, setCollectionDialogOpen] = useState(false);
 
   const isOwner = recipe.is_owner ?? false;
   const isLoggedIn = !!user;
@@ -109,6 +111,14 @@ export function RecipeDetailWithActions({
                     Dela
                   </DropdownMenuItem>
                 )}
+                {isOwner && (
+                  <DropdownMenuItem
+                    onSelect={() => setCollectionDialogOpen(true)}
+                  >
+                    <Library className="mr-2 h-4 w-4" />
+                    Lägg till i samling
+                  </DropdownMenuItem>
+                )}
                 {canCopy && (
                   <DropdownMenuItem onSelect={() => setCopyDialogOpen(true)}>
                     <Copy className="mr-2 h-4 w-4" />
@@ -146,6 +156,13 @@ export function RecipeDetailWithActions({
           recipeId={recipe.id}
           open={shareDialogOpen}
           onOpenChange={setShareDialogOpen}
+        />
+      )}
+      {isOwner && (
+        <AddToCollectionDialog
+          recipeId={recipe.id}
+          open={collectionDialogOpen}
+          onOpenChange={setCollectionDialogOpen}
         />
       )}
       {canCopy && (

@@ -306,6 +306,42 @@ export interface BookShareInfo {
   already_connected: boolean
 }
 
+export interface Collection {
+  id: string
+  name: string
+  description: string | null
+  kind: 'personal' | 'curated'
+  cover_image: string | null
+  owner: string
+  owner_name: string
+  is_owner: boolean
+  recipe_count: number
+  date_published: string
+}
+
+export interface CollectionForRecipe {
+  id: string
+  name: string
+  contains: boolean
+}
+
+export interface CollectionShareInfo {
+  collection_id: string
+  collection_name: string
+  sharer_name: string
+  sharer_email: string
+  recipe_count: number
+  already_connected: boolean
+}
+
+export interface SharedCollection {
+  connection_id: string
+  collection_id: string
+  collection_name: string
+  sharer_name: string
+  created_at: string
+}
+
 export interface SharedRecipe {
   id: string
   name: string
