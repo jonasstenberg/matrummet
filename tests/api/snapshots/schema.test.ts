@@ -495,6 +495,7 @@ describe("Schema Snapshot Tests", () => {
         "home_id",
         "home_joined_at",
         "id",
+        "is_collection",
         "measures_system",
         "name",
         "owner",
