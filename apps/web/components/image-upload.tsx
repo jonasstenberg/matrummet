@@ -3,10 +3,11 @@ import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Upload, X, ImageIcon, Link } from '@/lib/icons'
+import { Upload, X, ImageIcon, Link, Crop } from '@/lib/icons'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { getPreviewUrl } from '@/lib/hooks/use-image-upload'
+import { ImageCropper } from '@/components/image-cropper'
 
 interface ImageUploadProps {
   /** Current value: filename (for saved images) or URL (for imported) */
@@ -39,6 +40,10 @@ export function ImageUpload({
   const [isDragging, setIsDragging] = useState(false)
   const [showOverlay, setShowOverlay] = useState(false)
   const [imageUrl, setImageUrl] = useState('')
+  // Original (uncropped) file kept so the user can re-crop without quality loss
+  const [originalFile, setOriginalFile] = useState<File | null>(null)
+  // Source being cropped: object URL + the file it came from (null = cropper closed)
+  const [cropSource, setCropSource] = useState<{ url: string; file: File } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Update preview when value changes (e.g., from import)
@@ -68,6 +73,12 @@ export function ImageUpload({
     return () => reader.abort()
   }, [pendingFile, pendingFilePreview])
 
+  // Revoke the cropper's object URL when it changes or on unmount
+  useEffect(() => {
+    if (!cropSource) return
+    return () => URL.revokeObjectURL(cropSource.url)
+  }, [cropSource])
+
   // Use parent-provided preview if available, otherwise use local
   const filePreview = pendingFilePreview ?? localFilePreview
 
@@ -87,8 +98,30 @@ export function ImageUpload({
     }
 
     setError(null)
-    // Don't upload - just pass the file to parent
-    onFileSelect?.(file)
+    // Open the cropper before passing the file up to the parent
+    openCropper(file)
+  }
+
+  function openCropper(file: File) {
+    setCropSource((prev) => {
+      if (prev) URL.revokeObjectURL(prev.url)
+      return { url: URL.createObjectURL(file), file }
+    })
+  }
+
+  function closeCropper() {
+    setCropSource((prev) => {
+      if (prev) URL.revokeObjectURL(prev.url)
+      return null
+    })
+  }
+
+  function handleCropComplete(croppedFile: File) {
+    // Keep the original around so the image can be re-cropped later
+    setOriginalFile(cropSource?.file ?? croppedFile)
+    closeCropper()
+    setShowOverlay(false)
+    onFileSelect?.(croppedFile)
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -101,6 +134,8 @@ export function ImageUpload({
     setPreview(null)
     setLocalFilePreview(null)
     setShowOverlay(false)
+    setOriginalFile(null)
+    closeCropper()
     onChange(null)
     onFileSelect?.(null)
     if (fileInputRef.current) {
@@ -176,9 +211,21 @@ export function ImageUpload({
 
           {/* Overlay with actions — hover on desktop, tap to toggle on mobile */}
           <div className={cn(
-            "absolute inset-0 flex items-center justify-center gap-2 rounded-xl bg-black/40 transition-opacity",
+            "absolute inset-0 flex flex-wrap items-center justify-center gap-2 rounded-xl bg-black/40 transition-opacity",
             showOverlay ? "opacity-100" : "opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
           )}>
+            {originalFile && (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={(e) => { e.stopPropagation(); openCropper(originalFile) }}
+                className="gap-2"
+              >
+                <Crop className="h-4 w-4" />
+                Beskär
+              </Button>
+            )}
             <Button
               type="button"
               variant="secondary"
@@ -309,6 +356,15 @@ export function ImageUpload({
         className="hidden"
         id="image-upload"
       />
+
+      {cropSource && (
+        <ImageCropper
+          src={cropSource.url}
+          fileName={cropSource.file.name}
+          onCropComplete={handleCropComplete}
+          onCancel={closeCropper}
+        />
+      )}
 
       {error && (
         <Alert variant="destructive">

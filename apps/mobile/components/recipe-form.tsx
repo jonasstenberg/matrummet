@@ -99,7 +99,9 @@ export function RecipeForm({ title, recipe, onSave }: RecipeFormProps) {
     const options: ImagePicker.ImagePickerOptions = {
       mediaTypes: ['images'],
       quality: 0.8,
-      allowsEditing: false,
+      // Let the user crop to the 4:3 ratio the server stores recipe images in
+      allowsEditing: true,
+      aspect: [4, 3],
     }
 
     try {
