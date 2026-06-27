@@ -87,6 +87,13 @@ describe("oauthProvider authorization codes", () => {
     ).rejects.toThrow();
   });
 
+  it("accepts an omitted redirect_uri on the token request (PKCE is the binding)", async () => {
+    // Many OAuth 2.1 / PKCE clients omit redirect_uri when exchanging the code.
+    h.store.putCode(sha256("code3b"), codeFor("client-1"));
+    const tokens = await oauthProvider.exchangeAuthorizationCode(client, "code3b", "verifier");
+    expect(tokens.access_token).toBeTruthy();
+  });
+
   it("returns the PKCE challenge for the issuing client only", async () => {
     h.store.putCode(sha256("code4"), codeFor("client-1"));
     await expect(oauthProvider.challengeForAuthorizationCode(client, "code4")).resolves.toBe("challenge");

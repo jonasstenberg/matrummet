@@ -138,9 +138,11 @@ class MatrummetOAuthProvider implements OAuthServerProvider {
     if (!code || code.clientId !== client.client_id) {
       throw new InvalidGrantError("Invalid or expired authorization code");
     }
-    // Every code we issue carries a redirect_uri, so require an exact match
-    // (RFC 6749 §4.1.3) — an omitted redirect_uri is a mismatch.
-    if (redirectUri !== code.redirectUri) {
+    // If the client sends redirect_uri it must match, but many OAuth 2.1 / PKCE
+    // clients omit it on the token request (it's optional with a single
+    // registered URI). A missing value is allowed — PKCE S256, which is
+    // mandatory and verified by the SDK, is the real code↔client binding.
+    if (redirectUri !== undefined && redirectUri !== code.redirectUri) {
       throw new InvalidGrantError("redirect_uri mismatch");
     }
     return this.issueTokens(code.email, code.role, code.scope, client.client_id);
