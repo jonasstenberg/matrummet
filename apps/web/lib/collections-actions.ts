@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
-import type { Collection, CollectionForRecipe, CollectionShareInfo, SharedCollection } from '@/lib/types'
+import type { Collection, CollectionForRecipe, CollectionShareInfo, Recipe, SharedCollection } from '@/lib/types'
 import { actionAuthMiddleware } from './middleware'
 import { env } from '@/lib/env'
 
@@ -189,6 +189,29 @@ const getCollectionsForRecipeFn = createServerFn({ method: 'GET' })
       return await response.json()
     } catch (error) {
       log.error({ err: error instanceof Error ? error : String(error), recipeId: data.recipeId }, 'Error getting collections for recipe')
+      return []
+    }
+  })
+
+// Load-more for the collection browse page (next page of recipes via the limit-first RPC).
+const loadMoreCollectionRecipesFn = createServerFn({ method: 'GET' })
+  .middleware([actionAuthMiddleware])
+  .inputValidator(z.object({ collectionId: z.string(), offset: z.number(), limit: z.number() }))
+  .handler(async ({ data, context }): Promise<Recipe[]> => {
+    const { postgrestToken, logger } = context
+    const log = logger.child({ module: 'collections' })
+    if (!postgrestToken) return []
+
+    try {
+      const response = await fetch(rpcUrl('list_recipes_by_collection'), {
+        method: 'POST',
+        headers: authHeaders(postgrestToken),
+        body: JSON.stringify({ p_collection_id: data.collectionId, p_limit: data.limit, p_offset: data.offset }),
+      })
+      if (!response.ok) return []
+      return await response.json()
+    } catch (error) {
+      log.error({ err: error instanceof Error ? error : String(error), collectionId: data.collectionId }, 'Error loading more collection recipes')
       return []
     }
   })
@@ -398,6 +421,14 @@ export async function removeRecipeFromCollection(
 
 export async function getCollectionsForRecipe(recipeId: string): Promise<CollectionForRecipe[]> {
   return getCollectionsForRecipeFn({ data: { recipeId } })
+}
+
+export async function loadMoreCollectionRecipes(input: {
+  collectionId: string
+  offset: number
+  limit: number
+}): Promise<Recipe[]> {
+  return loadMoreCollectionRecipesFn({ data: input })
 }
 
 export async function createCollectionShareLink(

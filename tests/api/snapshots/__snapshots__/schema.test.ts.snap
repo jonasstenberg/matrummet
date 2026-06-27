@@ -370,7 +370,6 @@ exports[`Schema Snapshot Tests > users table > should have expected columns 1`] 
   "home_id",
   "home_joined_at",
   "id",
-  "is_collection",
   "measures_system",
   "name",
   "owner",

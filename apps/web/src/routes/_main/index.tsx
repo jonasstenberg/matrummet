@@ -8,6 +8,7 @@ import {
   getFeaturedRecipes,
 } from '@/lib/api'
 import { getUserPantry } from '@/lib/ingredient-search-actions'
+import { listCollections } from '@/lib/collections-api'
 import { buildMemberData, resolveSelectedMembers } from '@/lib/member-utils'
 import { RecipePageClient } from '@/components/recipe-page-client'
 import { RecipeGridSkeleton } from '@/components/recipe-grid-skeleton'
@@ -38,11 +39,13 @@ const fetchHomeData = createServerFn({ method: 'GET' })
       ? Math.max(PAGE_SIZE, offsetParam)
       : PAGE_SIZE
 
-    const [memberData, categories, pantryResult] = await Promise.all([
-      buildMemberData(session),
-      getCategories(),
-      getUserPantry(),
-    ])
+    const [memberData, categories, pantryResult, collections] =
+      await Promise.all([
+        buildMemberData(session),
+        getCategories(),
+        getUserPantry(),
+        listCollections(),
+      ])
 
     const { memberList, currentUserId } = memberData
     const selectedMemberIds = resolveSelectedMembers(
@@ -69,6 +72,7 @@ const fetchHomeData = createServerFn({ method: 'GET' })
       categories,
       memberList,
       selectedMemberIds,
+      collections,
     }
   })
 
@@ -134,6 +138,7 @@ function HomePage() {
       members={data.memberList}
       selectedMemberIds={data.selectedMemberIds}
       isAuthenticated={true}
+      collections={data.collections}
       totalCount={data.totalCount}
       pageSize={PAGE_SIZE}
     />

@@ -1,4 +1,4 @@
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from '@tanstack/react-router'
 import { RecipeCard } from '@/components/recipe-card'
 import { RecipeGrid } from '@/components/recipe-grid'
@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import {
   deleteCollection,
+  loadMoreCollectionRecipes,
   removeRecipeFromCollection,
   updateCollection,
 } from '@/lib/collections-actions'
@@ -37,6 +38,8 @@ interface CollectionDetailProps {
   recipes: Recipe[]
   totalCount: number
 }
+
+const PAGE_SIZE = 24
 
 export function CollectionDetail({
   collection,
@@ -55,6 +58,33 @@ export function CollectionDetail({
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const [removingId, setRemovingId] = useState<string | null>(null)
+
+  // Pagination state — render the grid from this state so load-more and
+  // per-recipe removal both stay in sync.
+  const [allRecipes, setAllRecipes] = useState<Recipe[]>(recipes)
+  const [offset, setOffset] = useState(recipes.length)
+  const [isLoadingMore, startLoadingMore] = useTransition()
+  const hasMore = totalCount > 0 && offset < totalCount
+
+  // Reset pagination when the loader data changes (collection switch / refresh).
+  useEffect(() => {
+    setAllRecipes(recipes)
+    setOffset(recipes.length)
+  }, [recipes])
+
+  function handleLoadMore() {
+    startLoadingMore(async () => {
+      const newRecipes = await loadMoreCollectionRecipes({
+        collectionId: collection.id,
+        offset,
+        limit: PAGE_SIZE,
+      })
+      if (newRecipes.length > 0) {
+        setAllRecipes((prev) => [...prev, ...newRecipes])
+        setOffset((prev) => prev + newRecipes.length)
+      }
+    })
+  }
 
   function handleRename(event: React.FormEvent) {
     event.preventDefault()
@@ -104,6 +134,11 @@ export function CollectionDetail({
       if ('error' in result) {
         setError(result.error)
       } else {
+        // Drop it locally so it disappears immediately and loaded-more items
+        // remain. The router.invalidate refreshes totalCount + the prop, and
+        // the useEffect re-syncs allRecipes/offset afterwards.
+        setAllRecipes((prev) => prev.filter((r) => r.id !== recipeId))
+        setOffset((prev) => Math.max(0, prev - 1))
         await router.invalidate()
       }
       setRemovingId(null)
@@ -172,7 +207,7 @@ export function CollectionDetail({
       )}
 
       {isOwner && isManaging ? (
-        recipes.length === 0 ? (
+        allRecipes.length === 0 ? (
           <div className="flex min-h-[400px] items-center justify-center rounded-lg border border-dashed">
             <div className="text-center">
               <h2 className="text-lg font-semibold text-foreground">
@@ -184,28 +219,49 @@ export function CollectionDetail({
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:gap-6">
-            {recipes.map((recipe) => (
-              <div key={recipe.id} className="relative">
-                <RecipeCard recipe={recipe} />
-                <button
-                  type="button"
-                  onClick={() => handleRemoveRecipe(recipe.id)}
-                  disabled={isPending && removingId === recipe.id}
-                  aria-label={`Ta bort ${recipe.name} från samlingen`}
-                  className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-destructive shadow-md backdrop-blur-sm transition-colors hover:bg-white disabled:opacity-50"
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:gap-6">
+              {allRecipes.map((recipe) => (
+                <div key={recipe.id} className="relative">
+                  <RecipeCard recipe={recipe} />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveRecipe(recipe.id)}
+                    disabled={isPending && removingId === recipe.id}
+                    aria-label={`Ta bort ${recipe.name} från samlingen`}
+                    className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-destructive shadow-md backdrop-blur-sm transition-colors hover:bg-white disabled:opacity-50"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            {hasMore && (
+              <div className="flex flex-col items-center gap-3 pt-4">
+                <p className="text-sm text-muted-foreground">
+                  Visar {offset} av {totalCount} recept
+                </p>
+                <Button
+                  onClick={handleLoadMore}
+                  disabled={isLoadingMore}
+                  className="min-w-[200px]"
                 >
-                  <X className="h-4 w-4" />
-                </button>
+                  {isLoadingMore ? 'Laddar...' : 'Ladda fler recept'}
+                </Button>
               </div>
-            ))}
+            )}
           </div>
         )
       ) : (
         <RecipeGrid
-          recipes={recipes}
+          recipes={allRecipes}
           emptyMessage="Inga recept i samlingen"
           emptyDescription="Lägg till recept via &quot;Lägg till i samling&quot; på ett recept."
+          onLoadMore={handleLoadMore}
+          hasMore={hasMore}
+          isLoadingMore={isLoadingMore}
+          totalCount={totalCount}
+          loadedCount={offset}
         />
       )}
 

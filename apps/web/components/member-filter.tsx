@@ -1,10 +1,10 @@
 
 import { useRouter, useLocation, useSearch } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
-import { BookOpen, Home, Library } from '@/lib/icons'
+import { BookOpen, Home } from '@/lib/icons'
 
 interface MemberFilterProps {
-  members: Array<{ id: string; name: string; isCurrentUser: boolean; type?: 'household' | 'shared-book' | 'collection' }>
+  members: Array<{ id: string; name: string; isCurrentUser: boolean; type?: 'household' | 'shared-book' }>
   selectedIds: string[]
 }
 
@@ -46,11 +46,10 @@ export function MemberFilter({ members, selectedIds }: MemberFilterProps) {
     router.navigate({ to: pathname, search: newSearch })
   }
 
-  // Sort: current user first, then by tier (household → collection → shared-book), then alphabetically
-  const TYPE_RANK: Record<'household' | 'collection' | 'shared-book', number> = {
+  // Sort: current user first, then by tier (household → shared-book), then alphabetically
+  const TYPE_RANK: Record<'household' | 'shared-book', number> = {
     household: 0,
-    collection: 1,
-    'shared-book': 2,
+    'shared-book': 1,
   }
   const sortedMembers = [...members].sort((a, b) => {
     if (a.isCurrentUser) return -1
@@ -81,7 +80,6 @@ export function MemberFilter({ members, selectedIds }: MemberFilterProps) {
             aria-pressed={isSelected}
           >
             {!member.isCurrentUser && memberType === 'shared-book' && <BookOpen className={cn('h-3.5 w-3.5', isSelected ? 'text-background/70' : 'text-warm')} />}
-            {!member.isCurrentUser && memberType === 'collection' && <Library className={cn('h-3.5 w-3.5', isSelected ? 'text-background/70' : 'text-warm')} />}
             {!member.isCurrentUser && memberType === 'household' && <Home className={cn('h-3.5 w-3.5', isSelected ? 'text-background/70' : 'text-muted-foreground')} />}
             {label}
           </button>

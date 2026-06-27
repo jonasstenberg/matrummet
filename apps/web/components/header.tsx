@@ -62,6 +62,15 @@ export function Header() {
           <div className="hidden md:flex items-center gap-3">
             {user ? (
               <>
+                {/* Samlingar (top-level nav) */}
+                <Link
+                  to="/samlingar"
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted/50"
+                >
+                  <Library className="h-4 w-4" />
+                  Samlingar
+                </Link>
+
                 {/* AI credits link */}
                 <Link
                   to="/ai-poang"
@@ -184,12 +193,6 @@ export function Header() {
                       </>
                     )}
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link to="/samlingar" className="flex items-center gap-2">
-                        <Library className="h-4 w-4" />
-                        Samlingar
-                      </Link>
-                    </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link to="/hushall" className="flex items-center gap-2">
                         <Home className="h-4 w-4" />

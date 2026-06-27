@@ -4,8 +4,9 @@ import { useNavigate } from '@tanstack/react-router'
 import { MemberFilter } from '@/components/member-filter'
 import { RecipeGrid } from '@/components/recipe-grid'
 import { CategoryFilter } from '@/components/category-filter'
+import { CollectionsShelf } from '@/components/collections-shelf'
 import { IngredientFilterToggle } from '@/components/ingredient-filter-toggle'
-import type { Recipe, CategoryGroup } from '@/lib/types'
+import type { Recipe, CategoryGroup, Collection } from '@/lib/types'
 import type { PantryItem } from '@/lib/ingredient-search-types'
 import { loadMoreRecipes } from '@/lib/recipe-actions'
 import { useRecipeFilters } from '@/lib/hooks/use-recipe-filters'
@@ -17,6 +18,7 @@ interface RecipePageClientProps {
   members: Array<{ id: string; name: string; isCurrentUser: boolean; type?: 'household' | 'shared-book' }>
   selectedMemberIds: string[]
   isAuthenticated: boolean
+  collections?: Collection[]
   totalCount?: number
   pageSize?: number
 }
@@ -30,6 +32,7 @@ export function RecipePageClient({
   members,
   selectedMemberIds,
   isAuthenticated,
+  collections = [],
   totalCount = 0,
   pageSize = PAGE_SIZE,
 }: RecipePageClientProps) {
@@ -143,6 +146,12 @@ export function RecipePageClient({
           Recept
         </h1>
       </header>
+
+      {/* Collections shelf — navigates to collections; a distinct section,
+          visually separate from the owner-filter pills below. */}
+      {collections.length > 0 && (
+        <CollectionsShelf collections={collections} />
+      )}
 
       {/* Member Filter Badges (only useful with multiple members) */}
       {members.length > 1 && (
