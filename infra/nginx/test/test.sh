@@ -358,6 +358,9 @@ assert_redirect "HTTP mcp.matrummet.se → HTTPS" \
     "http://mcp.matrummet.se:${HTTP}/" "https://mcp.matrummet.se" \
     $R_MCP
 
+assert_upstream "/ → mcp" "mcp" \
+    "https://mcp.matrummet.se:${HTTPS}/" $R_MCP
+
 assert_upstream "/mcp → mcp" "mcp" \
     "https://mcp.matrummet.se:${HTTPS}/mcp" $R_MCP -X POST
 

@@ -79,6 +79,19 @@ app.get("/mcp", bearer, (_req, res) => {
 });
 app.delete("/mcp", bearer, handleMcp);
 
+// Self-describing root so a browser/human visit isn't a bare 404. Clients still
+// connect to /mcp; this just points the curious in the right direction.
+app.get("/", (_req, res) => {
+  res.json({
+    service: "Matrummet MCP",
+    description: "Model Context Protocol server for the Matrummet recipe API.",
+    transport: "streamable-http",
+    mcp_endpoint: RESOURCE_URL,
+    authorization_server: `${config.issuerUrl}/.well-known/oauth-authorization-server`,
+    protected_resource_metadata: `${config.issuerUrl}/.well-known/oauth-protected-resource/mcp`,
+  });
+});
+
 app.get("/health", (_req, res) => {
   res.sendStatus(200);
 });
