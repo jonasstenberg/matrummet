@@ -138,6 +138,6 @@ export function viewTool(opts: {
   };
 }
 
-/** Re-export low-level callers for the few bespoke tools (upload, delete). */
-export { callRpc, deleteFrom, uploadImage };
+/** Re-export low-level callers for the few bespoke tools (upload, delete, get). */
+export { callRpc, deleteFrom, queryView, uploadImage };
 export type { ToolContext };

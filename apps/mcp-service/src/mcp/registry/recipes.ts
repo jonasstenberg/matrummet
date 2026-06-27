@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { deleteFrom, rpcTool, type ToolContext, type ToolDef } from "../tool.js";
+import { deleteFrom, queryView, rpcTool, type ToolContext, type ToolDef } from "../tool.js";
 
 /** Ingredient array element: an item OR a group header (never both). */
 const ingredient = z.union([
@@ -36,6 +36,29 @@ const recipeBody = {
 } satisfies z.ZodRawShape;
 
 export const recipeTools: ToolDef[] = [
+  {
+    name: "get_recipe",
+    title: "Get recipe by id",
+    description:
+      "Fetch a single recipe in full (name, servings, categories, ingredients and instructions) by its id.",
+    inputSchema: {
+      recipe_id: z.string().describe("Recipe id (uuid)"),
+    },
+    annotations: { readOnlyHint: true },
+    handler: async (args: Record<string, unknown>, ctx: ToolContext) => {
+      const id = typeof args.recipe_id === "string" ? args.recipe_id : "";
+      if (!id) throw new Error("recipe_id is required");
+      const params = new URLSearchParams();
+      params.set("id", `eq.${id}`);
+      params.set("limit", "1");
+      const rows = await queryView(ctx, "user_recipes", params);
+      if (Array.isArray(rows)) {
+        const list = rows as unknown[];
+        return list[0] ?? "Recipe not found.";
+      }
+      return rows;
+    },
+  },
   rpcTool({
     name: "insert_recipe",
     title: "Create recipe",
