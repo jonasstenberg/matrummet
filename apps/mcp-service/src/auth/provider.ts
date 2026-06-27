@@ -140,8 +140,6 @@ class MatrummetOAuthProvider implements OAuthServerProvider {
   async exchangeAuthorizationCode(
     client: OAuthClientInformationFull,
     authorizationCode: string,
-    _codeVerifier?: string,
-    redirectUri?: string,
   ): Promise<OAuthTokens> {
     const code = store.consumeCode(sha256(authorizationCode));
     if (!code || code.clientId !== client.client_id) {
@@ -151,19 +149,11 @@ class MatrummetOAuthProvider implements OAuthServerProvider {
       );
       throw new InvalidGrantError("Invalid or expired authorization code");
     }
-    // We do NOT re-compare redirect_uri here. The SDK already validated it
-    // against the client's registered redirect_uris at /authorize, and PKCE S256
-    // (mandatory, verified by the SDK token handler BEFORE this runs) is the real
-    // code↔client binding for public clients. A token-time re-comparison only
-    // causes interop breakage — clients omit it, or normalize trailing-slash /
-    // percent-encoding differently than the value we stored. Log differences for
-    // visibility, but allow the exchange (redirect_uri is not a secret).
-    if (redirectUri !== undefined && redirectUri !== code.redirectUri) {
-      logger.info(
-        { client: client.client_id, sent: redirectUri, bound: code.redirectUri },
-        "token: redirect_uri differs from authorize — allowed (PKCE is the binding)",
-      );
-    }
+    // No token-time redirect_uri re-check: the SDK already validated it against
+    // the client's registered redirect_uris at /authorize, and PKCE S256 (verified
+    // by the SDK token handler before this runs) is the real code↔client binding
+    // for public clients. Re-comparing here only breaks interop (clients omit it
+    // or normalize trailing-slash / encoding differently than the stored value).
     return this.issueTokens(code.email, code.role, code.scope, client.client_id);
   }
 

@@ -65,34 +65,19 @@ beforeEach(() => {
 describe("oauthProvider authorization codes", () => {
   it("exchanges a valid code once, then rejects reuse", async () => {
     h.store.putCode(sha256("code1"), codeFor("client-1"));
-    const tokens = await oauthProvider.exchangeAuthorizationCode(client, "code1", "verifier", "https://app.example/cb");
+    const tokens = await oauthProvider.exchangeAuthorizationCode(client, "code1");
     expect(tokens.access_token).toBeTruthy();
     expect(tokens.refresh_token).toBeTruthy();
     await expect(
-      oauthProvider.exchangeAuthorizationCode(client, "code1", "verifier", "https://app.example/cb"),
+      oauthProvider.exchangeAuthorizationCode(client, "code1"),
     ).rejects.toThrow();
   });
 
   it("rejects a code issued to a different client", async () => {
     h.store.putCode(sha256("code2"), codeFor("client-2"));
     await expect(
-      oauthProvider.exchangeAuthorizationCode(client, "code2", "verifier", "https://app.example/cb"),
+      oauthProvider.exchangeAuthorizationCode(client, "code2"),
     ).rejects.toThrow();
-  });
-
-  it("does not re-gate on redirect_uri at the token step (PKCE is the binding)", async () => {
-    // The SDK validates redirect_uri ∈ registered at /authorize and verifies PKCE
-    // before this runs, so the provider accepts the exchange regardless of whether
-    // the client omits redirect_uri or sends a differently-normalized one.
-    h.store.putCode(sha256("code3a"), codeFor("client-1"));
-    await expect(
-      oauthProvider.exchangeAuthorizationCode(client, "code3a", "verifier"),
-    ).resolves.toHaveProperty("access_token");
-
-    h.store.putCode(sha256("code3b"), codeFor("client-1"));
-    await expect(
-      oauthProvider.exchangeAuthorizationCode(client, "code3b", "verifier", "https://cb.example/x/"),
-    ).resolves.toHaveProperty("access_token");
   });
 
   it("returns the PKCE challenge for the issuing client only", async () => {
@@ -106,7 +91,7 @@ describe("oauthProvider authorization codes", () => {
 describe("oauthProvider refresh rotation", () => {
   it("rotates, then revokes the family on reuse", async () => {
     h.store.putCode(sha256("rc"), codeFor("client-1"));
-    const t1 = await oauthProvider.exchangeAuthorizationCode(client, "rc", "v", "https://app.example/cb");
+    const t1 = await oauthProvider.exchangeAuthorizationCode(client, "rc");
     const rt = t1.refresh_token as string;
 
     const t2 = await oauthProvider.exchangeRefreshToken(client, rt);
@@ -121,7 +106,7 @@ describe("oauthProvider refresh rotation", () => {
 
   it("rejects a refresh token from another client", async () => {
     h.store.putCode(sha256("rc2"), codeFor("client-1"));
-    const t1 = await oauthProvider.exchangeAuthorizationCode(client, "rc2", "v", "https://app.example/cb");
+    const t1 = await oauthProvider.exchangeAuthorizationCode(client, "rc2");
     const other = { ...client, client_id: "other" } as OAuthClientInformationFull;
     await expect(oauthProvider.exchangeRefreshToken(other, t1.refresh_token as string)).rejects.toThrow();
   });
@@ -130,7 +115,7 @@ describe("oauthProvider refresh rotation", () => {
 describe("oauthProvider verifyAccessToken", () => {
   it("returns the user email in AuthInfo.extra and rejects refresh tokens", async () => {
     h.store.putCode(sha256("vc"), codeFor("client-1"));
-    const t1 = await oauthProvider.exchangeAuthorizationCode(client, "vc", "v", "https://app.example/cb");
+    const t1 = await oauthProvider.exchangeAuthorizationCode(client, "vc");
     const info = await oauthProvider.verifyAccessToken(t1.access_token);
     expect(info.extra?.email).toBe("u@example.com");
     expect(info.clientId).toBe("client-1");
