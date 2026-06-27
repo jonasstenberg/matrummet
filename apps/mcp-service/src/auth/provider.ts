@@ -100,6 +100,10 @@ class MatrummetOAuthProvider implements OAuthServerProvider {
     params: AuthorizationParams,
     res: Response,
   ): Promise<void> {
+    logger.info(
+      { client: client.client_id, redirect_uri: params.redirectUri, scopes: params.scopes ?? [] },
+      "oauth authorize",
+    );
     const rid = randomBytes(24).toString("hex");
     store.putPending(
       rid,
@@ -124,6 +128,10 @@ class MatrummetOAuthProvider implements OAuthServerProvider {
   ): Promise<string> {
     const code = store.getCode(sha256(authorizationCode));
     if (!code || code.clientId !== client.client_id) {
+      logger.warn(
+        { client: client.client_id, codeFound: !!code },
+        "challenge: code not found / client mismatch",
+      );
       throw new InvalidGrantError("Invalid or expired authorization code");
     }
     return code.codeChallenge;
@@ -137,6 +145,10 @@ class MatrummetOAuthProvider implements OAuthServerProvider {
   ): Promise<OAuthTokens> {
     const code = store.consumeCode(sha256(authorizationCode));
     if (!code || code.clientId !== client.client_id) {
+      logger.warn(
+        { client: client.client_id, codeFound: !!code },
+        "exchange: code not found / client mismatch",
+      );
       throw new InvalidGrantError("Invalid or expired authorization code");
     }
     // We do NOT re-compare redirect_uri here. The SDK already validated it

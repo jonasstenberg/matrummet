@@ -1,4 +1,4 @@
-import express, { type Request, type Response } from "express";
+import express, { type NextFunction, type Request, type Response } from "express";
 
 import { requireBearerAuth } from "@modelcontextprotocol/sdk/server/auth/middleware/bearerAuth.js";
 import {
@@ -22,6 +22,33 @@ app.disable("x-powered-by");
 // throws ERR_ERL_UNEXPECTED_X_FORWARDED_FOR and keys every DCR on one shared
 // bucket. Trusting only loopback prevents external X-Forwarded-For spoofing.
 app.set("trust proxy", "loopback");
+
+// Lightweight request log (low traffic): method, path, status — so the OAuth
+// handshake is traceable. Skips /health. No bodies/secrets are logged.
+app.use((req: Request, res: Response, next: NextFunction) => {
+  // Capture path now — mounted routers (mcpAuthRouter) strip it before `finish`.
+  const path = req.path;
+  if (path === "/health") {
+    next();
+    return;
+  }
+  const start = Date.now();
+  res.on("finish", () => {
+    const fields = {
+      method: req.method,
+      path,
+      status: res.statusCode,
+      ip: req.ip,
+      ms: Date.now() - start,
+    };
+    if (res.statusCode >= 400) {
+      logger.warn(fields, "request failed");
+    } else {
+      logger.info(fields, "request");
+    }
+  });
+  next();
+});
 
 // OAuth 2.1 authorization server: /authorize, /token, /register (DCR), /revoke,
 // and the RFC 8414 / RFC 9728 discovery metadata. Mounted at the app root.
