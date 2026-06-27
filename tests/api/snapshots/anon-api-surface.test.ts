@@ -34,6 +34,10 @@ const ALLOWED_ANON_FUNCTIONS = [
   "pre_request",
   "validate_api_key",
 
+  // Password-gated API-key bootstrap for the MCP server (V61). Mints a per-user
+  // key from email+password; rate-limited at nginx like /rpc/login.
+  "issue_api_key",
+
   // View helpers
   "get_user_display_name",
   "get_user_id",

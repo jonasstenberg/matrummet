@@ -8,6 +8,7 @@ exports[`Anon API Surface Area > snapshot: anon-visible functions 1`] = `
   "get_shared_recipe",
   "get_user_display_name",
   "get_user_id",
+  "issue_api_key",
   "login",
   "pre_request",
   "request_password_reset",
