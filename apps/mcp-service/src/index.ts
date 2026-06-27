@@ -16,6 +16,12 @@ import { buildMcpServer } from "./mcp/server.js";
 
 const app = express();
 app.disable("x-powered-by");
+// Behind nginx, which connects from 127.0.0.1 and sets X-Forwarded-For with the
+// real client IP. Trust ONLY the loopback proxy so express-rate-limit (the SDK's
+// /register limiter) and req.ip resolve the real client IP — without this it
+// throws ERR_ERL_UNEXPECTED_X_FORWARDED_FOR and keys every DCR on one shared
+// bucket. Trusting only loopback prevents external X-Forwarded-For spoofing.
+app.set("trust proxy", "loopback");
 
 // OAuth 2.1 authorization server: /authorize, /token, /register (DCR), /revoke,
 // and the RFC 8414 / RFC 9728 discovery metadata. Mounted at the app root.
