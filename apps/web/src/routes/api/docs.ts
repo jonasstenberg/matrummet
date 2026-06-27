@@ -460,6 +460,249 @@ curl -s https://api.matrummet.se/rpc/remove_book_share_connection \\
   -d '{"p_connection_id": "uuid-here"}'
 \`\`\`
 
+## Samlingar (Collections)
+
+Group your own recipes into named collections and optionally share a collection with another user via a link. A collection holds **only the owner's own recipes** — to collect someone else's recipe, copy it first. All endpoints require the \`x-api-key\` header. A recipient who calls \`accept_collection_share\` gets read-only API access to the collection's recipes (same RLS as the app) via \`list_recipes_by_collection\` and friends.
+
+### list_collections
+
+List your own collections plus collections shared with you.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/list_collections \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{}'
+\`\`\`
+
+Returns: id, name, description, kind, cover_image, owner, owner_name, is_owner, recipe_count, date_published.
+
+### create_collection
+
+Create a new collection.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/create_collection \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_name": "Veckans middagar", "p_description": "Snabba vardagsrätter", "p_kind": "personal"}'
+\`\`\`
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| p_name | text | yes | Collection name |
+| p_description | text | no | Collection description |
+| p_kind | text | no | \`personal\` or \`curated\` (default \`personal\`; \`curated\` requires admin) |
+
+Returns: the created collection.
+
+### update_collection
+
+Update a collection you own.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/update_collection \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_id": "uuid-here", "p_name": "Nytt namn", "p_cover_image": "uploads/cover.jpg"}'
+\`\`\`
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| p_id | uuid | yes | Collection ID |
+| p_name | text | no | New name |
+| p_description | text | no | New description |
+| p_cover_image | text | no | Cover image path |
+
+Returns: the updated collection.
+
+### delete_collection
+
+Delete a collection you own. Cascades the collection's membership. Owner only.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/delete_collection \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_id": "uuid-here"}'
+\`\`\`
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| p_id | uuid | yes | Collection ID |
+
+### add_recipe_to_collection
+
+Add one of your own recipes to one of your own collections.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/add_recipe_to_collection \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_collection_id": "uuid-here", "p_recipe_id": "uuid-here"}'
+\`\`\`
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| p_collection_id | uuid | yes | Collection ID |
+| p_recipe_id | uuid | yes | Recipe ID |
+
+### remove_recipe_from_collection
+
+Remove a recipe from one of your collections.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/remove_recipe_from_collection \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_collection_id": "uuid-here", "p_recipe_id": "uuid-here"}'
+\`\`\`
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| p_collection_id | uuid | yes | Collection ID |
+| p_recipe_id | uuid | yes | Recipe ID |
+
+### collections_for_recipe
+
+List your collections, each with a \`contains\` boolean indicating whether it already holds the recipe. Useful for "add to collection" UIs.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/collections_for_recipe \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_recipe_id": "uuid-here"}'
+\`\`\`
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| p_recipe_id | uuid | yes | Recipe ID |
+
+Returns: your collections, each with a \`contains\` boolean.
+
+### list_recipes_by_collection
+
+List a collection's recipes (user_recipes shape), newest first. Use \`p_offset\` for pagination.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/list_recipes_by_collection \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_collection_id": "uuid-here", "p_limit": 50, "p_offset": 0}'
+\`\`\`
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| p_collection_id | uuid | yes | Collection ID |
+| p_limit | integer | no | Max rows (default 50) |
+| p_offset | integer | no | Pagination offset (default 0) |
+
+Returns: the collection's recipes (user_recipes shape), newest first.
+
+### count_recipes_by_collection
+
+Count the recipes in a collection.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/count_recipes_by_collection \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_collection_id": "uuid-here"}'
+\`\`\`
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| p_collection_id | uuid | yes | Collection ID |
+
+Returns: the recipe count.
+
+### create_collection_share_token
+
+Create a shareable link for a collection you own. Owner only.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/create_collection_share_token \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_collection_id": "uuid-here", "p_expires_days": 30}'
+\`\`\`
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| p_collection_id | uuid | yes | Collection ID |
+| p_expires_days | integer | no | Days until expiry (null = never) |
+
+Returns: \`{token, expires_at}\`.
+
+### get_collection_share_info
+
+Get info about a collection share link before accepting. **Requires authentication** — there is no anonymous preview.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/get_collection_share_info \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_token": "abc123"}'
+\`\`\`
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| p_token | text | yes | Share token |
+
+Returns: collection_id, collection_name, sharer_name, sharer_email, recipe_count, already_connected.
+
+### accept_collection_share
+
+Accept a collection share link. Creates the connection and grants you read access to the collection's recipes. Idempotent — accepting the same token twice is safe.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/accept_collection_share \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_token": "abc123"}'
+\`\`\`
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| p_token | text | yes | Share token |
+
+Returns: collection_id, collection_name, sharer_name.
+
+### get_shared_collections
+
+List collections shared with you.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/get_shared_collections \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{}'
+\`\`\`
+
+Returns: connection_id, collection_id, collection_name, sharer_name, created_at.
+
+### revoke_collection_share_token
+
+Revoke one of your collection share tokens. Owner only. Returns \`true\` if revoked.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/revoke_collection_share_token \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_token": "abc123"}'
+\`\`\`
+
+### remove_collection_share_connection
+
+Remove a collection share connection. Either the sharer or recipient can remove it. Returns \`true\` if removed.
+
+\`\`\`bash
+curl -s https://api.matrummet.se/rpc/remove_collection_share_connection \\
+  -H "x-api-key: sk_YOUR_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"p_connection_id": "uuid-here"}'
+\`\`\`
+
 ## Search Helpers
 
 ### search_foods

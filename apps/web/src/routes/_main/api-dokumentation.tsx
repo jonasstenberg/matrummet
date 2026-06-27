@@ -744,6 +744,241 @@ curl -s https://api.matrummet.se/rpc/insert_recipe \\
             </div>
           </section>
 
+          {/* Collections */}
+          <section>
+            <h2 className="text-xl font-semibold text-foreground mb-4">
+              Samlingar
+            </h2>
+            <p className="mb-4 text-sm text-foreground/60">
+              Gruppera dina egna recept i namngivna samlingar och dela
+              eventuellt en samling med en annan användare via en länk. En
+              samling innehåller endast ägarens egna recept — kopiera först ett
+              recept för att samla någon annans. Alla anrop kräver{' '}
+              <Code>x-api-key</Code>. En mottagare som anropar{' '}
+              <Code>accept_collection_share</Code> får skrivskyddad API-åtkomst
+              till samlingens recept (samma RLS som i appen) via{' '}
+              <Code>list_recipes_by_collection</Code> med flera.
+            </p>
+
+            <div className="space-y-8">
+              <Endpoint name="list_collections">
+                <p className="mb-3">
+                  Lista dina egna samlingar samt samlingar som delas med dig.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/list_collections \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{}'`}</CodeBlock>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Returnerar: id, name, description, kind, cover_image, owner,
+                  owner_name, is_owner, recipe_count, date_published.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="create_collection">
+                <p className="mb-3">
+                  Skapa en ny samling.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/create_collection \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_name": "Veckans middagar", "p_description": "Snabba vardagsrätter", "p_kind": "personal"}'`}</CodeBlock>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Obligatoriskt: <Code>p_name</Code>. Valfritt:{' '}
+                  <Code>p_description</Code>, <Code>p_kind</Code> (
+                  <Code>personal</Code> eller <Code>curated</Code>, standard{' '}
+                  <Code>personal</Code>; <Code>curated</Code> kräver admin).
+                  Returnerar: den skapade samlingen.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="update_collection">
+                <p className="mb-3">
+                  Uppdatera en samling du äger.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/update_collection \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_id": "uuid-här", "p_name": "Nytt namn", "p_cover_image": "uploads/cover.jpg"}'`}</CodeBlock>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Obligatoriskt: <Code>p_id</Code>. Valfritt:{' '}
+                  <Code>p_name</Code>, <Code>p_description</Code>,{' '}
+                  <Code>p_cover_image</Code>. Returnerar: den uppdaterade
+                  samlingen.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="delete_collection">
+                <p className="mb-3">
+                  Ta bort en samling du äger. Endast ägaren. Kaskaderar
+                  samlingens medlemskap.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/delete_collection \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_id": "uuid-här"}'`}</CodeBlock>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Obligatoriskt: <Code>p_id</Code>.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="add_recipe_to_collection">
+                <p className="mb-3">
+                  Lägg till ett av dina egna recept i en av dina egna samlingar.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/add_recipe_to_collection \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_collection_id": "uuid-här", "p_recipe_id": "uuid-här"}'`}</CodeBlock>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Obligatoriskt: <Code>p_collection_id</Code>,{' '}
+                  <Code>p_recipe_id</Code>.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="remove_recipe_from_collection">
+                <p className="mb-3">
+                  Ta bort ett recept från en av dina samlingar.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/remove_recipe_from_collection \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_collection_id": "uuid-här", "p_recipe_id": "uuid-här"}'`}</CodeBlock>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Obligatoriskt: <Code>p_collection_id</Code>,{' '}
+                  <Code>p_recipe_id</Code>.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="collections_for_recipe">
+                <p className="mb-3">
+                  Lista dina samlingar, var och en med en{' '}
+                  <Code>contains</Code>-boolean som visar om receptet redan
+                  finns i den. Användbart för "lägg till i samling"-gränssnitt.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/collections_for_recipe \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_recipe_id": "uuid-här"}'`}</CodeBlock>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Obligatoriskt: <Code>p_recipe_id</Code>. Returnerar: dina
+                  samlingar, var och en med en <Code>contains</Code>-boolean.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="list_recipes_by_collection">
+                <p className="mb-3">
+                  Lista en samlings recept (user_recipes-format), nyast först.
+                  Använd <Code>p_offset</Code> för sidindelning.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/list_recipes_by_collection \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_collection_id": "uuid-här", "p_limit": 50, "p_offset": 0}'`}</CodeBlock>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Obligatoriskt: <Code>p_collection_id</Code>. Valfritt:{' '}
+                  <Code>p_limit</Code> (standard 50), <Code>p_offset</Code>{' '}
+                  (standard 0). Returnerar: samlingens recept
+                  (user_recipes-format), nyast först.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="count_recipes_by_collection">
+                <p className="mb-3">
+                  Räkna recepten i en samling.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/count_recipes_by_collection \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_collection_id": "uuid-här"}'`}</CodeBlock>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Obligatoriskt: <Code>p_collection_id</Code>. Returnerar:
+                  antalet recept.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="create_collection_share_token">
+                <p className="mb-3">
+                  Skapa en delbar länk för en samling du äger. Endast ägaren.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/create_collection_share_token \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_collection_id": "uuid-här", "p_expires_days": 30}'`}</CodeBlock>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Obligatoriskt: <Code>p_collection_id</Code>. Valfritt:{' '}
+                  <Code>p_expires_days</Code> (null = aldrig). Returnerar: token
+                  och expires_at.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="get_collection_share_info">
+                <p className="mb-3">
+                  Hämta info om en samlingslänk innan du accepterar den. Kräver
+                  autentisering — det finns ingen anonym förhandsvisning.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/get_collection_share_info \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_token": "abc123"}'`}</CodeBlock>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Returnerar: collection_id, collection_name, sharer_name,
+                  sharer_email, recipe_count, already_connected.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="accept_collection_share">
+                <p className="mb-3">
+                  Acceptera en samlingslänk. Skapar anslutningen och ger dig
+                  läsåtkomst till samlingens recept. Idempotent.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/accept_collection_share \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_token": "abc123"}'`}</CodeBlock>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Returnerar: collection_id, collection_name, sharer_name.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="get_shared_collections">
+                <p className="mb-3">
+                  Lista samlingar som delas med dig.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/get_shared_collections \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{}'`}</CodeBlock>
+                <p className="mt-2 text-sm text-foreground/60">
+                  Returnerar: connection_id, collection_id, collection_name,
+                  sharer_name, created_at.
+                </p>
+              </Endpoint>
+
+              <Endpoint name="revoke_collection_share_token">
+                <p className="mb-3">
+                  Återkalla en samlingslänk. Endast ägaren. Returnerar{' '}
+                  <Code>true</Code> om den återkallades.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/revoke_collection_share_token \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_token": "abc123"}'`}</CodeBlock>
+              </Endpoint>
+
+              <Endpoint name="remove_collection_share_connection">
+                <p className="mb-3">
+                  Ta bort en samlingsanslutning. Både delaren och mottagaren kan
+                  ta bort den. Returnerar <Code>true</Code>.
+                </p>
+                <CodeBlock title="bash">{`curl -s https://api.matrummet.se/rpc/remove_collection_share_connection \\\\
+  -H "x-api-key: sk_DIN_NYCKEL" \\\\
+  -H "Content-Type: application/json" \\\\
+  -d '{"p_connection_id": "uuid-här"}'`}</CodeBlock>
+              </Endpoint>
+            </div>
+          </section>
+
           {/* Data model */}
           <section>
             <h2 className="text-xl font-semibold text-foreground mb-3">
