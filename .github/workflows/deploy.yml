@@ -46,6 +46,14 @@ on:
         options:
           - "true"
           - "false"
+      deploy_mcp_service:
+        description: "Deploy MCP service"
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
       deploy_nginx:
         description: "Deploy nginx configuration"
         required: false
@@ -83,6 +91,7 @@ jobs:
       deploy_email_service: ${{ steps.changes.outputs.deploy_email_service }}
       deploy_events_service: ${{ steps.changes.outputs.deploy_events_service }}
       deploy_image_service: ${{ steps.changes.outputs.deploy_image_service }}
+      deploy_mcp_service: ${{ steps.changes.outputs.deploy_mcp_service }}
       deploy_nginx: ${{ steps.changes.outputs.deploy_nginx }}
       deploy_postgrest: ${{ steps.changes.outputs.deploy_postgrest }}
       deploy_grafana: ${{ steps.changes.outputs.deploy_grafana }}
@@ -219,6 +228,27 @@ jobs:
             fi
           fi
 
+          # Check for mcp-service changes
+          if [[ "${{ github.event.inputs.deploy_mcp_service }}" == "false" ]]; then
+            echo "deploy_mcp_service=false" >> $GITHUB_OUTPUT
+            echo "Skipping mcp-service deployment as requested"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.deploy_mcp_service }}" == "true" ]]; then
+            echo "deploy_mcp_service=true" >> $GITHUB_OUTPUT
+            echo "Manual request to deploy mcp-service"
+          elif [[ -z "$PARENT_SHA" ]]; then
+            echo "deploy_mcp_service=true" >> $GITHUB_OUTPUT
+            echo "First commit, deploying mcp-service"
+          else
+            CHANGED_FILES=$(git diff --name-only $PARENT_SHA $WORKFLOW_SHA 2>/dev/null || git ls-files)
+            if echo "$CHANGED_FILES" | grep -qE "^apps/mcp-service/"; then
+              echo "deploy_mcp_service=true" >> $GITHUB_OUTPUT
+              echo "Mcp-service changes detected"
+            else
+              echo "deploy_mcp_service=false" >> $GITHUB_OUTPUT
+              echo "No mcp-service changes detected"
+            fi
+          fi
+
           # Check for PostgREST config changes
           if [[ "${{ github.event.inputs.deploy_postgrest }}" == "false" ]]; then
             echo "deploy_postgrest=false" >> $GITHUB_OUTPUT
@@ -299,7 +329,7 @@ jobs:
 
   test:
     needs: setup
-    if: needs.setup.outputs.deploy_frontend == 'true' || needs.setup.outputs.deploy_email_service == 'true' || needs.setup.outputs.deploy_events_service == 'true' || needs.setup.outputs.deploy_image_service == 'true'
+    if: needs.setup.outputs.deploy_frontend == 'true' || needs.setup.outputs.deploy_email_service == 'true' || needs.setup.outputs.deploy_events_service == 'true' || needs.setup.outputs.deploy_image_service == 'true' || needs.setup.outputs.deploy_mcp_service == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -486,11 +516,11 @@ jobs:
 
   deploy-services:
     needs: [setup, test, api-tests, deploy-migrations, deploy-postgrest, deploy-nginx]
-    if: always() && (needs.setup.outputs.deploy_frontend == 'true' || needs.setup.outputs.deploy_email_service == 'true' || needs.setup.outputs.deploy_events_service == 'true' || needs.setup.outputs.deploy_image_service == 'true') && (needs.test.result == 'success' || needs.test.result == 'skipped') && (needs.api-tests.result == 'success' || needs.api-tests.result == 'skipped') && (needs.deploy-migrations.result == 'success' || needs.deploy-migrations.result == 'skipped') && (needs.deploy-postgrest.result == 'success' || needs.deploy-postgrest.result == 'skipped') && (needs.deploy-nginx.result == 'success' || needs.deploy-nginx.result == 'skipped')
+    if: always() && (needs.setup.outputs.deploy_frontend == 'true' || needs.setup.outputs.deploy_email_service == 'true' || needs.setup.outputs.deploy_events_service == 'true' || needs.setup.outputs.deploy_image_service == 'true' || needs.setup.outputs.deploy_mcp_service == 'true') && (needs.test.result == 'success' || needs.test.result == 'skipped') && (needs.api-tests.result == 'success' || needs.api-tests.result == 'skipped') && (needs.deploy-migrations.result == 'success' || needs.deploy-migrations.result == 'skipped') && (needs.deploy-postgrest.result == 'success' || needs.deploy-postgrest.result == 'skipped') && (needs.deploy-nginx.result == 'success' || needs.deploy-nginx.result == 'skipped')
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [frontend, email-service, events-service, image-service]
+        service: [frontend, email-service, events-service, image-service, mcp-service]
       fail-fast: false
     steps:
       - name: Check if service should be deployed
@@ -503,6 +533,8 @@ jobs:
           elif [[ "${{ matrix.service }}" == "events-service" && "${{ needs.setup.outputs.deploy_events_service }}" == "true" ]]; then
             echo "deploy=true" >> $GITHUB_OUTPUT
           elif [[ "${{ matrix.service }}" == "image-service" && "${{ needs.setup.outputs.deploy_image_service }}" == "true" ]]; then
+            echo "deploy=true" >> $GITHUB_OUTPUT
+          elif [[ "${{ matrix.service }}" == "mcp-service" && "${{ needs.setup.outputs.deploy_mcp_service }}" == "true" ]]; then
             echo "deploy=true" >> $GITHUB_OUTPUT
           else
             echo "deploy=false" >> $GITHUB_OUTPUT
@@ -559,6 +591,12 @@ jobs:
           pnpm deploy --filter @matrummet/image-service --prod --legacy deploy/image-service
           ls -la deploy/image-service/  # Verify deployment package
 
+      - name: Build and prepare mcp-service deployment
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'mcp-service'
+        run: |
+          pnpm deploy --filter @matrummet/mcp-service --prod --legacy deploy/mcp-service
+          ls -la deploy/mcp-service/  # Verify deployment package
+
       - name: Setup SSH
         if: steps.should-deploy.outputs.deploy == 'true'
         run: |
@@ -603,6 +641,15 @@ jobs:
 
           echo "Image-service deployed successfully"
 
+      - name: Deploy mcp-service to VPS
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'mcp-service'
+        run: |
+          rsync -avz --delete \
+            deploy/mcp-service/ \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ vars.DEPLOY_PATH }}/apps/mcp-service/
+
+          echo "Mcp-service deployed successfully"
+
       - name: Restart frontend service
         if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'frontend'
         run: |
@@ -622,6 +669,11 @@ jobs:
         if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'image-service'
         run: |
           ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'sudo systemctl restart ${{ vars.SERVICE_IMAGE }}'
+
+      - name: Restart mcp-service
+        if: steps.should-deploy.outputs.deploy == 'true' && matrix.service == 'mcp-service'
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'sudo systemctl restart ${{ vars.SERVICE_MCP }}'
 
   deploy-nginx:
     needs: [setup, test, api-tests]
@@ -649,6 +701,7 @@ jobs:
           scp infra/nginx/proxy-cache.conf $REMOTE:$STAGING/proxy-cache.conf
           scp infra/nginx/upstream.conf $REMOTE:$STAGING/matrummet-upstream.conf
           scp infra/nginx/app-proxy-common.conf $REMOTE:$STAGING/matrummet-app-proxy.conf
+          scp infra/nginx/mcp.conf $REMOTE:$STAGING/mcp.matrummet.se
           CHANGED=$(ssh $REMOTE "
             changed=false
             diff -q $STAGING/matrummet-locations.conf /etc/nginx/snippets/matrummet-locations.conf >/dev/null 2>&1 || changed=true
@@ -657,6 +710,7 @@ jobs:
             diff -q $STAGING/proxy-cache.conf /etc/nginx/conf.d/proxy-cache.conf >/dev/null 2>&1 || changed=true
             diff -q $STAGING/matrummet-upstream.conf /etc/nginx/conf.d/matrummet-upstream.conf >/dev/null 2>&1 || changed=true
             diff -q $STAGING/matrummet-app-proxy.conf /etc/nginx/snippets/matrummet-app-proxy.conf >/dev/null 2>&1 || changed=true
+            diff -q $STAGING/mcp.matrummet.se /etc/nginx/sites-enabled/mcp.matrummet.se >/dev/null 2>&1 || changed=true
             echo \$changed
           ")
           if [[ "$CHANGED" == "true" ]]; then
@@ -669,6 +723,7 @@ jobs:
               sudo cp $STAGING/proxy-cache.conf /etc/nginx/conf.d/proxy-cache.conf &&
               sudo cp $STAGING/matrummet-upstream.conf /etc/nginx/conf.d/matrummet-upstream.conf &&
               sudo cp $STAGING/matrummet-app-proxy.conf /etc/nginx/snippets/matrummet-app-proxy.conf &&
+              sudo cp $STAGING/mcp.matrummet.se /etc/nginx/sites-enabled/mcp.matrummet.se &&
               sudo nginx -t && sudo systemctl reload nginx
             "
           else
@@ -742,6 +797,7 @@ jobs:
           echo "- Email-service: ${{ needs.setup.outputs.deploy_email_service == 'true' && 'Deployed' || 'Skipped' }}"
           echo "- Events-service: ${{ needs.setup.outputs.deploy_events_service == 'true' && 'Deployed' || 'Skipped' }}"
           echo "- Image-service: ${{ needs.setup.outputs.deploy_image_service == 'true' && 'Deployed' || 'Skipped' }}"
+          echo "- Mcp-service: ${{ needs.setup.outputs.deploy_mcp_service == 'true' && 'Deployed' || 'Skipped' }}"
           echo "- PostgREST: ${{ needs.setup.outputs.deploy_postgrest == 'true' && (needs.deploy-postgrest.result == 'success' && 'Deployed' || 'Failed') || 'Skipped' }}"
           echo "- Nginx: ${{ needs.setup.outputs.deploy_nginx == 'true' && (needs.deploy-nginx.result == 'success' && 'Deployed' || 'Failed') || 'Skipped' }}"
           echo "- Grafana: ${{ needs.setup.outputs.deploy_grafana == 'true' && (needs.deploy-grafana.result == 'success' && 'Deployed' || 'Failed') || 'Skipped' }}"

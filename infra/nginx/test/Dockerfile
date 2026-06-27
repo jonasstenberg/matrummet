@@ -15,7 +15,8 @@ RUN mkdir -p \
     /var/www/html \
     /home/jonas/.acme.sh/matrummet.se_ecc \
     /home/jonas/.acme.sh/mat.stenberg.io_ecc \
-    /home/jonas/.acme.sh/api.matrummet.se_ecc
+    /home/jonas/.acme.sh/api.matrummet.se_ecc \
+    /home/jonas/.acme.sh/mcp.matrummet.se_ecc
 
 # Self-signed cert reused for all domains
 RUN openssl req -x509 -nodes -days 1 -newkey rsa:2048 \
@@ -27,6 +28,8 @@ RUN openssl req -x509 -nodes -days 1 -newkey rsa:2048 \
     cp /tmp/test.key /home/jonas/.acme.sh/mat.stenberg.io_ecc/mat.stenberg.io.key && \
     cp /tmp/test.cer /home/jonas/.acme.sh/api.matrummet.se_ecc/fullchain.cer && \
     cp /tmp/test.key /home/jonas/.acme.sh/api.matrummet.se_ecc/api.matrummet.se.key && \
+    cp /tmp/test.cer /home/jonas/.acme.sh/mcp.matrummet.se_ecc/fullchain.cer && \
+    cp /tmp/test.key /home/jonas/.acme.sh/mcp.matrummet.se_ecc/mcp.matrummet.se.key && \
     rm /tmp/test.key /tmp/test.cer
 
 # Snippet files (mapped to production names)
@@ -44,6 +47,7 @@ COPY upstream.conf    /etc/nginx/conf.d/matrummet-upstream.conf
 # Site configs (unmodified production files)
 COPY matrummet.conf /etc/nginx/sites-enabled/matrummet
 COPY api.conf       /etc/nginx/sites-enabled/api.matrummet.se
+COPY mcp.conf       /etc/nginx/sites-enabled/mcp.matrummet.se
 
 # Remove default site, add test nginx.conf
 RUN rm -f /etc/nginx/conf.d/default.conf

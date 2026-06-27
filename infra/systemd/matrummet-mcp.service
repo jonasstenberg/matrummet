@@ -1,0 +1,33 @@
+[Unit]
+Description=Matrummet MCP Service
+After=network.target postgrest-matrummet.service
+
+[Service]
+Type=simple
+User=deploy_recept
+Group=deploy_recept
+WorkingDirectory=/opt/matrummet/apps/mcp-service
+
+# Environment file stored outside deployment directory (safe from rsync --delete)
+EnvironmentFile=/opt/matrummet/.mcp-service.env
+Environment="NODE_ENV=production"
+
+# SQLite store lives outside the rsync target so it survives deploys.
+ExecStartPre=/bin/mkdir -p /opt/matrummet/data
+ExecStart=/usr/local/bin/bun src/index.ts
+Restart=on-failure
+RestartSec=5s
+StartLimitInterval=300s
+StartLimitBurst=10
+
+# Graceful shutdown: index.ts handles SIGTERM (close HTTP + checkpoint sqlite).
+TimeoutStopSec=15s
+KillMode=mixed
+KillSignal=SIGTERM
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=matrummet-mcp
+
+[Install]
+WantedBy=multi-user.target

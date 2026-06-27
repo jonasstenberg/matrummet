@@ -101,6 +101,7 @@ R_MAIN="--resolve matrummet.se:${HTTP}:127.0.0.1 --resolve matrummet.se:${HTTPS}
 R_WWW="--resolve www.matrummet.se:${HTTP}:127.0.0.1 --resolve www.matrummet.se:${HTTPS}:127.0.0.1"
 R_OLD="--resolve mat.stenberg.io:${HTTP}:127.0.0.1 --resolve mat.stenberg.io:${HTTPS}:127.0.0.1"
 R_API="--resolve api.matrummet.se:${HTTP}:127.0.0.1 --resolve api.matrummet.se:${HTTPS}:127.0.0.1"
+R_MCP="--resolve mcp.matrummet.se:${HTTP}:127.0.0.1 --resolve mcp.matrummet.se:${HTTPS}:127.0.0.1"
 
 # --- Build & Start ---
 
@@ -342,9 +343,62 @@ fi
 assert_status "Login zone shared: API /rpc/login also 429" "429" \
     "https://api.matrummet.se:${HTTPS}/rpc/login" $R_API -X POST
 
+# issue_api_key shares the login zone (anon password-gated bootstrap)
+assert_status "Login zone shared: /rpc/issue_api_key also 429" "429" \
+    "https://api.matrummet.se:${HTTPS}/rpc/issue_api_key" $R_API -X POST
+
 # Non-rate-limited endpoint still works
 assert_status "Non-limited / still returns 200" "200" \
     "https://matrummet.se:${HTTPS}/" $R_MAIN
+
+echo ""
+printf "${BOLD}=== Routing (mcp.matrummet.se) ===${NC}\n"
+
+assert_redirect "HTTP mcp.matrummet.se → HTTPS" \
+    "http://mcp.matrummet.se:${HTTP}/" "https://mcp.matrummet.se" \
+    $R_MCP
+
+assert_upstream "/mcp → mcp" "mcp" \
+    "https://mcp.matrummet.se:${HTTPS}/mcp" $R_MCP -X POST
+
+assert_upstream "/.well-known/oauth-authorization-server → mcp" "mcp" \
+    "https://mcp.matrummet.se:${HTTPS}/.well-known/oauth-authorization-server" $R_MCP
+
+assert_upstream "/authorize → mcp" "mcp" \
+    "https://mcp.matrummet.se:${HTTPS}/authorize" $R_MCP
+
+assert_upstream "/token → mcp" "mcp" \
+    "https://mcp.matrummet.se:${HTTPS}/token" $R_MCP -X POST
+
+assert_upstream "/register → mcp" "mcp" \
+    "https://mcp.matrummet.se:${HTTPS}/register" $R_MCP -X POST
+
+assert_upstream "/health/mcp → mcp" "mcp" \
+    "https://mcp.matrummet.se:${HTTPS}/health/mcp" $R_MCP
+
+assert_path "/health/mcp proxied to /health" "/health" \
+    "https://mcp.matrummet.se:${HTTPS}/health/mcp" $R_MCP
+
+assert_header "Security headers on mcp host" \
+    "X-Frame-Options" "DENY" \
+    "https://mcp.matrummet.se:${HTTPS}/mcp" $R_MCP -X POST
+
+# Authorization + MCP-Protocol-Version must reach the upstream (mock echoes headers)
+AUTH_BODY=$(_curl $R_MCP -X POST -H "Authorization: Bearer testtoken" \
+    "https://mcp.matrummet.se:${HTTPS}/mcp")
+if [[ "$(echo "$AUTH_BODY" | jq -r '.headers.authorization // empty' 2>/dev/null)" == "Bearer testtoken" ]]; then
+    pass "Authorization forwarded to /mcp"
+else
+    fail "Authorization not forwarded to /mcp"
+fi
+
+MPV_BODY=$(_curl $R_MCP -X POST -H "MCP-Protocol-Version: 2025-06-18" \
+    "https://mcp.matrummet.se:${HTTPS}/mcp")
+if [[ "$(echo "$MPV_BODY" | jq -r '.headers["mcp-protocol-version"] // empty' 2>/dev/null)" == "2025-06-18" ]]; then
+    pass "MCP-Protocol-Version forwarded to /mcp"
+else
+    fail "MCP-Protocol-Version not forwarded to /mcp"
+fi
 
 # ========================= SUMMARY =========================
 

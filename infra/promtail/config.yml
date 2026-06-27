@@ -33,7 +33,7 @@ scrape_configs:
     pipeline_stages:
       # Extract Pino JSON level for matrummet Node.js services
       - match:
-          selector: '{unit=~"matrummet.service|matrummet-email.service|matrummet-events.service|matrummet-image.service"}'
+          selector: '{unit=~"matrummet.service|matrummet-email.service|matrummet-events.service|matrummet-image.service|matrummet-mcp.service"}'
           stages:
             - json:
                 expressions:
