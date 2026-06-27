@@ -10,7 +10,9 @@ export const searchTools: ToolDef[] = [
   rpcTool({
     name: "search_recipes",
     title: "Search recipes",
-    description: "Swedish full-text search across recipes you can see (your own + shared).",
+    description:
+      "Full-text search across recipes you can see — your own (including recipes in your own collections) plus shared. " +
+      'Supports multiple terms and boolean OR (e.g. "ceviche OR aguachile"), quoted phrases, and substring/partial-word matches.',
     rpc: "search_recipes",
     annotations: readOnly,
     inputSchema: {
@@ -25,26 +27,13 @@ export const searchTools: ToolDef[] = [
   rpcTool({
     name: "search_liked_recipes",
     title: "Search liked recipes",
-    description: "Full-text search across recipes you have liked.",
+    description:
+      "Full-text search across recipes you've liked. Supports multiple terms, boolean OR, quoted phrases, and substring matches.",
     rpc: "search_liked_recipes",
     annotations: readOnly,
     inputSchema: {
       query: z.string().describe("Search query"),
       category: z.string().optional().describe("Filter by category name"),
-      limit,
-      offset,
-    },
-  }),
-  rpcTool({
-    name: "search_public_recipes",
-    title: "Search public recipes",
-    description: "Full-text search across all public recipes.",
-    rpc: "search_public_recipes",
-    annotations: readOnly,
-    inputSchema: {
-      query: z.string().describe("Search query"),
-      category: z.string().optional().describe("Filter by category name"),
-      author_id: z.string().optional().describe("Filter by recipe owner id"),
       limit,
       offset,
     },

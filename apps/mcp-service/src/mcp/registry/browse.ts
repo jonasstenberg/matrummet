@@ -33,20 +33,6 @@ export const browseTools: ToolDef[] = [
     },
   }),
   viewTool({
-    name: "list_public_recipes",
-    title: "List public recipes",
-    description: "List public recipes.",
-    view: "public_recipes",
-    defaultOrder: "date_modified.desc",
-    inputSchema: {
-      name_contains: z.string().optional().describe("Case-insensitive name filter"),
-    },
-    buildFilters: (args): Record<string, string> => {
-      const term = typeof args.name_contains === "string" ? args.name_contains : "";
-      return term ? { name: `ilike.*${term}*` } : {};
-    },
-  }),
-  viewTool({
     name: "list_liked_recipes",
     title: "List liked recipes",
     description: "List recipes you have liked.",
