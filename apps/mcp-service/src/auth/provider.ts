@@ -20,6 +20,7 @@ import type {
 } from "@modelcontextprotocol/sdk/shared/auth.js";
 
 import { MCP_SCOPE } from "../config.js";
+import { logger } from "../logger.js";
 import { sha256 } from "./crypto.js";
 import { store } from "./store.js";
 import {
@@ -138,12 +139,18 @@ class MatrummetOAuthProvider implements OAuthServerProvider {
     if (!code || code.clientId !== client.client_id) {
       throw new InvalidGrantError("Invalid or expired authorization code");
     }
-    // If the client sends redirect_uri it must match, but many OAuth 2.1 / PKCE
-    // clients omit it on the token request (it's optional with a single
-    // registered URI). A missing value is allowed — PKCE S256, which is
-    // mandatory and verified by the SDK, is the real code↔client binding.
+    // We do NOT re-compare redirect_uri here. The SDK already validated it
+    // against the client's registered redirect_uris at /authorize, and PKCE S256
+    // (mandatory, verified by the SDK token handler BEFORE this runs) is the real
+    // code↔client binding for public clients. A token-time re-comparison only
+    // causes interop breakage — clients omit it, or normalize trailing-slash /
+    // percent-encoding differently than the value we stored. Log differences for
+    // visibility, but allow the exchange (redirect_uri is not a secret).
     if (redirectUri !== undefined && redirectUri !== code.redirectUri) {
-      throw new InvalidGrantError("redirect_uri mismatch");
+      logger.info(
+        { client: client.client_id, sent: redirectUri, bound: code.redirectUri },
+        "token: redirect_uri differs from authorize — allowed (PKCE is the binding)",
+      );
     }
     return this.issueTokens(code.email, code.role, code.scope, client.client_id);
   }

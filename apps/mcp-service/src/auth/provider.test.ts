@@ -80,18 +80,19 @@ describe("oauthProvider authorization codes", () => {
     ).rejects.toThrow();
   });
 
-  it("rejects a redirect_uri mismatch", async () => {
-    h.store.putCode(sha256("code3"), codeFor("client-1"));
+  it("does not re-gate on redirect_uri at the token step (PKCE is the binding)", async () => {
+    // The SDK validates redirect_uri ∈ registered at /authorize and verifies PKCE
+    // before this runs, so the provider accepts the exchange regardless of whether
+    // the client omits redirect_uri or sends a differently-normalized one.
+    h.store.putCode(sha256("code3a"), codeFor("client-1"));
     await expect(
-      oauthProvider.exchangeAuthorizationCode(client, "code3", "verifier", "https://evil.example/cb"),
-    ).rejects.toThrow();
-  });
+      oauthProvider.exchangeAuthorizationCode(client, "code3a", "verifier"),
+    ).resolves.toHaveProperty("access_token");
 
-  it("accepts an omitted redirect_uri on the token request (PKCE is the binding)", async () => {
-    // Many OAuth 2.1 / PKCE clients omit redirect_uri when exchanging the code.
     h.store.putCode(sha256("code3b"), codeFor("client-1"));
-    const tokens = await oauthProvider.exchangeAuthorizationCode(client, "code3b", "verifier");
-    expect(tokens.access_token).toBeTruthy();
+    await expect(
+      oauthProvider.exchangeAuthorizationCode(client, "code3b", "verifier", "https://cb.example/x/"),
+    ).resolves.toHaveProperty("access_token");
   });
 
   it("returns the PKCE challenge for the issuing client only", async () => {
