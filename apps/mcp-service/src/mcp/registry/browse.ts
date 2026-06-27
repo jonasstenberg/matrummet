@@ -1,9 +1,23 @@
 import { z } from "zod";
 
-import { type ToolDef, viewTool } from "../tool.js";
+import { rpcTool, type ToolDef, viewTool } from "../tool.js";
 
 /** Direct PostgREST view reads (the documented "Direct Table Access" section). */
 export const browseTools: ToolDef[] = [
+  rpcTool({
+    name: "count_recipes",
+    title: "Count recipes",
+    description:
+      "Total number of recipes you can see (your own + shared). Returns a single number. " +
+      "owner_only=true counts only your own; filter by categories. Pairs with list_user_recipes for paging.",
+    rpc: "count_recipes",
+    annotations: { readOnlyHint: true },
+    inputSchema: {
+      owner_only: z.boolean().optional().describe("Only your own recipes (default false)"),
+      categories: z.array(z.string()).optional().describe("Filter by category names"),
+      owner_ids: z.array(z.string()).optional().describe("Filter by owner ids"),
+    },
+  }),
   viewTool({
     name: "list_user_recipes",
     title: "List my recipes",
