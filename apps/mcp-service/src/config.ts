@@ -35,6 +35,9 @@ export const config = {
   port: Number.parseInt(getOptionalEnv("PORT", "4008"), 10),
   accessTokenSeconds: Number.parseInt(getOptionalEnv("MCP_ACCESS_TOKEN_TTL_SECONDS", "3600"), 10),
   refreshTokenTtlDays: Number.parseInt(getOptionalEnv("MCP_REFRESH_TOKEN_TTL_DAYS", "30"), 10),
+  /** Hard cap on a single tool result's serialized size (chars) before it is
+   *  truncated, so a list/search can't flood the agent's context. */
+  maxResultChars: Number.parseInt(getOptionalEnv("MCP_MAX_RESULT_CHARS", "40000"), 10),
 } as const;
 
 /** OAuth resource indicator / token audience (RFC 8707). */

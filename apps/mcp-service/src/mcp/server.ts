@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 import { PostgrestError } from "../api/postgrest.js";
 import { logger } from "../logger.js";
+import { capResult } from "./format.js";
 import { allTools } from "./registry/index.js";
 
 function formatError(err: unknown): string {
@@ -15,11 +16,6 @@ function formatError(err: unknown): string {
   return String(err);
 }
 
-function toText(data: unknown): string {
-  if (data === null || data === undefined) return "(no result)";
-  if (typeof data === "string") return data;
-  return JSON.stringify(data, null, 2);
-}
 
 /**
  * Build a fresh McpServer with all tools registered. One server (and transport)
@@ -47,7 +43,7 @@ export function buildMcpServer(): McpServer {
         }
         try {
           const data = await def.handler(args, { email, role });
-          return { content: [{ type: "text", text: toText(data) }] };
+          return { content: [{ type: "text", text: capResult(data) }] };
         } catch (err) {
           const message = formatError(err);
           logger.warn({ tool: def.name, err: message }, "tool call failed");

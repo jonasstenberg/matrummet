@@ -5,3 +5,4 @@ process.env.MCP_TOKEN_SECRET ??= "test-secret-test-secret-test-secret-0123456789
 process.env.MCP_ENCRYPTION_KEY ??= "0".repeat(64);
 process.env.IMAGE_SERVICE_URL ??= "http://localhost:4446";
 process.env.SQLITE_PATH ??= ":memory:";
+process.env.MCP_MAX_RESULT_CHARS ??= "1500";

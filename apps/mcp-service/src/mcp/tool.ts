@@ -31,13 +31,15 @@ const homeIdArg = z
   .optional()
   .describe("Active household id (X-Active-Home-Id). Omit to use your default home.");
 
+const VIEW_DEFAULT_LIMIT = 25;
+
 const limitArg = z
   .number()
   .int()
   .min(1)
   .max(1000)
   .optional()
-  .describe("Max rows to return (hard cap 1000).");
+  .describe("Max rows to return (default 25, hard cap 1000). Use offset to page.");
 
 const offsetArg = z.number().int().min(0).optional().describe("Pagination offset.");
 
@@ -118,7 +120,8 @@ export function viewTool(opts: {
     annotations: { readOnlyHint: true, ...opts.annotations },
     handler: async (args, ctx) => {
       const params = new URLSearchParams();
-      const limit = typeof args.limit === "number" ? Math.min(args.limit, 1000) : 1000;
+      const limit =
+        typeof args.limit === "number" ? Math.min(args.limit, 1000) : VIEW_DEFAULT_LIMIT;
       params.set("limit", String(limit));
       if (typeof args.offset === "number") params.set("offset", String(args.offset));
       const order = typeof args.order === "string" ? args.order : opts.defaultOrder;
