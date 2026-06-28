@@ -88,8 +88,11 @@ export const Route = createFileRoute('/_main/')({
     const { offset } = location.search as z.infer<typeof searchSchema>
     return fetchHomeData({ data: { offset, members: deps.members } })
   },
-  pendingMs: 0,
-  pendingMinMs: 300,
+  // Keep the full-page skeleton for genuinely slow/initial loads only (default
+  // pendingMs threshold). Fast in-page refetches — toggling a member filter —
+  // keep the current page rendered (stale-while-revalidate) and surface a
+  // localized loading state on just the grid (see RecipePageClient), instead of
+  // flashing the whole page to a skeleton.
   pendingComponent: HomePageSkeleton,
   head: () => ({
     meta: [

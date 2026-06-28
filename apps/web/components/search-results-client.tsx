@@ -1,4 +1,5 @@
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useRouterState } from '@tanstack/react-router'
+import { cn } from '@/lib/utils'
 import { MemberFilter } from '@/components/member-filter'
 import { RecipeGrid } from '@/components/recipe-grid'
 import type { Recipe } from '@/lib/types'
@@ -23,6 +24,8 @@ export function SearchResultsClient({
   pageSize,
 }: SearchResultsClientProps) {
   const navigate = useNavigate()
+  // True while a route loader is in flight (refining the query / member filter).
+  const isNavigating = useRouterState({ select: (s) => s.isLoading })
   const ownerIds = selectedMemberIds.length > 0 ? selectedMemberIds : undefined
 
   const { recipes, offset, hasMore, isLoadingMore, handleLoadMore } =
@@ -63,15 +66,23 @@ export function SearchResultsClient({
         </p>
       </header>
 
-      <RecipeGrid
-        recipes={recipes}
-        showAuthor={selectedMemberIds.length > 1}
-        onLoadMore={handleLoadMore}
-        hasMore={hasMore}
-        isLoadingMore={isLoadingMore}
-        totalCount={totalCount}
-        loadedCount={offset}
-      />
+      <div
+        className={cn(
+          'transition-opacity duration-200',
+          isNavigating && 'pointer-events-none opacity-50',
+        )}
+        aria-busy={isNavigating}
+      >
+        <RecipeGrid
+          recipes={recipes}
+          showAuthor={selectedMemberIds.length > 1}
+          onLoadMore={handleLoadMore}
+          hasMore={hasMore}
+          isLoadingMore={isLoadingMore}
+          totalCount={totalCount}
+          loadedCount={offset}
+        />
+      </div>
     </div>
   )
 }

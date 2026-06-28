@@ -1,6 +1,7 @@
 
 import { useMemo } from 'react'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useRouterState } from '@tanstack/react-router'
+import { cn } from '@/lib/utils'
 import { MemberFilter } from '@/components/member-filter'
 import { RecipeGrid } from '@/components/recipe-grid'
 import { CategoryFilter } from '@/components/category-filter'
@@ -46,6 +47,9 @@ export function RecipePageClient({
   } = useRecipeFilters()
 
   const navigate = useNavigate()
+  // True while a route loader is in flight (e.g. toggling the member filter).
+  // Used to dim only the grid instead of swapping the whole page to a skeleton.
+  const isNavigating = useRouterState({ select: (s) => s.isLoading })
 
   // Accumulating "load more" pagination (shared with the search & collection pages).
   const {
@@ -165,27 +169,36 @@ export function RecipePageClient({
         <p className="text-sm text-muted-foreground">{resultsSummary}</p>
       )}
 
-      {/* Recipe Grid */}
-      <RecipeGrid
-        recipes={displayRecipes}
-        showPantryMatch={hasPantry}
-        showAuthor={showAuthor}
-        emptyMessage={
-          isFilterActive
-            ? 'Inga matchande recept hittades'
-            : 'Inga recept hittades'
-        }
-        emptyDescription={
-          isFilterActive
-            ? 'Prova att sänka matchningsprocenten eller lägg till fler ingredienser i ditt skafferi.'
-            : 'Prova att justera dina filter eller sök efter något annat.'
-        }
-        onLoadMore={handleLoadMore}
-        hasMore={hasMore}
-        isLoadingMore={isLoadingMore}
-        totalCount={totalCount}
-        loadedCount={offset}
-      />
+      {/* Recipe Grid — dims while a filter refetch is in flight; the surrounding
+          shell (header, filters) stays mounted. */}
+      <div
+        className={cn(
+          'transition-opacity duration-200',
+          isNavigating && 'pointer-events-none opacity-50',
+        )}
+        aria-busy={isNavigating}
+      >
+        <RecipeGrid
+          recipes={displayRecipes}
+          showPantryMatch={hasPantry}
+          showAuthor={showAuthor}
+          emptyMessage={
+            isFilterActive
+              ? 'Inga matchande recept hittades'
+              : 'Inga recept hittades'
+          }
+          emptyDescription={
+            isFilterActive
+              ? 'Prova att sänka matchningsprocenten eller lägg till fler ingredienser i ditt skafferi.'
+              : 'Prova att justera dina filter eller sök efter något annat.'
+          }
+          onLoadMore={handleLoadMore}
+          hasMore={hasMore}
+          isLoadingMore={isLoadingMore}
+          totalCount={totalCount}
+          loadedCount={offset}
+        />
+      </div>
     </div>
   )
 }
