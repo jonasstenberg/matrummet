@@ -42,7 +42,8 @@ export function ImageUpload({
   const [imageUrl, setImageUrl] = useState('')
   // Original (uncropped) file kept so the user can re-crop without quality loss
   const [originalFile, setOriginalFile] = useState<File | null>(null)
-  // Source being cropped: object URL + the file it came from (null = cropper closed)
+  // Source being cropped: data URL + the file it came from (null = cropper closed).
+  // A data: URL (not a blob: object URL) keeps the image within the CSP img-src allowlist.
   const [cropSource, setCropSource] = useState<{ url: string; file: File } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -73,12 +74,6 @@ export function ImageUpload({
     return () => reader.abort()
   }, [pendingFile, pendingFilePreview])
 
-  // Revoke the cropper's object URL when it changes or on unmount
-  useEffect(() => {
-    if (!cropSource) return
-    return () => URL.revokeObjectURL(cropSource.url)
-  }, [cropSource])
-
   // Use parent-provided preview if available, otherwise use local
   const filePreview = pendingFilePreview ?? localFilePreview
 
@@ -103,17 +98,15 @@ export function ImageUpload({
   }
 
   function openCropper(file: File) {
-    setCropSource((prev) => {
-      if (prev) URL.revokeObjectURL(prev.url)
-      return { url: URL.createObjectURL(file), file }
-    })
+    // Read as a data: URL rather than a blob: object URL so the cropper image
+    // stays within the production CSP (img-src 'self' data: …, no blob:).
+    const reader = new FileReader()
+    reader.onloadend = () => setCropSource({ url: reader.result as string, file })
+    reader.readAsDataURL(file)
   }
 
   function closeCropper() {
-    setCropSource((prev) => {
-      if (prev) URL.revokeObjectURL(prev.url)
-      return null
-    })
+    setCropSource(null)
   }
 
   function handleCropComplete(croppedFile: File) {
