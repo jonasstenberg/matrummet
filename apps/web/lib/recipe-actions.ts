@@ -187,6 +187,19 @@ const loadMoreRecipesFn = createServerFn({ method: 'GET' })
     return getRecipes({ ownerIds: data.ownerIds, token: postgrestToken, limit: data.limit, offset: data.offset })
   })
 
+const loadMoreSearchRecipesFn = createServerFn({ method: 'GET' })
+  .middleware([actionAuthMiddleware])
+  .inputValidator(z.object({ q: z.string(), offset: z.number(), limit: z.number(), ownerIds: z.array(z.string()).optional() }))
+  .handler(async ({ data, context }): Promise<Recipe[]> => {
+    const { postgrestToken } = context
+
+    if (!postgrestToken) {
+      return []
+    }
+
+    return getRecipes({ search: data.q, ownerIds: data.ownerIds, token: postgrestToken, limit: data.limit, offset: data.offset })
+  })
+
 const deductAiCreditFn = createServerFn({ method: 'POST' })
   .middleware([actionAuthMiddleware])
   .inputValidator(z.object({ description: z.string() }))
@@ -865,6 +878,15 @@ export async function loadMoreRecipes(options: {
   ownerIds?: string[]
 }): Promise<Recipe[]> {
   return loadMoreRecipesFn({ data: options })
+}
+
+export async function loadMoreSearchRecipes(options: {
+  q: string
+  offset: number
+  limit: number
+  ownerIds?: string[]
+}): Promise<Recipe[]> {
+  return loadMoreSearchRecipesFn({ data: options })
 }
 
 export async function deductAiCredit(

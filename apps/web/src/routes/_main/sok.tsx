@@ -1,15 +1,28 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
-import { getRecipes } from '@/lib/api'
+import { getRecipesWithCount } from '@/lib/api'
 import { getSession, signPostgrestToken } from '@/lib/auth'
 import { buildMemberData, resolveSelectedMembers } from '@/lib/member-utils'
-import { RecipeGrid } from '@/components/recipe-grid'
-import { MemberFilter } from '@/components/member-filter'
+import { SearchResultsClient } from '@/components/search-results-client'
+
+const PAGE_SIZE = 24
+
+const searchSchema = z.object({
+  q: z.string().optional().catch(undefined),
+  members: z.string().optional().catch(undefined),
+  offset: z.number().int().positive().optional().catch(undefined),
+})
 
 const fetchSearchResults = createServerFn({ method: 'GET' })
-  .inputValidator(z.object({ q: z.string(), members: z.string() }))
-  .handler(async ({ data: { q, members } }) => {
+  .inputValidator(
+    z.object({
+      q: z.string(),
+      members: z.string(),
+      offset: z.number().optional(),
+    }),
+  )
+  .handler(async ({ data: { q, members, offset: offsetParam } }) => {
     const session = await getSession()
 
     if (!session) {
@@ -27,32 +40,37 @@ const fetchSearchResults = createServerFn({ method: 'GET' })
     const ownerIds =
       selectedMemberIds.length > 0 ? selectedMemberIds : undefined
 
-    const recipes = q
-      ? await getRecipes({ search: q, ownerIds, token })
-      : []
+    // On a fresh load with an offset (e.g. back-navigation), restore the whole
+    // list up to that offset; otherwise load the first page.
+    const initialLimit = offsetParam ? Math.max(PAGE_SIZE, offsetParam) : PAGE_SIZE
+
+    const { recipes, totalCount } = q
+      ? await getRecipesWithCount({ search: q, ownerIds, token, limit: initialLimit })
+      : { recipes: [], totalCount: 0 }
 
     return {
       query: q,
       recipes,
+      totalCount,
       memberList,
       selectedMemberIds,
     }
   })
 
 export const Route = createFileRoute('/_main/sok')({
-  validateSearch: (search) =>
-    z
-      .object({
-        q: z.string().optional().catch(undefined),
-        members: z.string().optional().catch(undefined),
-      })
-      .parse(search),
+  validateSearch: (search) => searchSchema.parse(search),
   loaderDeps: ({ search }) => ({
+    // offset is intentionally excluded: "load more" updates the URL without
+    // re-running the loader. The loader reads offset from location for fresh loads.
     q: search.q ?? '',
     members: search.members ?? '',
   }),
-  loader: ({ deps }) =>
-    fetchSearchResults({ data: { q: deps.q, members: deps.members } }),
+  loader: ({ deps, location }) => {
+    const { offset } = location.search as z.infer<typeof searchSchema>
+    return fetchSearchResults({
+      data: { q: deps.q, members: deps.members, offset },
+    })
+  },
   head: ({ loaderData }) => ({
     meta: [
       {
@@ -72,47 +90,35 @@ export const Route = createFileRoute('/_main/sok')({
 })
 
 function SearchPage() {
-  const { query, recipes, memberList, selectedMemberIds } =
+  const { query, recipes, totalCount, memberList, selectedMemberIds } =
     Route.useLoaderData()
 
-  return (
-    <div className="space-y-8">
-      {memberList.length > 1 && (
-        <MemberFilter members={memberList} selectedIds={selectedMemberIds} />
-      )}
-
-      {query && (
-        <>
-          <header>
-            <h1 className="mb-2 text-3xl font-bold text-foreground">
-              Sökresultat för &quot;{query}&quot;
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              {recipes.length === 0 && 'Inga recept hittades'}
-              {recipes.length === 1 && '1 recept hittades'}
-              {recipes.length > 1 && `${recipes.length} recept hittades`}
-            </p>
-          </header>
-
-          <RecipeGrid recipes={recipes} />
-        </>
-      )}
-
-      {!query && (
-        <div className="flex min-h-[500px] items-center justify-center">
-          <div className="max-w-md text-center">
-            <h1 className="mb-4 text-3xl font-bold text-foreground">
-              Sök efter recept
-            </h1>
-            <p className="mb-2 text-lg text-muted-foreground">
-              Använd sökfältet i menyn ovan för att hitta dina favoritrecept
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Du kan söka efter ingredienser, rätter eller kategorier
-            </p>
-          </div>
+  if (!query) {
+    return (
+      <div className="flex min-h-[500px] items-center justify-center">
+        <div className="max-w-md text-center">
+          <h1 className="mb-4 text-3xl font-bold text-foreground">
+            Sök efter recept
+          </h1>
+          <p className="mb-2 text-lg text-muted-foreground">
+            Använd sökfältet i menyn ovan för att hitta dina favoritrecept
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Du kan söka efter ingredienser, rätter eller kategorier
+          </p>
         </div>
-      )}
-    </div>
+      </div>
+    )
+  }
+
+  return (
+    <SearchResultsClient
+      query={query}
+      initialRecipes={recipes}
+      totalCount={totalCount}
+      members={memberList}
+      selectedMemberIds={selectedMemberIds}
+      pageSize={PAGE_SIZE}
+    />
   )
 }

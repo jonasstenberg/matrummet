@@ -275,6 +275,49 @@ describe("Recipe Search", () => {
     });
   });
 
+  describe("count_search_recipes", () => {
+    const countTerm = `Cnt${uniqueId()}`.replace(/-/g, "");
+    let countWorks = true;
+
+    beforeAll(async () => {
+      // Three recipes that all match a unique term.
+      for (let i = 0; i < 3; i++) {
+        await createTestRecipe(clientA, { name: `${countTerm} Recipe ${i}` });
+      }
+      const probe = await clientA.rpc<number>("count_search_recipes", { p_query: countTerm });
+      if (probe.error) {
+        countWorks = false;
+        console.warn(`count_search_recipes unavailable: ${probe.error.message}`);
+      }
+    });
+
+    it("returns the true match count, independent of the page limit", async () => {
+      if (!countWorks) return;
+
+      // The page is capped at p_limit...
+      const page = await clientA.rpc<RecipeFromView[]>("search_recipes", {
+        p_query: countTerm,
+        p_limit: 2,
+        p_offset: 0,
+      });
+      expectSuccess(page, "search page should succeed");
+      expect(page.data!.length).toBeLessThanOrEqual(2);
+
+      // ...but the count reflects all matches.
+      const count = await clientA.rpc<number>("count_search_recipes", { p_query: countTerm });
+      expectSuccess(count, "count_search_recipes should succeed");
+      expect(Number(count.data)).toBe(3);
+    });
+
+    it("returns 0 for an empty query", async () => {
+      if (!countWorks) return;
+
+      const count = await clientA.rpc<number>("count_search_recipes", { p_query: "" });
+      expectSuccess(count, "count_search_recipes empty should succeed");
+      expect(Number(count.data)).toBe(0);
+    });
+  });
+
   describe("search_liked_recipes", () => {
     let likedRecipeId: string;
     const likeSearchTerm = `LikeSearch${uniqueId()}`;

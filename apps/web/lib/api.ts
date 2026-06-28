@@ -323,10 +323,34 @@ export async function getRecipesWithCount(options?: {
     headers['Authorization'] = `Bearer ${options.token}`;
   }
 
-  // For search, use the regular function (RPC doesn't support count header)
+  // For search, fetch the page (search_recipes) and the true total
+  // (count_search_recipes) in parallel — the RPC page is capped at p_limit, so
+  // recipes.length is not the real match count.
   if (options?.search) {
-    const recipes = await getRecipes(options);
-    return { recipes, totalCount: recipes.length };
+    const [recipes, countRes] = await Promise.all([
+      getRecipes(options),
+      fetch(`${env.POSTGREST_URL}/rpc/count_search_recipes`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          p_query: options.search,
+          p_owner_only: options.owner ? true : false,
+          p_category: options.categories?.[0] ?? null,
+          ...(options.ownerIds && options.ownerIds.length > 0 ? { p_owner_ids: options.ownerIds } : {}),
+        }),
+        cache: 'no-store',
+      }),
+    ]);
+
+    if (!countRes.ok) {
+      const errorText = await countRes.text();
+      logger.error({ responseBody: errorText, status: countRes.status }, 'Failed to count search recipes');
+      // Degrade gracefully: at least report the page we have.
+      return { recipes, totalCount: recipes.length };
+    }
+
+    const totalCount = Number(await countRes.json());
+    return { recipes, totalCount };
   }
 
   // Page (list_recipes) + total (count_recipes) in parallel. Both select from the base

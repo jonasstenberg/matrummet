@@ -1,4 +1,4 @@
-import { useEffect, useState, useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import { useRouter } from '@tanstack/react-router'
 import { RecipeCard } from '@/components/recipe-card'
 import { RecipeGrid } from '@/components/recipe-grid'
@@ -30,6 +30,7 @@ import {
   removeRecipeFromCollection,
   updateCollection,
 } from '@/lib/collections-actions'
+import { useRecipePagination } from '@/lib/hooks/use-recipe-pagination'
 import { EllipsisVertical, Pencil, Trash2, X } from '@/lib/icons'
 import type { Collection, Recipe } from '@/lib/types'
 
@@ -59,32 +60,24 @@ export function CollectionDetail({
   const [isPending, startTransition] = useTransition()
   const [removingId, setRemovingId] = useState<string | null>(null)
 
-  // Pagination state — render the grid from this state so load-more and
-  // per-recipe removal both stay in sync.
-  const [allRecipes, setAllRecipes] = useState<Recipe[]>(recipes)
-  const [offset, setOffset] = useState(recipes.length)
-  const [isLoadingMore, startLoadingMore] = useTransition()
-  const hasMore = totalCount > 0 && offset < totalCount
-
-  // Reset pagination when the loader data changes (collection switch / refresh).
-  useEffect(() => {
-    setAllRecipes(recipes)
-    setOffset(recipes.length)
-  }, [recipes])
-
-  function handleLoadMore() {
-    startLoadingMore(async () => {
-      const newRecipes = await loadMoreCollectionRecipes({
-        collectionId: collection.id,
-        offset,
-        limit: PAGE_SIZE,
-      })
-      if (newRecipes.length > 0) {
-        setAllRecipes((prev) => [...prev, ...newRecipes])
-        setOffset((prev) => prev + newRecipes.length)
-      }
-    })
-  }
+  // Accumulating "load more" pagination (shared with the home & search pages).
+  // setAllRecipes/setOffset are used below to drop a removed recipe locally so it
+  // disappears immediately and already loaded-more items remain.
+  const {
+    recipes: allRecipes,
+    setRecipes: setAllRecipes,
+    offset,
+    setOffset,
+    hasMore,
+    isLoadingMore,
+    handleLoadMore,
+  } = useRecipePagination({
+    initialRecipes: recipes,
+    totalCount,
+    pageSize: PAGE_SIZE,
+    loadMore: (off, limit) =>
+      loadMoreCollectionRecipes({ collectionId: collection.id, offset: off, limit }),
+  })
 
   function handleRename(event: React.FormEvent) {
     event.preventDefault()

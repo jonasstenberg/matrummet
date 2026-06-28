@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useMemo, useEffect, useTransition } from 'react'
+import { useMemo } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { MemberFilter } from '@/components/member-filter'
 import { RecipeGrid } from '@/components/recipe-grid'
@@ -10,6 +10,7 @@ import type { Recipe, CategoryGroup, Collection } from '@/lib/types'
 import type { PantryItem } from '@/lib/ingredient-search-types'
 import { loadMoreRecipes } from '@/lib/recipe-actions'
 import { useRecipeFilters } from '@/lib/hooks/use-recipe-filters'
+import { useRecipePagination } from '@/lib/hooks/use-recipe-pagination'
 
 interface RecipePageClientProps {
   initialRecipes: Recipe[]
@@ -46,53 +47,39 @@ export function RecipePageClient({
 
   const navigate = useNavigate()
 
-  // Pagination state
-  const [allRecipes, setAllRecipes] = useState<Recipe[]>(initialRecipes)
-  const [offset, setOffset] = useState(initialRecipes.length)
-  const [isLoadingMore, startLoadingMore] = useTransition()
-  const hasMore = totalCount > 0 && offset < totalCount
+  // Accumulating "load more" pagination (shared with the search & collection pages).
+  const {
+    recipes: allRecipes,
+    offset,
+    hasMore,
+    isLoadingMore,
+    handleLoadMore,
+  } = useRecipePagination({
+    initialRecipes,
+    totalCount,
+    pageSize,
+    loadMore: (off, limit) =>
+      loadMoreRecipes({
+        offset: off,
+        limit,
+        ownerIds: selectedMemberIds.length > 0 ? selectedMemberIds : undefined,
+      }),
+    // Persist offset in URL so back-navigation restores pagination. offset is
+    // not in loaderDeps, so this won't re-run the loader or reset the scroll.
+    onOffsetChange: (newOffset) =>
+      navigate({
+        to: '/',
+        search: (prev) => ({
+          offset: newOffset,
+          members: prev.members ?? undefined,
+        }),
+        replace: true,
+        resetScroll: false,
+      }),
+  })
 
   const hasPantry = initialPantry.length > 0
   const showAuthor = selectedMemberIds.length > 1
-
-  // Reset pagination when initialRecipes changes (e.g., page navigation)
-  useEffect(() => {
-    setAllRecipes(initialRecipes)
-    setOffset(initialRecipes.length)
-  }, [initialRecipes])
-
-  // Handle load more
-  const handleLoadMore = useCallback(() => {
-    startLoadingMore(async () => {
-      try {
-        const newRecipes = await loadMoreRecipes({
-          offset,
-          limit: pageSize,
-          ownerIds: selectedMemberIds.length > 0 ? selectedMemberIds : undefined,
-        })
-        if (newRecipes.length > 0) {
-          setAllRecipes((prev) => [...prev, ...newRecipes])
-          const newOffset = offset + newRecipes.length
-          setOffset(newOffset)
-
-          // Persist offset in URL so back-navigation restores pagination.
-          // offset is not in loaderDeps, so this won't re-run the loader
-          // or show the skeleton — avoiding the scroll reset.
-          navigate({
-            to: '/',
-            search: (prev) => ({
-              offset: newOffset,
-              members: prev.members ?? undefined,
-            }),
-            replace: true,
-            resetScroll: false,
-          })
-        }
-      } catch (error) {
-        console.error('Failed to load more recipes:', error)
-      }
-    })
-  }, [offset, pageSize, selectedMemberIds, navigate])
 
   // Prepare recipes for display
   const displayRecipes = useMemo(() => {
