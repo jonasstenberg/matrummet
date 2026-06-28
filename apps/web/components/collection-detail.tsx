@@ -1,7 +1,9 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from '@tanstack/react-router'
+import { cn } from '@/lib/utils'
 import { RecipeCard } from '@/components/recipe-card'
 import { RecipeGrid } from '@/components/recipe-grid'
+import { RecipeFilters } from '@/components/recipe-filters'
 import { ShareCollectionButton } from '@/components/share-collection-dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,14 +32,18 @@ import {
   removeRecipeFromCollection,
   updateCollection,
 } from '@/lib/collections-actions'
-import { useRecipePagination } from '@/lib/hooks/use-recipe-pagination'
+import { useRecipeBrowser } from '@/lib/hooks/use-recipe-browser'
 import { EllipsisVertical, Pencil, Trash2, X } from '@/lib/icons'
-import type { Collection, Recipe } from '@/lib/types'
+import type { Collection, Recipe, CategoryGroup } from '@/lib/types'
+import type { PantryItem } from '@/lib/ingredient-search-types'
 
 interface CollectionDetailProps {
   collection: Collection
   recipes: Recipe[]
   totalCount: number
+  groupedCategories: CategoryGroup[]
+  pantryItems: PantryItem[]
+  isAuthenticated: boolean
 }
 
 const PAGE_SIZE = 24
@@ -46,9 +52,13 @@ export function CollectionDetail({
   collection,
   recipes,
   totalCount,
+  groupedCategories,
+  pantryItems,
+  isAuthenticated,
 }: CollectionDetailProps) {
   const router = useRouter()
   const isOwner = collection.is_owner
+  const hasPantry = pantryItems.length > 0
 
   const [isManaging, setIsManaging] = useState(false)
   const [renameOpen, setRenameOpen] = useState(false)
@@ -60,21 +70,14 @@ export function CollectionDetail({
   const [isPending, startTransition] = useTransition()
   const [removingId, setRemovingId] = useState<string | null>(null)
 
-  // Accumulating "load more" pagination (shared with the home & search pages).
-  // setAllRecipes/setOffset are used below to drop a removed recipe locally so it
-  // disappears immediately and already loaded-more items remain.
-  const {
-    recipes: allRecipes,
-    setRecipes: setAllRecipes,
-    offset,
-    setOffset,
-    hasMore,
-    isLoadingMore,
-    handleLoadMore,
-  } = useRecipePagination({
+  // Pagination + category/pantry filters, shared with the home & search pages.
+  // setRecipes/setOffset let us drop a removed recipe locally so it disappears
+  // immediately and already loaded-more items remain.
+  const browser = useRecipeBrowser({
     initialRecipes: recipes,
     totalCount,
     pageSize: PAGE_SIZE,
+    hasPantry,
     loadMore: (off, limit) =>
       loadMoreCollectionRecipes({ collectionId: collection.id, offset: off, limit }),
   })
@@ -129,9 +132,9 @@ export function CollectionDetail({
       } else {
         // Drop it locally so it disappears immediately and loaded-more items
         // remain. The router.invalidate refreshes totalCount + the prop, and
-        // the useEffect re-syncs allRecipes/offset afterwards.
-        setAllRecipes((prev) => prev.filter((r) => r.id !== recipeId))
-        setOffset((prev) => Math.max(0, prev - 1))
+        // useRecipePagination re-syncs the list/offset afterwards.
+        browser.setRecipes((prev) => prev.filter((r) => r.id !== recipeId))
+        browser.setOffset((prev) => Math.max(0, prev - 1))
         await router.invalidate()
       }
       setRemovingId(null)
@@ -199,64 +202,84 @@ export function CollectionDetail({
         </Alert>
       )}
 
-      {isOwner && isManaging ? (
-        allRecipes.length === 0 ? (
-          <div className="flex min-h-[400px] items-center justify-center rounded-lg border border-dashed">
-            <div className="text-center">
-              <h2 className="text-lg font-semibold text-foreground">
-                Inga recept i samlingen
-              </h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Lägg till recept från ett recept via &quot;Lägg till i samling&quot;.
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:gap-6">
-              {allRecipes.map((recipe) => (
-                <div key={recipe.id} className="relative">
-                  <RecipeCard recipe={recipe} />
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveRecipe(recipe.id)}
-                    disabled={isPending && removingId === recipe.id}
-                    aria-label={`Ta bort ${recipe.name} från samlingen`}
-                    className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-destructive shadow-md backdrop-blur-sm transition-colors hover:bg-white disabled:opacity-50"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-            {hasMore && (
-              <div className="flex flex-col items-center gap-3 pt-4">
-                <p className="text-sm text-muted-foreground">
-                  Visar {offset} av {totalCount} recept
+      <RecipeFilters
+        groupedCategories={groupedCategories}
+        pantryItems={pantryItems}
+        isAuthenticated={isAuthenticated}
+        isFilterActive={browser.isFilterActive}
+        minMatchPercentage={browser.minMatchPercentage}
+        onFilterToggle={browser.handleFilterToggle}
+        onMinMatchChange={browser.handleMinMatchChange}
+        resultsSummary={browser.resultsSummary}
+      />
+
+      <div
+        className={cn(
+          'transition-opacity duration-200',
+          browser.isNavigating && 'pointer-events-none opacity-50',
+        )}
+        aria-busy={browser.isNavigating}
+      >
+        {isOwner && isManaging ? (
+          browser.displayRecipes.length === 0 ? (
+            <div className="flex min-h-[400px] items-center justify-center rounded-lg border border-dashed">
+              <div className="text-center">
+                <h2 className="text-lg font-semibold text-foreground">
+                  Inga recept i samlingen
+                </h2>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Lägg till recept från ett recept via &quot;Lägg till i samling&quot;.
                 </p>
-                <Button
-                  onClick={handleLoadMore}
-                  disabled={isLoadingMore}
-                  className="min-w-[200px]"
-                >
-                  {isLoadingMore ? 'Laddar...' : 'Ladda fler recept'}
-                </Button>
               </div>
-            )}
-          </div>
-        )
-      ) : (
-        <RecipeGrid
-          recipes={allRecipes}
-          emptyMessage="Inga recept i samlingen"
-          emptyDescription="Lägg till recept via &quot;Lägg till i samling&quot; på ett recept."
-          onLoadMore={handleLoadMore}
-          hasMore={hasMore}
-          isLoadingMore={isLoadingMore}
-          totalCount={totalCount}
-          loadedCount={offset}
-        />
-      )}
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:gap-6">
+                {browser.displayRecipes.map((recipe) => (
+                  <div key={recipe.id} className="relative">
+                    <RecipeCard recipe={recipe} />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveRecipe(recipe.id)}
+                      disabled={isPending && removingId === recipe.id}
+                      aria-label={`Ta bort ${recipe.name} från samlingen`}
+                      className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-destructive shadow-md backdrop-blur-sm transition-colors hover:bg-white disabled:opacity-50"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              {browser.hasMore && (
+                <div className="flex flex-col items-center gap-3 pt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Visar {browser.offset} av {totalCount} recept
+                  </p>
+                  <Button
+                    onClick={browser.handleLoadMore}
+                    disabled={browser.isLoadingMore}
+                    className="min-w-[200px]"
+                  >
+                    {browser.isLoadingMore ? 'Laddar...' : 'Ladda fler recept'}
+                  </Button>
+                </div>
+              )}
+            </div>
+          )
+        ) : (
+          <RecipeGrid
+            recipes={browser.displayRecipes}
+            showPantryMatch={hasPantry}
+            emptyMessage="Inga recept i samlingen"
+            emptyDescription="Lägg till recept via &quot;Lägg till i samling&quot; på ett recept."
+            onLoadMore={browser.handleLoadMore}
+            hasMore={browser.hasMore}
+            isLoadingMore={browser.isLoadingMore}
+            totalCount={totalCount}
+            loadedCount={browser.offset}
+          />
+        )}
+      </div>
 
       {/* Rename dialog */}
       <Dialog open={renameOpen} onOpenChange={setRenameOpen}>

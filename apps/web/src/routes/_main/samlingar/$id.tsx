@@ -2,15 +2,24 @@ import { createFileRoute, redirect } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import { getCollectionRecipes, listCollections } from '@/lib/collections-api'
+import { getCategories } from '@/lib/api'
+import { getUserPantry } from '@/lib/ingredient-search-actions'
+import { getSession } from '@/lib/auth'
 import { CollectionDetail } from '@/components/collection-detail'
+
+const PAGE_SIZE = 24
 
 const fetchCollection = createServerFn({ method: 'GET' })
   .inputValidator(z.object({ id: z.string() }))
   .handler(async ({ data: { id } }) => {
-    const [collections, recipeResult] = await Promise.all([
-      listCollections(),
-      getCollectionRecipes(id, { limit: 24 }),
-    ])
+    const session = await getSession()
+    const [collections, recipeResult, groupedCategories, pantryResult] =
+      await Promise.all([
+        listCollections(),
+        getCollectionRecipes(id, { limit: PAGE_SIZE }),
+        getCategories(),
+        session ? getUserPantry() : Promise.resolve([]),
+      ])
 
     const collection = collections.find((c) => c.id === id) ?? null
 
@@ -18,6 +27,9 @@ const fetchCollection = createServerFn({ method: 'GET' })
       collection,
       recipes: recipeResult.recipes,
       totalCount: recipeResult.totalCount,
+      groupedCategories,
+      pantryItems: Array.isArray(pantryResult) ? pantryResult : [],
+      isAuthenticated: !!session,
     }
   })
 
@@ -42,7 +54,14 @@ export const Route = createFileRoute('/_main/samlingar/$id')({
 })
 
 function CollectionPage() {
-  const { collection, recipes, totalCount } = Route.useLoaderData()
+  const {
+    collection,
+    recipes,
+    totalCount,
+    groupedCategories,
+    pantryItems,
+    isAuthenticated,
+  } = Route.useLoaderData()
 
   // collection is guaranteed non-null: the loader redirects otherwise.
   if (!collection) return null
@@ -52,6 +71,9 @@ function CollectionPage() {
       collection={collection}
       recipes={recipes}
       totalCount={totalCount}
+      groupedCategories={groupedCategories}
+      pantryItems={pantryItems}
+      isAuthenticated={isAuthenticated}
     />
   )
 }

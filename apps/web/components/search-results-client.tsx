@@ -1,10 +1,11 @@
-import { useNavigate, useRouterState } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
-import { MemberFilter } from '@/components/member-filter'
 import { RecipeGrid } from '@/components/recipe-grid'
-import type { Recipe } from '@/lib/types'
+import { RecipeFilters } from '@/components/recipe-filters'
+import type { Recipe, CategoryGroup } from '@/lib/types'
+import type { PantryItem } from '@/lib/ingredient-search-types'
 import { loadMoreSearchRecipes } from '@/lib/recipe-actions'
-import { useRecipePagination } from '@/lib/hooks/use-recipe-pagination'
+import { useRecipeBrowser } from '@/lib/hooks/use-recipe-browser'
 
 interface SearchResultsClientProps {
   query: string
@@ -12,6 +13,8 @@ interface SearchResultsClientProps {
   totalCount: number
   members: Array<{ id: string; name: string; isCurrentUser: boolean; type?: 'household' | 'shared-book' }>
   selectedMemberIds: string[]
+  groupedCategories: CategoryGroup[]
+  pantryItems: PantryItem[]
   pageSize: number
 }
 
@@ -21,40 +24,37 @@ export function SearchResultsClient({
   totalCount,
   members,
   selectedMemberIds,
+  groupedCategories,
+  pantryItems,
   pageSize,
 }: SearchResultsClientProps) {
   const navigate = useNavigate()
-  // True while a route loader is in flight (refining the query / member filter).
-  const isNavigating = useRouterState({ select: (s) => s.isLoading })
   const ownerIds = selectedMemberIds.length > 0 ? selectedMemberIds : undefined
+  const hasPantry = pantryItems.length > 0
 
-  const { recipes, offset, hasMore, isLoadingMore, handleLoadMore } =
-    useRecipePagination({
-      initialRecipes,
-      totalCount,
-      pageSize,
-      loadMore: (off, limit) =>
-        loadMoreSearchRecipes({ q: query, offset: off, limit, ownerIds }),
-      // Persist offset in the URL so back-navigation restores pagination.
-      onOffsetChange: (newOffset) =>
-        navigate({
-          to: '/sok',
-          search: (prev) => ({
-            q: prev.q,
-            members: prev.members ?? undefined,
-            offset: newOffset,
-          }),
-          replace: true,
-          resetScroll: false,
+  const browser = useRecipeBrowser({
+    initialRecipes,
+    totalCount,
+    pageSize,
+    hasPantry,
+    loadMore: (off, limit) =>
+      loadMoreSearchRecipes({ q: query, offset: off, limit, ownerIds }),
+    // Persist offset in the URL so back-navigation restores pagination.
+    onOffsetChange: (newOffset) =>
+      navigate({
+        to: '/sok',
+        search: (prev) => ({
+          q: prev.q,
+          members: prev.members ?? undefined,
+          offset: newOffset,
         }),
-    })
+        replace: true,
+        resetScroll: false,
+      }),
+  })
 
   return (
-    <div className="space-y-8">
-      {members.length > 1 && (
-        <MemberFilter members={members} selectedIds={selectedMemberIds} />
-      )}
-
+    <div className="space-y-6">
       <header>
         <h1 className="mb-2 text-3xl font-bold text-foreground">
           Sökresultat för &quot;{query}&quot;
@@ -66,21 +66,35 @@ export function SearchResultsClient({
         </p>
       </header>
 
+      <RecipeFilters
+        members={members}
+        selectedMemberIds={selectedMemberIds}
+        groupedCategories={groupedCategories}
+        pantryItems={pantryItems}
+        isAuthenticated={true}
+        isFilterActive={browser.isFilterActive}
+        minMatchPercentage={browser.minMatchPercentage}
+        onFilterToggle={browser.handleFilterToggle}
+        onMinMatchChange={browser.handleMinMatchChange}
+        resultsSummary={browser.resultsSummary}
+      />
+
       <div
         className={cn(
           'transition-opacity duration-200',
-          isNavigating && 'pointer-events-none opacity-50',
+          browser.isNavigating && 'pointer-events-none opacity-50',
         )}
-        aria-busy={isNavigating}
+        aria-busy={browser.isNavigating}
       >
         <RecipeGrid
-          recipes={recipes}
+          recipes={browser.displayRecipes}
+          showPantryMatch={hasPantry}
           showAuthor={selectedMemberIds.length > 1}
-          onLoadMore={handleLoadMore}
-          hasMore={hasMore}
-          isLoadingMore={isLoadingMore}
+          onLoadMore={browser.handleLoadMore}
+          hasMore={browser.hasMore}
+          isLoadingMore={browser.isLoadingMore}
           totalCount={totalCount}
-          loadedCount={offset}
+          loadedCount={browser.offset}
         />
       </div>
     </div>

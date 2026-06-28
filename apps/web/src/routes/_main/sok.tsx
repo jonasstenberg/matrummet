@@ -1,10 +1,13 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
-import { getRecipesWithCount } from '@/lib/api'
+import { getRecipesWithCount, getCategories } from '@/lib/api'
+import { getUserPantry } from '@/lib/ingredient-search-actions'
 import { getSession, signPostgrestToken } from '@/lib/auth'
 import { buildMemberData, resolveSelectedMembers } from '@/lib/member-utils'
 import { SearchResultsClient } from '@/components/search-results-client'
+import type { Recipe, CategoryGroup } from '@/lib/types'
+import type { PantryItem } from '@/lib/ingredient-search-types'
 
 const PAGE_SIZE = 24
 
@@ -44,9 +47,22 @@ const fetchSearchResults = createServerFn({ method: 'GET' })
     // list up to that offset; otherwise load the first page.
     const initialLimit = offsetParam ? Math.max(PAGE_SIZE, offsetParam) : PAGE_SIZE
 
-    const { recipes, totalCount } = q
-      ? await getRecipesWithCount({ search: q, ownerIds, token, limit: initialLimit })
-      : { recipes: [], totalCount: 0 }
+    let recipes: Recipe[] = []
+    let totalCount = 0
+    let groupedCategories: CategoryGroup[] = []
+    let pantryItems: PantryItem[] = []
+
+    if (q) {
+      const [result, categories, pantryResult] = await Promise.all([
+        getRecipesWithCount({ search: q, ownerIds, token, limit: initialLimit }),
+        getCategories(),
+        getUserPantry(),
+      ])
+      recipes = result.recipes
+      totalCount = result.totalCount
+      groupedCategories = categories
+      pantryItems = Array.isArray(pantryResult) ? pantryResult : []
+    }
 
     return {
       query: q,
@@ -54,6 +70,8 @@ const fetchSearchResults = createServerFn({ method: 'GET' })
       totalCount,
       memberList,
       selectedMemberIds,
+      groupedCategories,
+      pantryItems,
     }
   })
 
@@ -90,8 +108,15 @@ export const Route = createFileRoute('/_main/sok')({
 })
 
 function SearchPage() {
-  const { query, recipes, totalCount, memberList, selectedMemberIds } =
-    Route.useLoaderData()
+  const {
+    query,
+    recipes,
+    totalCount,
+    memberList,
+    selectedMemberIds,
+    groupedCategories,
+    pantryItems,
+  } = Route.useLoaderData()
 
   if (!query) {
     return (
@@ -118,6 +143,8 @@ function SearchPage() {
       totalCount={totalCount}
       members={memberList}
       selectedMemberIds={selectedMemberIds}
+      groupedCategories={groupedCategories}
+      pantryItems={pantryItems}
       pageSize={PAGE_SIZE}
     />
   )
