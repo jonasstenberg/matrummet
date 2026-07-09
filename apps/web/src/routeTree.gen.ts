@@ -26,6 +26,7 @@ import { Route as MainSokRouteImport } from './routes/_main/sok'
 import { Route as MainSmartaImporterRouteImport } from './routes/_main/smarta-importer'
 import { Route as MainOmRouteImport } from './routes/_main/om'
 import { Route as MainMittSkafferiRouteImport } from './routes/_main/mitt-skafferi'
+import { Route as MainMcpRouteImport } from './routes/_main/mcp'
 import { Route as MainMatplanRouteImport } from './routes/_main/matplan'
 import { Route as MainIntegritetspolicyRouteImport } from './routes/_main/integritetspolicy'
 import { Route as MainInstallningarRouteImport } from './routes/_main/installningar'
@@ -194,6 +195,11 @@ const MainOmRoute = MainOmRouteImport.update({
 const MainMittSkafferiRoute = MainMittSkafferiRouteImport.update({
   id: '/mitt-skafferi',
   path: '/mitt-skafferi',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainMcpRoute = MainMcpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
   getParentRoute: () => MainRoute,
 } as any)
 const MainMatplanRoute = MainMatplanRouteImport.update({
@@ -651,6 +657,7 @@ export interface FileRoutesByFullPath {
   '/installningar': typeof MainInstallningarRouteWithChildren
   '/integritetspolicy': typeof MainIntegritetspolicyRoute
   '/matplan': typeof MainMatplanRoute
+  '/mcp': typeof MainMcpRoute
   '/mitt-skafferi': typeof MainMittSkafferiRoute
   '/om': typeof MainOmRoute
   '/smarta-importer': typeof MainSmartaImporterRoute
@@ -752,6 +759,7 @@ export interface FileRoutesByTo {
   '/inkopslista': typeof MainInkopslistaRoute
   '/integritetspolicy': typeof MainIntegritetspolicyRoute
   '/matplan': typeof MainMatplanRoute
+  '/mcp': typeof MainMcpRoute
   '/mitt-skafferi': typeof MainMittSkafferiRoute
   '/om': typeof MainOmRoute
   '/smarta-importer': typeof MainSmartaImporterRoute
@@ -857,6 +865,7 @@ export interface FileRoutesById {
   '/_main/installningar': typeof MainInstallningarRouteWithChildren
   '/_main/integritetspolicy': typeof MainIntegritetspolicyRoute
   '/_main/matplan': typeof MainMatplanRoute
+  '/_main/mcp': typeof MainMcpRoute
   '/_main/mitt-skafferi': typeof MainMittSkafferiRoute
   '/_main/om': typeof MainOmRoute
   '/_main/smarta-importer': typeof MainSmartaImporterRoute
@@ -963,6 +972,7 @@ export interface FileRouteTypes {
     | '/installningar'
     | '/integritetspolicy'
     | '/matplan'
+    | '/mcp'
     | '/mitt-skafferi'
     | '/om'
     | '/smarta-importer'
@@ -1064,6 +1074,7 @@ export interface FileRouteTypes {
     | '/inkopslista'
     | '/integritetspolicy'
     | '/matplan'
+    | '/mcp'
     | '/mitt-skafferi'
     | '/om'
     | '/smarta-importer'
@@ -1168,6 +1179,7 @@ export interface FileRouteTypes {
     | '/_main/installningar'
     | '/_main/integritetspolicy'
     | '/_main/matplan'
+    | '/_main/mcp'
     | '/_main/mitt-skafferi'
     | '/_main/om'
     | '/_main/smarta-importer'
@@ -1419,6 +1431,13 @@ declare module '@tanstack/react-router' {
       path: '/mitt-skafferi'
       fullPath: '/mitt-skafferi'
       preLoaderRoute: typeof MainMittSkafferiRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/mcp': {
+      id: '/_main/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof MainMcpRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/matplan': {
@@ -2116,6 +2135,7 @@ interface MainRouteChildren {
   MainInstallningarRoute: typeof MainInstallningarRouteWithChildren
   MainIntegritetspolicyRoute: typeof MainIntegritetspolicyRoute
   MainMatplanRoute: typeof MainMatplanRoute
+  MainMcpRoute: typeof MainMcpRoute
   MainMittSkafferiRoute: typeof MainMittSkafferiRoute
   MainOmRoute: typeof MainOmRoute
   MainSmartaImporterRoute: typeof MainSmartaImporterRoute
@@ -2154,6 +2174,7 @@ const MainRouteChildren: MainRouteChildren = {
   MainInstallningarRoute: MainInstallningarRouteWithChildren,
   MainIntegritetspolicyRoute: MainIntegritetspolicyRoute,
   MainMatplanRoute: MainMatplanRoute,
+  MainMcpRoute: MainMcpRoute,
   MainMittSkafferiRoute: MainMittSkafferiRoute,
   MainOmRoute: MainOmRoute,
   MainSmartaImporterRoute: MainSmartaImporterRoute,

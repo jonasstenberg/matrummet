@@ -30,6 +30,12 @@ export function Footer() {
           >
             API
           </Link>
+          <Link
+            to="/mcp"
+            className="text-background/60 hover:text-background transition-colors"
+          >
+            MCP
+          </Link>
         </nav>
 
         {/* Divider */}

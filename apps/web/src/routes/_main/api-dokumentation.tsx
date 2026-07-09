@@ -101,7 +101,11 @@ function ApiDokumentationPage() {
           <a href="/api/docs" className="underline hover:text-foreground">
             ren text
           </a>{' '}
-          för agenter och verktyg.
+          för agenter och verktyg. AI-assistenter kan även ansluta via vår{' '}
+          <Link to="/mcp" className="underline hover:text-foreground">
+            MCP-server
+          </Link>
+          .
         </p>
 
         <div className="space-y-10 text-foreground/80 leading-relaxed">

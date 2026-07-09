@@ -17,6 +17,8 @@ export const Route = createFileRoute('/sitemap.xml')({
         const staticPages: SitemapEntry[] = [
           { loc: BASE_URL, changefreq: 'daily', priority: '1.0' },
           { loc: `${BASE_URL}/om`, changefreq: 'monthly', priority: '0.5' },
+          { loc: `${BASE_URL}/api-dokumentation`, changefreq: 'monthly', priority: '0.5' },
+          { loc: `${BASE_URL}/mcp`, changefreq: 'monthly', priority: '0.5' },
           { loc: `${BASE_URL}/integritetspolicy`, changefreq: 'yearly', priority: '0.3' },
           { loc: `${BASE_URL}/villkor`, changefreq: 'yearly', priority: '0.3' },
         ]
