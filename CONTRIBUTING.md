@@ -5,7 +5,7 @@ Thanks for your interest in contributing! Here's how to get started.
 ## Development Setup
 
 1. Fork and clone the repo
-2. Install dependencies: `pnpm install`
+2. Select Node with `nvm use`, enable pnpm with `corepack enable`, then install dependencies: `pnpm install --frozen-lockfile`
 3. Copy environment files:
    ```bash
    cp apps/web/.env.example apps/web/.env.local
@@ -40,7 +40,7 @@ Keep them clear and concise:
 Run tests before submitting:
 
 ```bash
-pnpm check          # Lint + unit tests
+pnpm check          # Lint + type checks + unit tests
 pnpm check:api      # API integration tests (requires Docker)
 ```
 

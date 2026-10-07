@@ -80,7 +80,7 @@ on:
           - "false"
 
 env:
-  NODE_VERSION: "22"
+  NODE_VERSION: "24.16.0"
 
 jobs:
   setup:
@@ -156,7 +156,7 @@ jobs:
             echo "First commit, deploying frontend"
           else
             CHANGED_FILES=$(git diff --name-only $PARENT_SHA $WORKFLOW_SHA 2>/dev/null || git ls-files)
-            if echo "$CHANGED_FILES" | grep -qE "^apps/web/|^packages/shared/"; then
+            if echo "$CHANGED_FILES" | grep -qE "^apps/web/|^packages/|^package.json$|^pnpm-lock.yaml$|^pnpm-workspace.yaml$|^\.nvmrc$"; then
               echo "deploy_frontend=true" >> $GITHUB_OUTPUT
               echo "Frontend changes detected"
             else
@@ -177,7 +177,7 @@ jobs:
             echo "First commit, deploying email-service"
           else
             CHANGED_FILES=$(git diff --name-only $PARENT_SHA $WORKFLOW_SHA 2>/dev/null || git ls-files)
-            if echo "$CHANGED_FILES" | grep -qE "^apps/email-service/|^packages/shared/"; then
+            if echo "$CHANGED_FILES" | grep -qE "^apps/email-service/|^packages/|^package.json$|^pnpm-lock.yaml$|^pnpm-workspace.yaml$|^\.nvmrc$"; then
               echo "deploy_email_service=true" >> $GITHUB_OUTPUT
               echo "Email-service changes detected"
             else
@@ -198,7 +198,7 @@ jobs:
             echo "First commit, deploying events-service"
           else
             CHANGED_FILES=$(git diff --name-only $PARENT_SHA $WORKFLOW_SHA 2>/dev/null || git ls-files)
-            if echo "$CHANGED_FILES" | grep -qE "^apps/events-service/|^packages/shared/"; then
+            if echo "$CHANGED_FILES" | grep -qE "^apps/events-service/|^packages/|^package.json$|^pnpm-lock.yaml$|^pnpm-workspace.yaml$|^\.nvmrc$"; then
               echo "deploy_events_service=true" >> $GITHUB_OUTPUT
               echo "Events-service changes detected"
             else
@@ -219,7 +219,7 @@ jobs:
             echo "First commit, deploying image-service"
           else
             CHANGED_FILES=$(git diff --name-only $PARENT_SHA $WORKFLOW_SHA 2>/dev/null || git ls-files)
-            if echo "$CHANGED_FILES" | grep -qE "^apps/image-service/|^packages/shared/"; then
+            if echo "$CHANGED_FILES" | grep -qE "^apps/image-service/|^packages/|^package.json$|^pnpm-lock.yaml$|^pnpm-workspace.yaml$|^\.nvmrc$"; then
               echo "deploy_image_service=true" >> $GITHUB_OUTPUT
               echo "Image-service changes detected"
             else
@@ -240,7 +240,7 @@ jobs:
             echo "First commit, deploying mcp-service"
           else
             CHANGED_FILES=$(git diff --name-only $PARENT_SHA $WORKFLOW_SHA 2>/dev/null || git ls-files)
-            if echo "$CHANGED_FILES" | grep -qE "^apps/mcp-service/"; then
+            if echo "$CHANGED_FILES" | grep -qE "^apps/mcp-service/|^packages/|^package.json$|^pnpm-lock.yaml$|^pnpm-workspace.yaml$|^\.nvmrc$"; then
               echo "deploy_mcp_service=true" >> $GITHUB_OUTPUT
               echo "Mcp-service changes detected"
             else
@@ -350,8 +350,11 @@ jobs:
       - name: Build shared packages
         run: pnpm --filter @matrummet/shared --filter @matrummet/testing build
 
+      - name: Check types
+        run: pnpm check:typecheck
+
       - name: Run tests
-        run: pnpm vitest run
+        run: pnpm check:test
 
   api-tests:
     needs: setup
@@ -567,7 +570,12 @@ jobs:
           pnpm build
           # Playwright can't be bundled by Nitro (uses __dirname, CJS internals)
           # Install it in a temp dir then copy to avoid npm touching sharp's platform deps
-          tmp=$(mktemp -d) && (cd "$tmp" && npm init -y --silent && npm install --no-save playwright) && cp -r "$tmp/node_modules/playwright" "$tmp/node_modules/playwright-core" .output/server/node_modules/ && rm -rf "$tmp"
+          playwright_version=$(node -p 'require("playwright/package.json").version')
+          tmp=$(mktemp -d)
+          (cd "$tmp" && npm init -y --silent && npm install --no-save "playwright@$playwright_version")
+          mkdir -p .output/server/node_modules
+          cp -r "$tmp/node_modules/playwright" "$tmp/node_modules/playwright-core" .output/server/node_modules/
+          rm -rf "$tmp"
           ls -la .output/server/  # Verify build output exists
 
       - name: Build and prepare email-service deployment

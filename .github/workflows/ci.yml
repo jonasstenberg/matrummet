@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check:typecheck
+      # Mobile retains its existing Expo toolchain and is upgraded separately.
+      - run: bash scripts/check.sh 'Lint (web and services)' "pnpm --filter '!matrummet-mobile' -r lint"
+      - run: pnpm check:test
+      - run: pnpm check:build

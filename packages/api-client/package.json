@@ -10,10 +10,13 @@
   },
   "dependencies": {
     "@matrummet/types": "workspace:*",
-    "@noble/hashes": "^2.0.1"
+    "@noble/hashes": "^2.4.0"
   },
   "devDependencies": {
     "@matrummet/tsconfig": "workspace:*",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
   }
 }

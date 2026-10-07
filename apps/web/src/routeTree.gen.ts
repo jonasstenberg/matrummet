@@ -9,119 +9,117 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
-import { Route as OfflineRouteImport } from './routes/offline'
-import { Route as MainRouteImport } from './routes/_main'
 import { Route as AuthRouteImport } from './routes/_auth'
-import { Route as MainIndexRouteImport } from './routes/_main/index'
-import { Route as ApiUploadRouteImport } from './routes/api/upload'
-import { Route as ApiUnitsRouteImport } from './routes/api/units'
-import { Route as ApiSubstitutionsRouteImport } from './routes/api/substitutions'
-import { Route as ApiFoodsRouteImport } from './routes/api/foods'
-import { Route as ApiDocsRouteImport } from './routes/api/docs'
-import { Route as ApiCategoriesRouteImport } from './routes/api/categories'
-import { Route as MainVillkorRouteImport } from './routes/_main/villkor'
-import { Route as MainSokRouteImport } from './routes/_main/sok'
-import { Route as MainSmartaImporterRouteImport } from './routes/_main/smarta-importer'
-import { Route as MainOmRouteImport } from './routes/_main/om'
-import { Route as MainMittSkafferiRouteImport } from './routes/_main/mitt-skafferi'
-import { Route as MainMcpRouteImport } from './routes/_main/mcp'
-import { Route as MainMatplanRouteImport } from './routes/_main/matplan'
-import { Route as MainIntegritetspolicyRouteImport } from './routes/_main/integritetspolicy'
-import { Route as MainInstallningarRouteImport } from './routes/_main/installningar'
-import { Route as MainInkopslistaRouteImport } from './routes/_main/inkopslista'
-import { Route as MainGilladeReceptRouteImport } from './routes/_main/gillade-recept'
-import { Route as MainApiDokumentationRouteImport } from './routes/_main/api-dokumentation'
-import { Route as MainAiPoangRouteImport } from './routes/_main/ai-poang'
-import { Route as MainAdminRouteImport } from './routes/_main/admin'
-import { Route as AuthRegistreraRouteImport } from './routes/_auth/registrera'
+import { Route as MainRouteImport } from './routes/_main'
+import { Route as OfflineRouteImport } from './routes/offline'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
-import { Route as MainSamlingarIndexRouteImport } from './routes/_main/samlingar/index'
-import { Route as MainMinaReceptIndexRouteImport } from './routes/_main/mina-recept/index'
-import { Route as MainInstallningarIndexRouteImport } from './routes/_main/installningar/index'
-import { Route as MainHushallIndexRouteImport } from './routes/_main/hushall/index'
-import { Route as MainHemmetIndexRouteImport } from './routes/_main/hemmet/index'
-import { Route as MainAllaReceptIndexRouteImport } from './routes/_main/alla-recept/index'
-import { Route as MainAdminIndexRouteImport } from './routes/_main/admin/index'
-import { Route as ApiWebhooksStripeRouteImport } from './routes/api/webhooks/stripe'
-import { Route as ApiUserExportRouteImport } from './routes/api/user/export'
-import { Route as ApiUserDeleteAccountRouteImport } from './routes/api/user/delete-account'
-import { Route as ApiRecipesSearchRouteImport } from './routes/api/recipes/search'
-import { Route as ApiImagesSplatRouteImport } from './routes/api/images/$'
-import { Route as ApiCreditsHistoryRouteImport } from './routes/api/credits/history'
-import { Route as ApiCreditsGrantRouteImport } from './routes/api/credits/grant'
-import { Route as ApiCreditsCheckoutRouteImport } from './routes/api/credits/checkout'
-import { Route as ApiCreditsBalanceRouteImport } from './routes/api/credits/balance'
-import { Route as ApiAuthRegistreraRouteImport } from './routes/api/auth/registrera'
-import { Route as ApiAuthRefreshRouteImport } from './routes/api/auth/refresh'
-import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
-import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
-import { Route as ApiAuthGoogleRouteImport } from './routes/api/auth/google'
-import { Route as ApiAiMealPlanRouteImport } from './routes/api/ai/meal-plan'
-import { Route as ApiAiGenerateRouteImport } from './routes/api/ai/generate'
-import { Route as ApiAdminUsersRouteImport } from './routes/api/admin/users'
-import { Route as ApiAdminUnitsRouteImport } from './routes/api/admin/units'
-import { Route as ApiAdminRestructureRouteImport } from './routes/api/admin/restructure'
-import { Route as ApiAdminFoodsRouteImport } from './routes/api/admin/foods'
-import { Route as ApiAdminDashboardRouteImport } from './routes/api/admin/dashboard'
-import { Route as ApiAdminCategoriesRouteImport } from './routes/api/admin/categories'
-import { Route as MainSamlingarIdRouteImport } from './routes/_main/samlingar/$id'
-import { Route as MainMinaReceptSokRouteImport } from './routes/_main/mina-recept/sok'
-import { Route as MainJoinCodeRouteImport } from './routes/_main/join/$code'
-import { Route as MainInstallningarHemmetRouteImport } from './routes/_main/installningar_.hemmet'
-import { Route as MainInstallningarSakerhetRouteImport } from './routes/_main/installningar/sakerhet'
-import { Route as MainInstallningarKontoRouteImport } from './routes/_main/installningar/konto'
-import { Route as MainInstallningarDelningRouteImport } from './routes/_main/installningar/delning'
-import { Route as MainInstallningarDataRouteImport } from './routes/_main/installningar/data'
-import { Route as MainInstallningarApiNycklarRouteImport } from './routes/_main/installningar/api-nycklar'
-import { Route as MainHushallMedlemmarRouteImport } from './routes/_main/hushall/medlemmar'
-import { Route as MainHemmetMedlemmarRouteImport } from './routes/_main/hemmet/medlemmar'
-import { Route as MainHemmetHushallRouteImport } from './routes/_main/hemmet/hushall'
-import { Route as MainHemHomeIdRouteImport } from './routes/_main/hem/$homeId'
-import { Route as MainDelaTokenRouteImport } from './routes/_main/dela/$token'
-import { Route as MainAllaReceptSokRouteImport } from './routes/_main/alla-recept/sok'
-import { Route as MainAdminStruktureraRouteImport } from './routes/_main/admin/strukturera'
-import { Route as MainAdminMatvarorRouteImport } from './routes/_main/admin/matvaror'
-import { Route as MainAdminKategorierRouteImport } from './routes/_main/admin/kategorier'
-import { Route as MainAdminEnheterRouteImport } from './routes/_main/admin/enheter'
-import { Route as MainAdminAnvandareRouteImport } from './routes/_main/admin/anvandare'
-import { Route as MainAdminAiGranskningRouteImport } from './routes/_main/admin/ai-granskning'
+import { Route as AuthRegistreraRouteImport } from './routes/_auth/registrera'
+import { Route as MainIndexRouteImport } from './routes/_main/index'
+import { Route as MainAdminRouteImport } from './routes/_main/admin'
+import { Route as MainAiPoangRouteImport } from './routes/_main/ai-poang'
+import { Route as MainApiDokumentationRouteImport } from './routes/_main/api-dokumentation'
+import { Route as MainGilladeReceptRouteImport } from './routes/_main/gillade-recept'
+import { Route as MainInkopslistaRouteImport } from './routes/_main/inkopslista'
+import { Route as MainInstallningarRouteImport } from './routes/_main/installningar'
+import { Route as MainIntegritetspolicyRouteImport } from './routes/_main/integritetspolicy'
+import { Route as MainMatplanRouteImport } from './routes/_main/matplan'
+import { Route as MainMcpRouteImport } from './routes/_main/mcp'
+import { Route as MainMittSkafferiRouteImport } from './routes/_main/mitt-skafferi'
+import { Route as MainOmRouteImport } from './routes/_main/om'
+import { Route as MainSmartaImporterRouteImport } from './routes/_main/smarta-importer'
+import { Route as MainSokRouteImport } from './routes/_main/sok'
+import { Route as MainVillkorRouteImport } from './routes/_main/villkor'
+import { Route as ApiCategoriesRouteImport } from './routes/api/categories'
+import { Route as ApiDocsRouteImport } from './routes/api/docs'
+import { Route as ApiFoodsRouteImport } from './routes/api/foods'
+import { Route as ApiSubstitutionsRouteImport } from './routes/api/substitutions'
+import { Route as ApiUnitsRouteImport } from './routes/api/units'
+import { Route as ApiUploadRouteImport } from './routes/api/upload'
 import { Route as AuthResetPasswordTokenRouteImport } from './routes/_auth/reset-password.$token'
-import { Route as MainReceptNyttIndexRouteImport } from './routes/_main/recept/nytt/index'
-import { Route as MainReceptIdIndexRouteImport } from './routes/_main/recept/$id/index'
+import { Route as MainAdminIndexRouteImport } from './routes/_main/admin/index'
+import { Route as MainAdminAiGranskningRouteImport } from './routes/_main/admin/ai-granskning'
+import { Route as MainAdminAnvandareRouteImport } from './routes/_main/admin/anvandare'
+import { Route as MainAdminEnheterRouteImport } from './routes/_main/admin/enheter'
+import { Route as MainAdminKategorierRouteImport } from './routes/_main/admin/kategorier'
+import { Route as MainAdminMatvarorRouteImport } from './routes/_main/admin/matvaror'
+import { Route as MainAdminStruktureraRouteImport } from './routes/_main/admin/strukturera'
+import { Route as MainAllaReceptIndexRouteImport } from './routes/_main/alla-recept/index'
+import { Route as MainAllaReceptSokRouteImport } from './routes/_main/alla-recept/sok'
+import { Route as MainDelaTokenRouteImport } from './routes/_main/dela/$token'
+import { Route as MainHemHomeIdRouteImport } from './routes/_main/hem/$homeId'
+import { Route as MainHemmetIndexRouteImport } from './routes/_main/hemmet/index'
+import { Route as MainHemmetHushallRouteImport } from './routes/_main/hemmet/hushall'
+import { Route as MainHemmetMedlemmarRouteImport } from './routes/_main/hemmet/medlemmar'
+import { Route as MainHushallIndexRouteImport } from './routes/_main/hushall/index'
+import { Route as MainHushallMedlemmarRouteImport } from './routes/_main/hushall/medlemmar'
+import { Route as MainInstallningarIndexRouteImport } from './routes/_main/installningar/index'
+import { Route as MainInstallningarApiNycklarRouteImport } from './routes/_main/installningar/api-nycklar'
+import { Route as MainInstallningarDataRouteImport } from './routes/_main/installningar/data'
+import { Route as MainInstallningarDelningRouteImport } from './routes/_main/installningar/delning'
+import { Route as MainInstallningarKontoRouteImport } from './routes/_main/installningar/konto'
+import { Route as MainInstallningarSakerhetRouteImport } from './routes/_main/installningar/sakerhet'
+import { Route as MainInstallningarHemmetRouteImport } from './routes/_main/installningar_.hemmet'
+import { Route as MainJoinCodeRouteImport } from './routes/_main/join/$code'
+import { Route as MainMinaReceptIndexRouteImport } from './routes/_main/mina-recept/index'
+import { Route as MainMinaReceptSokRouteImport } from './routes/_main/mina-recept/sok'
+import { Route as MainSamlingarIndexRouteImport } from './routes/_main/samlingar/index'
+import { Route as MainSamlingarIdRouteImport } from './routes/_main/samlingar/$id'
+import { Route as ApiAdminCategoriesRouteImport } from './routes/api/admin/categories'
+import { Route as ApiAdminDashboardRouteImport } from './routes/api/admin/dashboard'
+import { Route as ApiAdminFoodsRouteImport } from './routes/api/admin/foods'
+import { Route as ApiAdminRestructureRouteImport } from './routes/api/admin/restructure'
+import { Route as ApiAdminUnitsRouteImport } from './routes/api/admin/units'
+import { Route as ApiAdminUsersRouteImport } from './routes/api/admin/users'
+import { Route as ApiAiGenerateRouteImport } from './routes/api/ai/generate'
+import { Route as ApiAiMealPlanRouteImport } from './routes/api/ai/meal-plan'
+import { Route as ApiAuthGoogleRouteImport } from './routes/api/auth/google'
+import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
+import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
+import { Route as ApiAuthRefreshRouteImport } from './routes/api/auth/refresh'
+import { Route as ApiAuthRegistreraRouteImport } from './routes/api/auth/registrera'
+import { Route as ApiCreditsBalanceRouteImport } from './routes/api/credits/balance'
+import { Route as ApiCreditsCheckoutRouteImport } from './routes/api/credits/checkout'
+import { Route as ApiCreditsGrantRouteImport } from './routes/api/credits/grant'
+import { Route as ApiCreditsHistoryRouteImport } from './routes/api/credits/history'
+import { Route as ApiImagesSplatRouteImport } from './routes/api/images/$'
+import { Route as ApiRecipesSearchRouteImport } from './routes/api/recipes/search'
+import { Route as ApiUserDeleteAccountRouteImport } from './routes/api/user/delete-account'
+import { Route as ApiUserExportRouteImport } from './routes/api/user/export'
+import { Route as ApiWebhooksStripeRouteImport } from './routes/api/webhooks/stripe'
 import { Route as MainAdminReceptIndexRouteImport } from './routes/_main/admin/recept/index'
-import { Route as ApiAuthResetPasswordCompleteRouteImport } from './routes/api/auth/reset-password.complete'
-import { Route as ApiAuthCallbackGoogleRouteImport } from './routes/api/auth/callback.google'
-import { Route as ApiAdminUsersRoleRouteImport } from './routes/api/admin/users/role'
-import { Route as ApiAdminRestructurePreviewRouteImport } from './routes/api/admin/restructure/preview'
-import { Route as ApiAdminRestructureApplyRouteImport } from './routes/api/admin/restructure/apply'
-import { Route as ApiAdminFoodsSimilarRouteImport } from './routes/api/admin/foods/similar'
-import { Route as ApiAdminFoodsRecipesRouteImport } from './routes/api/admin/foods/recipes'
-import { Route as ApiAdminFoodsAiReviewRouteImport } from './routes/api/admin/foods/ai-review'
-import { Route as ApiAdminAiRefineRouteImport } from './routes/api/admin/ai/refine'
-import { Route as ApiAdminAiReviewStreamRouteImport } from './routes/api/admin/ai-review/stream'
-import { Route as ApiAdminAiReviewRunsRouteImport } from './routes/api/admin/ai-review/runs'
-import { Route as ApiAdminAiReviewFoodsRouteImport } from './routes/api/admin/ai-review/foods'
-import { Route as MainReceptNyttManuelltRouteImport } from './routes/_main/recept/nytt/manuellt'
-import { Route as MainReceptIdRedigeraRouteImport } from './routes/_main/recept/$id/redigera'
-import { Route as MainHemHomeIdSkafferiRouteImport } from './routes/_main/hem/$homeId/skafferi'
-import { Route as MainHemHomeIdMatplanRouteImport } from './routes/_main/hem/$homeId/matplan'
-import { Route as MainHemHomeIdInstallningarRouteImport } from './routes/_main/hem/$homeId/installningar'
-import { Route as MainHemHomeIdInkopslistaRouteImport } from './routes/_main/hem/$homeId/inkopslista'
-import { Route as MainDelaSamlingTokenRouteImport } from './routes/_main/dela/samling/$token'
-import { Route as MainDelaBokTokenRouteImport } from './routes/_main/dela/bok/$token'
 import { Route as MainAdminReceptIdRouteImport } from './routes/_main/admin/recept/$id'
+import { Route as MainDelaBokTokenRouteImport } from './routes/_main/dela/bok/$token'
+import { Route as MainDelaSamlingTokenRouteImport } from './routes/_main/dela/samling/$token'
+import { Route as MainHemHomeIdInkopslistaRouteImport } from './routes/_main/hem/$homeId/inkopslista'
+import { Route as MainHemHomeIdInstallningarRouteImport } from './routes/_main/hem/$homeId/installningar'
+import { Route as MainHemHomeIdMatplanRouteImport } from './routes/_main/hem/$homeId/matplan'
+import { Route as MainHemHomeIdSkafferiRouteImport } from './routes/_main/hem/$homeId/skafferi'
+import { Route as MainReceptIdIndexRouteImport } from './routes/_main/recept/$id/index'
+import { Route as MainReceptIdRedigeraRouteImport } from './routes/_main/recept/$id/redigera'
+import { Route as MainReceptNyttIndexRouteImport } from './routes/_main/recept/nytt/index'
+import { Route as MainReceptNyttManuelltRouteImport } from './routes/_main/recept/nytt/manuellt'
+import { Route as ApiAdminAiReviewFoodsRouteImport } from './routes/api/admin/ai-review/foods'
+import { Route as ApiAdminAiReviewRunsRouteImport } from './routes/api/admin/ai-review/runs'
+import { Route as ApiAdminAiReviewStreamRouteImport } from './routes/api/admin/ai-review/stream'
+import { Route as ApiAdminAiRefineRouteImport } from './routes/api/admin/ai/refine'
+import { Route as ApiAdminFoodsAiReviewRouteImport } from './routes/api/admin/foods/ai-review'
+import { Route as ApiAdminFoodsRecipesRouteImport } from './routes/api/admin/foods/recipes'
+import { Route as ApiAdminFoodsSimilarRouteImport } from './routes/api/admin/foods/similar'
+import { Route as ApiAdminRestructureApplyRouteImport } from './routes/api/admin/restructure/apply'
+import { Route as ApiAdminRestructurePreviewRouteImport } from './routes/api/admin/restructure/preview'
+import { Route as ApiAdminUsersRoleRouteImport } from './routes/api/admin/users/role'
+import { Route as ApiAuthCallbackGoogleRouteImport } from './routes/api/auth/callback.google'
+import { Route as ApiAuthResetPasswordCompleteRouteImport } from './routes/api/auth/reset-password.complete'
 import { Route as ApiAdminAiReviewRunsIdApplyRouteImport } from './routes/api/admin/ai-review/runs/$id/apply'
 
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
+const AuthRoute = AuthRouteImport.update({
+  id: '/_auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
-  id: '/robots.txt',
-  path: '/robots.txt',
+const MainRoute = MainRouteImport.update({
+  id: '/_main',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OfflineRoute = OfflineRouteImport.update({
@@ -129,112 +127,29 @@ const OfflineRoute = OfflineRouteImport.update({
   path: '/offline',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MainRoute = MainRouteImport.update({
-  id: '/_main',
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/_auth',
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthRegistreraRoute = AuthRegistreraRouteImport.update({
+  id: '/registrera',
+  path: '/registrera',
+  getParentRoute: () => AuthRoute,
 } as any)
 const MainIndexRoute = MainIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => MainRoute,
-} as any)
-const ApiUploadRoute = ApiUploadRouteImport.update({
-  id: '/api/upload',
-  path: '/api/upload',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiUnitsRoute = ApiUnitsRouteImport.update({
-  id: '/api/units',
-  path: '/api/units',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiSubstitutionsRoute = ApiSubstitutionsRouteImport.update({
-  id: '/api/substitutions',
-  path: '/api/substitutions',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiFoodsRoute = ApiFoodsRouteImport.update({
-  id: '/api/foods',
-  path: '/api/foods',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiDocsRoute = ApiDocsRouteImport.update({
-  id: '/api/docs',
-  path: '/api/docs',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiCategoriesRoute = ApiCategoriesRouteImport.update({
-  id: '/api/categories',
-  path: '/api/categories',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MainVillkorRoute = MainVillkorRouteImport.update({
-  id: '/villkor',
-  path: '/villkor',
-  getParentRoute: () => MainRoute,
-} as any)
-const MainSokRoute = MainSokRouteImport.update({
-  id: '/sok',
-  path: '/sok',
-  getParentRoute: () => MainRoute,
-} as any)
-const MainSmartaImporterRoute = MainSmartaImporterRouteImport.update({
-  id: '/smarta-importer',
-  path: '/smarta-importer',
-  getParentRoute: () => MainRoute,
-} as any)
-const MainOmRoute = MainOmRouteImport.update({
-  id: '/om',
-  path: '/om',
-  getParentRoute: () => MainRoute,
-} as any)
-const MainMittSkafferiRoute = MainMittSkafferiRouteImport.update({
-  id: '/mitt-skafferi',
-  path: '/mitt-skafferi',
-  getParentRoute: () => MainRoute,
-} as any)
-const MainMcpRoute = MainMcpRouteImport.update({
-  id: '/mcp',
-  path: '/mcp',
-  getParentRoute: () => MainRoute,
-} as any)
-const MainMatplanRoute = MainMatplanRouteImport.update({
-  id: '/matplan',
-  path: '/matplan',
-  getParentRoute: () => MainRoute,
-} as any)
-const MainIntegritetspolicyRoute = MainIntegritetspolicyRouteImport.update({
-  id: '/integritetspolicy',
-  path: '/integritetspolicy',
-  getParentRoute: () => MainRoute,
-} as any)
-const MainInstallningarRoute = MainInstallningarRouteImport.update({
-  id: '/installningar',
-  path: '/installningar',
-  getParentRoute: () => MainRoute,
-} as any)
-const MainInkopslistaRoute = MainInkopslistaRouteImport.update({
-  id: '/inkopslista',
-  path: '/inkopslista',
-  getParentRoute: () => MainRoute,
-} as any)
-const MainGilladeReceptRoute = MainGilladeReceptRouteImport.update({
-  id: '/gillade-recept',
-  path: '/gillade-recept',
-  getParentRoute: () => MainRoute,
-} as any)
-const MainApiDokumentationRoute = MainApiDokumentationRouteImport.update({
-  id: '/api-dokumentation',
-  path: '/api-dokumentation',
-  getParentRoute: () => MainRoute,
-} as any)
-const MainAiPoangRoute = MainAiPoangRouteImport.update({
-  id: '/ai-poang',
-  path: '/ai-poang',
   getParentRoute: () => MainRoute,
 } as any)
 const MainAdminRoute = MainAdminRouteImport.update({
@@ -242,34 +157,159 @@ const MainAdminRoute = MainAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => MainRoute,
 } as any)
-const AuthRegistreraRoute = AuthRegistreraRouteImport.update({
-  id: '/registrera',
-  path: '/registrera',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthLoginRoute = AuthLoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => AuthRoute,
-} as any)
-const MainSamlingarIndexRoute = MainSamlingarIndexRouteImport.update({
-  id: '/samlingar/',
-  path: '/samlingar/',
+const MainAiPoangRoute = MainAiPoangRouteImport.update({
+  id: '/ai-poang',
+  path: '/ai-poang',
   getParentRoute: () => MainRoute,
 } as any)
-const MainMinaReceptIndexRoute = MainMinaReceptIndexRouteImport.update({
-  id: '/mina-recept/',
-  path: '/mina-recept/',
+const MainApiDokumentationRoute = MainApiDokumentationRouteImport.update({
+  id: '/api-dokumentation',
+  path: '/api-dokumentation',
   getParentRoute: () => MainRoute,
 } as any)
-const MainInstallningarIndexRoute = MainInstallningarIndexRouteImport.update({
+const MainGilladeReceptRoute = MainGilladeReceptRouteImport.update({
+  id: '/gillade-recept',
+  path: '/gillade-recept',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainInkopslistaRoute = MainInkopslistaRouteImport.update({
+  id: '/inkopslista',
+  path: '/inkopslista',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainInstallningarRoute = MainInstallningarRouteImport.update({
+  id: '/installningar',
+  path: '/installningar',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainIntegritetspolicyRoute = MainIntegritetspolicyRouteImport.update({
+  id: '/integritetspolicy',
+  path: '/integritetspolicy',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainMatplanRoute = MainMatplanRouteImport.update({
+  id: '/matplan',
+  path: '/matplan',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainMcpRoute = MainMcpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainMittSkafferiRoute = MainMittSkafferiRouteImport.update({
+  id: '/mitt-skafferi',
+  path: '/mitt-skafferi',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainOmRoute = MainOmRouteImport.update({
+  id: '/om',
+  path: '/om',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainSmartaImporterRoute = MainSmartaImporterRouteImport.update({
+  id: '/smarta-importer',
+  path: '/smarta-importer',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainSokRoute = MainSokRouteImport.update({
+  id: '/sok',
+  path: '/sok',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainVillkorRoute = MainVillkorRouteImport.update({
+  id: '/villkor',
+  path: '/villkor',
+  getParentRoute: () => MainRoute,
+} as any)
+const ApiCategoriesRoute = ApiCategoriesRouteImport.update({
+  id: '/api/categories',
+  path: '/api/categories',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDocsRoute = ApiDocsRouteImport.update({
+  id: '/api/docs',
+  path: '/api/docs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFoodsRoute = ApiFoodsRouteImport.update({
+  id: '/api/foods',
+  path: '/api/foods',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSubstitutionsRoute = ApiSubstitutionsRouteImport.update({
+  id: '/api/substitutions',
+  path: '/api/substitutions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiUnitsRoute = ApiUnitsRouteImport.update({
+  id: '/api/units',
+  path: '/api/units',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiUploadRoute = ApiUploadRouteImport.update({
+  id: '/api/upload',
+  path: '/api/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthResetPasswordTokenRoute = AuthResetPasswordTokenRouteImport.update({
+  id: '/reset-password/$token',
+  path: '/reset-password/$token',
+  getParentRoute: () => AuthRoute,
+} as any)
+const MainAdminIndexRoute = MainAdminIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => MainInstallningarRoute,
+  getParentRoute: () => MainAdminRoute,
 } as any)
-const MainHushallIndexRoute = MainHushallIndexRouteImport.update({
-  id: '/hushall/',
-  path: '/hushall/',
+const MainAdminAiGranskningRoute = MainAdminAiGranskningRouteImport.update({
+  id: '/ai-granskning',
+  path: '/ai-granskning',
+  getParentRoute: () => MainAdminRoute,
+} as any)
+const MainAdminAnvandareRoute = MainAdminAnvandareRouteImport.update({
+  id: '/anvandare',
+  path: '/anvandare',
+  getParentRoute: () => MainAdminRoute,
+} as any)
+const MainAdminEnheterRoute = MainAdminEnheterRouteImport.update({
+  id: '/enheter',
+  path: '/enheter',
+  getParentRoute: () => MainAdminRoute,
+} as any)
+const MainAdminKategorierRoute = MainAdminKategorierRouteImport.update({
+  id: '/kategorier',
+  path: '/kategorier',
+  getParentRoute: () => MainAdminRoute,
+} as any)
+const MainAdminMatvarorRoute = MainAdminMatvarorRouteImport.update({
+  id: '/matvaror',
+  path: '/matvaror',
+  getParentRoute: () => MainAdminRoute,
+} as any)
+const MainAdminStruktureraRoute = MainAdminStruktureraRouteImport.update({
+  id: '/strukturera',
+  path: '/strukturera',
+  getParentRoute: () => MainAdminRoute,
+} as any)
+const MainAllaReceptIndexRoute = MainAllaReceptIndexRouteImport.update({
+  id: '/alla-recept/',
+  path: '/alla-recept/',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainAllaReceptSokRoute = MainAllaReceptSokRouteImport.update({
+  id: '/alla-recept/sok',
+  path: '/alla-recept/sok',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainDelaTokenRoute = MainDelaTokenRouteImport.update({
+  id: '/dela/$token',
+  path: '/dela/$token',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainHemHomeIdRoute = MainHemHomeIdRouteImport.update({
+  id: '/hem/$homeId',
+  path: '/hem/$homeId',
   getParentRoute: () => MainRoute,
 } as any)
 const MainHemmetIndexRoute = MainHemmetIndexRouteImport.update({
@@ -277,166 +317,29 @@ const MainHemmetIndexRoute = MainHemmetIndexRouteImport.update({
   path: '/hemmet/',
   getParentRoute: () => MainRoute,
 } as any)
-const MainAllaReceptIndexRoute = MainAllaReceptIndexRouteImport.update({
-  id: '/alla-recept/',
-  path: '/alla-recept/',
+const MainHemmetHushallRoute = MainHemmetHushallRouteImport.update({
+  id: '/hemmet/hushall',
+  path: '/hemmet/hushall',
   getParentRoute: () => MainRoute,
 } as any)
-const MainAdminIndexRoute = MainAdminIndexRouteImport.update({
+const MainHemmetMedlemmarRoute = MainHemmetMedlemmarRouteImport.update({
+  id: '/hemmet/medlemmar',
+  path: '/hemmet/medlemmar',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainHushallIndexRoute = MainHushallIndexRouteImport.update({
+  id: '/hushall/',
+  path: '/hushall/',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainHushallMedlemmarRoute = MainHushallMedlemmarRouteImport.update({
+  id: '/hushall/medlemmar',
+  path: '/hushall/medlemmar',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainInstallningarIndexRoute = MainInstallningarIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => MainAdminRoute,
-} as any)
-const ApiWebhooksStripeRoute = ApiWebhooksStripeRouteImport.update({
-  id: '/api/webhooks/stripe',
-  path: '/api/webhooks/stripe',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiUserExportRoute = ApiUserExportRouteImport.update({
-  id: '/api/user/export',
-  path: '/api/user/export',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiUserDeleteAccountRoute = ApiUserDeleteAccountRouteImport.update({
-  id: '/api/user/delete-account',
-  path: '/api/user/delete-account',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiRecipesSearchRoute = ApiRecipesSearchRouteImport.update({
-  id: '/api/recipes/search',
-  path: '/api/recipes/search',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiImagesSplatRoute = ApiImagesSplatRouteImport.update({
-  id: '/api/images/$',
-  path: '/api/images/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiCreditsHistoryRoute = ApiCreditsHistoryRouteImport.update({
-  id: '/api/credits/history',
-  path: '/api/credits/history',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiCreditsGrantRoute = ApiCreditsGrantRouteImport.update({
-  id: '/api/credits/grant',
-  path: '/api/credits/grant',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiCreditsCheckoutRoute = ApiCreditsCheckoutRouteImport.update({
-  id: '/api/credits/checkout',
-  path: '/api/credits/checkout',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiCreditsBalanceRoute = ApiCreditsBalanceRouteImport.update({
-  id: '/api/credits/balance',
-  path: '/api/credits/balance',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAuthRegistreraRoute = ApiAuthRegistreraRouteImport.update({
-  id: '/api/auth/registrera',
-  path: '/api/auth/registrera',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAuthRefreshRoute = ApiAuthRefreshRouteImport.update({
-  id: '/api/auth/refresh',
-  path: '/api/auth/refresh',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAuthLogoutRoute = ApiAuthLogoutRouteImport.update({
-  id: '/api/auth/logout',
-  path: '/api/auth/logout',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
-  id: '/api/auth/login',
-  path: '/api/auth/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAuthGoogleRoute = ApiAuthGoogleRouteImport.update({
-  id: '/api/auth/google',
-  path: '/api/auth/google',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAiMealPlanRoute = ApiAiMealPlanRouteImport.update({
-  id: '/api/ai/meal-plan',
-  path: '/api/ai/meal-plan',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAiGenerateRoute = ApiAiGenerateRouteImport.update({
-  id: '/api/ai/generate',
-  path: '/api/ai/generate',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAdminUsersRoute = ApiAdminUsersRouteImport.update({
-  id: '/api/admin/users',
-  path: '/api/admin/users',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAdminUnitsRoute = ApiAdminUnitsRouteImport.update({
-  id: '/api/admin/units',
-  path: '/api/admin/units',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAdminRestructureRoute = ApiAdminRestructureRouteImport.update({
-  id: '/api/admin/restructure',
-  path: '/api/admin/restructure',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAdminFoodsRoute = ApiAdminFoodsRouteImport.update({
-  id: '/api/admin/foods',
-  path: '/api/admin/foods',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAdminDashboardRoute = ApiAdminDashboardRouteImport.update({
-  id: '/api/admin/dashboard',
-  path: '/api/admin/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAdminCategoriesRoute = ApiAdminCategoriesRouteImport.update({
-  id: '/api/admin/categories',
-  path: '/api/admin/categories',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MainSamlingarIdRoute = MainSamlingarIdRouteImport.update({
-  id: '/samlingar/$id',
-  path: '/samlingar/$id',
-  getParentRoute: () => MainRoute,
-} as any)
-const MainMinaReceptSokRoute = MainMinaReceptSokRouteImport.update({
-  id: '/mina-recept/sok',
-  path: '/mina-recept/sok',
-  getParentRoute: () => MainRoute,
-} as any)
-const MainJoinCodeRoute = MainJoinCodeRouteImport.update({
-  id: '/join/$code',
-  path: '/join/$code',
-  getParentRoute: () => MainRoute,
-} as any)
-const MainInstallningarHemmetRoute = MainInstallningarHemmetRouteImport.update({
-  id: '/installningar_/hemmet',
-  path: '/installningar/hemmet',
-  getParentRoute: () => MainRoute,
-} as any)
-const MainInstallningarSakerhetRoute =
-  MainInstallningarSakerhetRouteImport.update({
-    id: '/sakerhet',
-    path: '/sakerhet',
-    getParentRoute: () => MainInstallningarRoute,
-  } as any)
-const MainInstallningarKontoRoute = MainInstallningarKontoRouteImport.update({
-  id: '/konto',
-  path: '/konto',
-  getParentRoute: () => MainInstallningarRoute,
-} as any)
-const MainInstallningarDelningRoute =
-  MainInstallningarDelningRouteImport.update({
-    id: '/delning',
-    path: '/delning',
-    getParentRoute: () => MainInstallningarRoute,
-  } as any)
-const MainInstallningarDataRoute = MainInstallningarDataRouteImport.update({
-  id: '/data',
-  path: '/data',
   getParentRoute: () => MainInstallningarRoute,
 } as any)
 const MainInstallningarApiNycklarRoute =
@@ -445,152 +348,213 @@ const MainInstallningarApiNycklarRoute =
     path: '/api-nycklar',
     getParentRoute: () => MainInstallningarRoute,
   } as any)
-const MainHushallMedlemmarRoute = MainHushallMedlemmarRouteImport.update({
-  id: '/hushall/medlemmar',
-  path: '/hushall/medlemmar',
+const MainInstallningarDataRoute = MainInstallningarDataRouteImport.update({
+  id: '/data',
+  path: '/data',
+  getParentRoute: () => MainInstallningarRoute,
+} as any)
+const MainInstallningarDelningRoute =
+  MainInstallningarDelningRouteImport.update({
+    id: '/delning',
+    path: '/delning',
+    getParentRoute: () => MainInstallningarRoute,
+  } as any)
+const MainInstallningarKontoRoute = MainInstallningarKontoRouteImport.update({
+  id: '/konto',
+  path: '/konto',
+  getParentRoute: () => MainInstallningarRoute,
+} as any)
+const MainInstallningarSakerhetRoute =
+  MainInstallningarSakerhetRouteImport.update({
+    id: '/sakerhet',
+    path: '/sakerhet',
+    getParentRoute: () => MainInstallningarRoute,
+  } as any)
+const MainInstallningarHemmetRoute = MainInstallningarHemmetRouteImport.update({
+  id: '/installningar_/hemmet',
+  path: '/installningar/hemmet',
   getParentRoute: () => MainRoute,
 } as any)
-const MainHemmetMedlemmarRoute = MainHemmetMedlemmarRouteImport.update({
-  id: '/hemmet/medlemmar',
-  path: '/hemmet/medlemmar',
+const MainJoinCodeRoute = MainJoinCodeRouteImport.update({
+  id: '/join/$code',
+  path: '/join/$code',
   getParentRoute: () => MainRoute,
 } as any)
-const MainHemmetHushallRoute = MainHemmetHushallRouteImport.update({
-  id: '/hemmet/hushall',
-  path: '/hemmet/hushall',
+const MainMinaReceptIndexRoute = MainMinaReceptIndexRouteImport.update({
+  id: '/mina-recept/',
+  path: '/mina-recept/',
   getParentRoute: () => MainRoute,
 } as any)
-const MainHemHomeIdRoute = MainHemHomeIdRouteImport.update({
-  id: '/hem/$homeId',
-  path: '/hem/$homeId',
+const MainMinaReceptSokRoute = MainMinaReceptSokRouteImport.update({
+  id: '/mina-recept/sok',
+  path: '/mina-recept/sok',
   getParentRoute: () => MainRoute,
 } as any)
-const MainDelaTokenRoute = MainDelaTokenRouteImport.update({
-  id: '/dela/$token',
-  path: '/dela/$token',
+const MainSamlingarIndexRoute = MainSamlingarIndexRouteImport.update({
+  id: '/samlingar/',
+  path: '/samlingar/',
   getParentRoute: () => MainRoute,
 } as any)
-const MainAllaReceptSokRoute = MainAllaReceptSokRouteImport.update({
-  id: '/alla-recept/sok',
-  path: '/alla-recept/sok',
+const MainSamlingarIdRoute = MainSamlingarIdRouteImport.update({
+  id: '/samlingar/$id',
+  path: '/samlingar/$id',
   getParentRoute: () => MainRoute,
 } as any)
-const MainAdminStruktureraRoute = MainAdminStruktureraRouteImport.update({
-  id: '/strukturera',
-  path: '/strukturera',
-  getParentRoute: () => MainAdminRoute,
+const ApiAdminCategoriesRoute = ApiAdminCategoriesRouteImport.update({
+  id: '/api/admin/categories',
+  path: '/api/admin/categories',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const MainAdminMatvarorRoute = MainAdminMatvarorRouteImport.update({
-  id: '/matvaror',
-  path: '/matvaror',
-  getParentRoute: () => MainAdminRoute,
+const ApiAdminDashboardRoute = ApiAdminDashboardRouteImport.update({
+  id: '/api/admin/dashboard',
+  path: '/api/admin/dashboard',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const MainAdminKategorierRoute = MainAdminKategorierRouteImport.update({
-  id: '/kategorier',
-  path: '/kategorier',
-  getParentRoute: () => MainAdminRoute,
+const ApiAdminFoodsRoute = ApiAdminFoodsRouteImport.update({
+  id: '/api/admin/foods',
+  path: '/api/admin/foods',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const MainAdminEnheterRoute = MainAdminEnheterRouteImport.update({
-  id: '/enheter',
-  path: '/enheter',
-  getParentRoute: () => MainAdminRoute,
+const ApiAdminRestructureRoute = ApiAdminRestructureRouteImport.update({
+  id: '/api/admin/restructure',
+  path: '/api/admin/restructure',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const MainAdminAnvandareRoute = MainAdminAnvandareRouteImport.update({
-  id: '/anvandare',
-  path: '/anvandare',
-  getParentRoute: () => MainAdminRoute,
+const ApiAdminUnitsRoute = ApiAdminUnitsRouteImport.update({
+  id: '/api/admin/units',
+  path: '/api/admin/units',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const MainAdminAiGranskningRoute = MainAdminAiGranskningRouteImport.update({
-  id: '/ai-granskning',
-  path: '/ai-granskning',
-  getParentRoute: () => MainAdminRoute,
+const ApiAdminUsersRoute = ApiAdminUsersRouteImport.update({
+  id: '/api/admin/users',
+  path: '/api/admin/users',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthResetPasswordTokenRoute = AuthResetPasswordTokenRouteImport.update({
-  id: '/reset-password/$token',
-  path: '/reset-password/$token',
-  getParentRoute: () => AuthRoute,
+const ApiAiGenerateRoute = ApiAiGenerateRouteImport.update({
+  id: '/api/ai/generate',
+  path: '/api/ai/generate',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const MainReceptNyttIndexRoute = MainReceptNyttIndexRouteImport.update({
-  id: '/recept/nytt/',
-  path: '/recept/nytt/',
-  getParentRoute: () => MainRoute,
+const ApiAiMealPlanRoute = ApiAiMealPlanRouteImport.update({
+  id: '/api/ai/meal-plan',
+  path: '/api/ai/meal-plan',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const MainReceptIdIndexRoute = MainReceptIdIndexRouteImport.update({
-  id: '/recept/$id/',
-  path: '/recept/$id/',
-  getParentRoute: () => MainRoute,
+const ApiAuthGoogleRoute = ApiAuthGoogleRouteImport.update({
+  id: '/api/auth/google',
+  path: '/api/auth/google',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
+  id: '/api/auth/login',
+  path: '/api/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthLogoutRoute = ApiAuthLogoutRouteImport.update({
+  id: '/api/auth/logout',
+  path: '/api/auth/logout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthRefreshRoute = ApiAuthRefreshRouteImport.update({
+  id: '/api/auth/refresh',
+  path: '/api/auth/refresh',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthRegistreraRoute = ApiAuthRegistreraRouteImport.update({
+  id: '/api/auth/registrera',
+  path: '/api/auth/registrera',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCreditsBalanceRoute = ApiCreditsBalanceRouteImport.update({
+  id: '/api/credits/balance',
+  path: '/api/credits/balance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCreditsCheckoutRoute = ApiCreditsCheckoutRouteImport.update({
+  id: '/api/credits/checkout',
+  path: '/api/credits/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCreditsGrantRoute = ApiCreditsGrantRouteImport.update({
+  id: '/api/credits/grant',
+  path: '/api/credits/grant',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCreditsHistoryRoute = ApiCreditsHistoryRouteImport.update({
+  id: '/api/credits/history',
+  path: '/api/credits/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiImagesSplatRoute = ApiImagesSplatRouteImport.update({
+  id: '/api/images/$',
+  path: '/api/images/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRecipesSearchRoute = ApiRecipesSearchRouteImport.update({
+  id: '/api/recipes/search',
+  path: '/api/recipes/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiUserDeleteAccountRoute = ApiUserDeleteAccountRouteImport.update({
+  id: '/api/user/delete-account',
+  path: '/api/user/delete-account',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiUserExportRoute = ApiUserExportRouteImport.update({
+  id: '/api/user/export',
+  path: '/api/user/export',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWebhooksStripeRoute = ApiWebhooksStripeRouteImport.update({
+  id: '/api/webhooks/stripe',
+  path: '/api/webhooks/stripe',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const MainAdminReceptIndexRoute = MainAdminReceptIndexRouteImport.update({
   id: '/recept/',
   path: '/recept/',
   getParentRoute: () => MainAdminRoute,
 } as any)
-const ApiAuthResetPasswordCompleteRoute =
-  ApiAuthResetPasswordCompleteRouteImport.update({
-    id: '/api/auth/reset-password/complete',
-    path: '/api/auth/reset-password/complete',
-    getParentRoute: () => rootRouteImport,
+const MainAdminReceptIdRoute = MainAdminReceptIdRouteImport.update({
+  id: '/recept/$id',
+  path: '/recept/$id',
+  getParentRoute: () => MainAdminRoute,
+} as any)
+const MainDelaBokTokenRoute = MainDelaBokTokenRouteImport.update({
+  id: '/dela/bok/$token',
+  path: '/dela/bok/$token',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainDelaSamlingTokenRoute = MainDelaSamlingTokenRouteImport.update({
+  id: '/dela/samling/$token',
+  path: '/dela/samling/$token',
+  getParentRoute: () => MainRoute,
+} as any)
+const MainHemHomeIdInkopslistaRoute =
+  MainHemHomeIdInkopslistaRouteImport.update({
+    id: '/inkopslista',
+    path: '/inkopslista',
+    getParentRoute: () => MainHemHomeIdRoute,
   } as any)
-const ApiAuthCallbackGoogleRoute = ApiAuthCallbackGoogleRouteImport.update({
-  id: '/api/auth/callback/google',
-  path: '/api/auth/callback/google',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAdminUsersRoleRoute = ApiAdminUsersRoleRouteImport.update({
-  id: '/role',
-  path: '/role',
-  getParentRoute: () => ApiAdminUsersRoute,
-} as any)
-const ApiAdminRestructurePreviewRoute =
-  ApiAdminRestructurePreviewRouteImport.update({
-    id: '/preview',
-    path: '/preview',
-    getParentRoute: () => ApiAdminRestructureRoute,
+const MainHemHomeIdInstallningarRoute =
+  MainHemHomeIdInstallningarRouteImport.update({
+    id: '/installningar',
+    path: '/installningar',
+    getParentRoute: () => MainHemHomeIdRoute,
   } as any)
-const ApiAdminRestructureApplyRoute =
-  ApiAdminRestructureApplyRouteImport.update({
-    id: '/apply',
-    path: '/apply',
-    getParentRoute: () => ApiAdminRestructureRoute,
-  } as any)
-const ApiAdminFoodsSimilarRoute = ApiAdminFoodsSimilarRouteImport.update({
-  id: '/similar',
-  path: '/similar',
-  getParentRoute: () => ApiAdminFoodsRoute,
+const MainHemHomeIdMatplanRoute = MainHemHomeIdMatplanRouteImport.update({
+  id: '/matplan',
+  path: '/matplan',
+  getParentRoute: () => MainHemHomeIdRoute,
 } as any)
-const ApiAdminFoodsRecipesRoute = ApiAdminFoodsRecipesRouteImport.update({
-  id: '/recipes',
-  path: '/recipes',
-  getParentRoute: () => ApiAdminFoodsRoute,
+const MainHemHomeIdSkafferiRoute = MainHemHomeIdSkafferiRouteImport.update({
+  id: '/skafferi',
+  path: '/skafferi',
+  getParentRoute: () => MainHemHomeIdRoute,
 } as any)
-const ApiAdminFoodsAiReviewRoute = ApiAdminFoodsAiReviewRouteImport.update({
-  id: '/ai-review',
-  path: '/ai-review',
-  getParentRoute: () => ApiAdminFoodsRoute,
-} as any)
-const ApiAdminAiRefineRoute = ApiAdminAiRefineRouteImport.update({
-  id: '/api/admin/ai/refine',
-  path: '/api/admin/ai/refine',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAdminAiReviewStreamRoute = ApiAdminAiReviewStreamRouteImport.update({
-  id: '/api/admin/ai-review/stream',
-  path: '/api/admin/ai-review/stream',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAdminAiReviewRunsRoute = ApiAdminAiReviewRunsRouteImport.update({
-  id: '/api/admin/ai-review/runs',
-  path: '/api/admin/ai-review/runs',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAdminAiReviewFoodsRoute = ApiAdminAiReviewFoodsRouteImport.update({
-  id: '/api/admin/ai-review/foods',
-  path: '/api/admin/ai-review/foods',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MainReceptNyttManuelltRoute = MainReceptNyttManuelltRouteImport.update({
-  id: '/recept/nytt/manuellt',
-  path: '/recept/nytt/manuellt',
+const MainReceptIdIndexRoute = MainReceptIdIndexRouteImport.update({
+  id: '/recept/$id/',
+  path: '/recept/$id/',
   getParentRoute: () => MainRoute,
 } as any)
 const MainReceptIdRedigeraRoute = MainReceptIdRedigeraRouteImport.update({
@@ -598,43 +562,79 @@ const MainReceptIdRedigeraRoute = MainReceptIdRedigeraRouteImport.update({
   path: '/recept/$id/redigera',
   getParentRoute: () => MainRoute,
 } as any)
-const MainHemHomeIdSkafferiRoute = MainHemHomeIdSkafferiRouteImport.update({
-  id: '/skafferi',
-  path: '/skafferi',
-  getParentRoute: () => MainHemHomeIdRoute,
-} as any)
-const MainHemHomeIdMatplanRoute = MainHemHomeIdMatplanRouteImport.update({
-  id: '/matplan',
-  path: '/matplan',
-  getParentRoute: () => MainHemHomeIdRoute,
-} as any)
-const MainHemHomeIdInstallningarRoute =
-  MainHemHomeIdInstallningarRouteImport.update({
-    id: '/installningar',
-    path: '/installningar',
-    getParentRoute: () => MainHemHomeIdRoute,
-  } as any)
-const MainHemHomeIdInkopslistaRoute =
-  MainHemHomeIdInkopslistaRouteImport.update({
-    id: '/inkopslista',
-    path: '/inkopslista',
-    getParentRoute: () => MainHemHomeIdRoute,
-  } as any)
-const MainDelaSamlingTokenRoute = MainDelaSamlingTokenRouteImport.update({
-  id: '/dela/samling/$token',
-  path: '/dela/samling/$token',
+const MainReceptNyttIndexRoute = MainReceptNyttIndexRouteImport.update({
+  id: '/recept/nytt/',
+  path: '/recept/nytt/',
   getParentRoute: () => MainRoute,
 } as any)
-const MainDelaBokTokenRoute = MainDelaBokTokenRouteImport.update({
-  id: '/dela/bok/$token',
-  path: '/dela/bok/$token',
+const MainReceptNyttManuelltRoute = MainReceptNyttManuelltRouteImport.update({
+  id: '/recept/nytt/manuellt',
+  path: '/recept/nytt/manuellt',
   getParentRoute: () => MainRoute,
 } as any)
-const MainAdminReceptIdRoute = MainAdminReceptIdRouteImport.update({
-  id: '/recept/$id',
-  path: '/recept/$id',
-  getParentRoute: () => MainAdminRoute,
+const ApiAdminAiReviewFoodsRoute = ApiAdminAiReviewFoodsRouteImport.update({
+  id: '/api/admin/ai-review/foods',
+  path: '/api/admin/ai-review/foods',
+  getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminAiReviewRunsRoute = ApiAdminAiReviewRunsRouteImport.update({
+  id: '/api/admin/ai-review/runs',
+  path: '/api/admin/ai-review/runs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminAiReviewStreamRoute = ApiAdminAiReviewStreamRouteImport.update({
+  id: '/api/admin/ai-review/stream',
+  path: '/api/admin/ai-review/stream',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminAiRefineRoute = ApiAdminAiRefineRouteImport.update({
+  id: '/api/admin/ai/refine',
+  path: '/api/admin/ai/refine',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminFoodsAiReviewRoute = ApiAdminFoodsAiReviewRouteImport.update({
+  id: '/ai-review',
+  path: '/ai-review',
+  getParentRoute: () => ApiAdminFoodsRoute,
+} as any)
+const ApiAdminFoodsRecipesRoute = ApiAdminFoodsRecipesRouteImport.update({
+  id: '/recipes',
+  path: '/recipes',
+  getParentRoute: () => ApiAdminFoodsRoute,
+} as any)
+const ApiAdminFoodsSimilarRoute = ApiAdminFoodsSimilarRouteImport.update({
+  id: '/similar',
+  path: '/similar',
+  getParentRoute: () => ApiAdminFoodsRoute,
+} as any)
+const ApiAdminRestructureApplyRoute =
+  ApiAdminRestructureApplyRouteImport.update({
+    id: '/apply',
+    path: '/apply',
+    getParentRoute: () => ApiAdminRestructureRoute,
+  } as any)
+const ApiAdminRestructurePreviewRoute =
+  ApiAdminRestructurePreviewRouteImport.update({
+    id: '/preview',
+    path: '/preview',
+    getParentRoute: () => ApiAdminRestructureRoute,
+  } as any)
+const ApiAdminUsersRoleRoute = ApiAdminUsersRoleRouteImport.update({
+  id: '/role',
+  path: '/role',
+  getParentRoute: () => ApiAdminUsersRoute,
+} as any)
+const ApiAuthCallbackGoogleRoute = ApiAuthCallbackGoogleRouteImport.update({
+  id: '/api/auth/callback/google',
+  path: '/api/auth/callback/google',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthResetPasswordCompleteRoute =
+  ApiAuthResetPasswordCompleteRouteImport.update({
+    id: '/api/auth/reset-password/complete',
+    path: '/api/auth/reset-password/complete',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiAdminAiReviewRunsIdApplyRoute =
   ApiAdminAiReviewRunsIdApplyRouteImport.update({
     id: '/$id/apply',
@@ -1314,25 +1314,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/robots.txt': {
-      id: '/robots.txt'
-      path: '/robots.txt'
-      fullPath: '/robots.txt'
-      preLoaderRoute: typeof RobotsDottxtRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/offline': {
-      id: '/offline'
-      path: '/offline'
-      fullPath: '/offline'
-      preLoaderRoute: typeof OfflineRouteImport
+    '/_auth': {
+      id: '/_auth'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_main': {
@@ -1342,151 +1328,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_auth': {
-      id: '/_auth'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthRouteImport
+    '/offline': {
+      id: '/offline'
+      path: '/offline'
+      fullPath: '/offline'
+      preLoaderRoute: typeof OfflineRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth/login': {
+      id: '/_auth/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/registrera': {
+      id: '/_auth/registrera'
+      path: '/registrera'
+      fullPath: '/registrera'
+      preLoaderRoute: typeof AuthRegistreraRouteImport
+      parentRoute: typeof AuthRoute
     }
     '/_main/': {
       id: '/_main/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof MainIndexRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/api/upload': {
-      id: '/api/upload'
-      path: '/api/upload'
-      fullPath: '/api/upload'
-      preLoaderRoute: typeof ApiUploadRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/units': {
-      id: '/api/units'
-      path: '/api/units'
-      fullPath: '/api/units'
-      preLoaderRoute: typeof ApiUnitsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/substitutions': {
-      id: '/api/substitutions'
-      path: '/api/substitutions'
-      fullPath: '/api/substitutions'
-      preLoaderRoute: typeof ApiSubstitutionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/foods': {
-      id: '/api/foods'
-      path: '/api/foods'
-      fullPath: '/api/foods'
-      preLoaderRoute: typeof ApiFoodsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/docs': {
-      id: '/api/docs'
-      path: '/api/docs'
-      fullPath: '/api/docs'
-      preLoaderRoute: typeof ApiDocsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/categories': {
-      id: '/api/categories'
-      path: '/api/categories'
-      fullPath: '/api/categories'
-      preLoaderRoute: typeof ApiCategoriesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_main/villkor': {
-      id: '/_main/villkor'
-      path: '/villkor'
-      fullPath: '/villkor'
-      preLoaderRoute: typeof MainVillkorRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/sok': {
-      id: '/_main/sok'
-      path: '/sok'
-      fullPath: '/sok'
-      preLoaderRoute: typeof MainSokRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/smarta-importer': {
-      id: '/_main/smarta-importer'
-      path: '/smarta-importer'
-      fullPath: '/smarta-importer'
-      preLoaderRoute: typeof MainSmartaImporterRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/om': {
-      id: '/_main/om'
-      path: '/om'
-      fullPath: '/om'
-      preLoaderRoute: typeof MainOmRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/mitt-skafferi': {
-      id: '/_main/mitt-skafferi'
-      path: '/mitt-skafferi'
-      fullPath: '/mitt-skafferi'
-      preLoaderRoute: typeof MainMittSkafferiRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/mcp': {
-      id: '/_main/mcp'
-      path: '/mcp'
-      fullPath: '/mcp'
-      preLoaderRoute: typeof MainMcpRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/matplan': {
-      id: '/_main/matplan'
-      path: '/matplan'
-      fullPath: '/matplan'
-      preLoaderRoute: typeof MainMatplanRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/integritetspolicy': {
-      id: '/_main/integritetspolicy'
-      path: '/integritetspolicy'
-      fullPath: '/integritetspolicy'
-      preLoaderRoute: typeof MainIntegritetspolicyRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/installningar': {
-      id: '/_main/installningar'
-      path: '/installningar'
-      fullPath: '/installningar'
-      preLoaderRoute: typeof MainInstallningarRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/inkopslista': {
-      id: '/_main/inkopslista'
-      path: '/inkopslista'
-      fullPath: '/inkopslista'
-      preLoaderRoute: typeof MainInkopslistaRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/gillade-recept': {
-      id: '/_main/gillade-recept'
-      path: '/gillade-recept'
-      fullPath: '/gillade-recept'
-      preLoaderRoute: typeof MainGilladeReceptRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/api-dokumentation': {
-      id: '/_main/api-dokumentation'
-      path: '/api-dokumentation'
-      fullPath: '/api-dokumentation'
-      preLoaderRoute: typeof MainApiDokumentationRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/ai-poang': {
-      id: '/_main/ai-poang'
-      path: '/ai-poang'
-      fullPath: '/ai-poang'
-      preLoaderRoute: typeof MainAiPoangRouteImport
       parentRoute: typeof MainRoute
     }
     '/_main/admin': {
@@ -1496,361 +1377,151 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainAdminRouteImport
       parentRoute: typeof MainRoute
     }
-    '/_auth/registrera': {
-      id: '/_auth/registrera'
-      path: '/registrera'
-      fullPath: '/registrera'
-      preLoaderRoute: typeof AuthRegistreraRouteImport
+    '/_main/ai-poang': {
+      id: '/_main/ai-poang'
+      path: '/ai-poang'
+      fullPath: '/ai-poang'
+      preLoaderRoute: typeof MainAiPoangRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/api-dokumentation': {
+      id: '/_main/api-dokumentation'
+      path: '/api-dokumentation'
+      fullPath: '/api-dokumentation'
+      preLoaderRoute: typeof MainApiDokumentationRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/gillade-recept': {
+      id: '/_main/gillade-recept'
+      path: '/gillade-recept'
+      fullPath: '/gillade-recept'
+      preLoaderRoute: typeof MainGilladeReceptRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/inkopslista': {
+      id: '/_main/inkopslista'
+      path: '/inkopslista'
+      fullPath: '/inkopslista'
+      preLoaderRoute: typeof MainInkopslistaRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/installningar': {
+      id: '/_main/installningar'
+      path: '/installningar'
+      fullPath: '/installningar'
+      preLoaderRoute: typeof MainInstallningarRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/integritetspolicy': {
+      id: '/_main/integritetspolicy'
+      path: '/integritetspolicy'
+      fullPath: '/integritetspolicy'
+      preLoaderRoute: typeof MainIntegritetspolicyRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/matplan': {
+      id: '/_main/matplan'
+      path: '/matplan'
+      fullPath: '/matplan'
+      preLoaderRoute: typeof MainMatplanRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/mcp': {
+      id: '/_main/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof MainMcpRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/mitt-skafferi': {
+      id: '/_main/mitt-skafferi'
+      path: '/mitt-skafferi'
+      fullPath: '/mitt-skafferi'
+      preLoaderRoute: typeof MainMittSkafferiRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/om': {
+      id: '/_main/om'
+      path: '/om'
+      fullPath: '/om'
+      preLoaderRoute: typeof MainOmRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/smarta-importer': {
+      id: '/_main/smarta-importer'
+      path: '/smarta-importer'
+      fullPath: '/smarta-importer'
+      preLoaderRoute: typeof MainSmartaImporterRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/sok': {
+      id: '/_main/sok'
+      path: '/sok'
+      fullPath: '/sok'
+      preLoaderRoute: typeof MainSokRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/villkor': {
+      id: '/_main/villkor'
+      path: '/villkor'
+      fullPath: '/villkor'
+      preLoaderRoute: typeof MainVillkorRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/api/categories': {
+      id: '/api/categories'
+      path: '/api/categories'
+      fullPath: '/api/categories'
+      preLoaderRoute: typeof ApiCategoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/docs': {
+      id: '/api/docs'
+      path: '/api/docs'
+      fullPath: '/api/docs'
+      preLoaderRoute: typeof ApiDocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/foods': {
+      id: '/api/foods'
+      path: '/api/foods'
+      fullPath: '/api/foods'
+      preLoaderRoute: typeof ApiFoodsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/substitutions': {
+      id: '/api/substitutions'
+      path: '/api/substitutions'
+      fullPath: '/api/substitutions'
+      preLoaderRoute: typeof ApiSubstitutionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/units': {
+      id: '/api/units'
+      path: '/api/units'
+      fullPath: '/api/units'
+      preLoaderRoute: typeof ApiUnitsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/upload': {
+      id: '/api/upload'
+      path: '/api/upload'
+      fullPath: '/api/upload'
+      preLoaderRoute: typeof ApiUploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth/reset-password/$token': {
+      id: '/_auth/reset-password/$token'
+      path: '/reset-password/$token'
+      fullPath: '/reset-password/$token'
+      preLoaderRoute: typeof AuthResetPasswordTokenRouteImport
       parentRoute: typeof AuthRoute
-    }
-    '/_auth/login': {
-      id: '/_auth/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof AuthLoginRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_main/samlingar/': {
-      id: '/_main/samlingar/'
-      path: '/samlingar'
-      fullPath: '/samlingar/'
-      preLoaderRoute: typeof MainSamlingarIndexRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/mina-recept/': {
-      id: '/_main/mina-recept/'
-      path: '/mina-recept'
-      fullPath: '/mina-recept/'
-      preLoaderRoute: typeof MainMinaReceptIndexRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/installningar/': {
-      id: '/_main/installningar/'
-      path: '/'
-      fullPath: '/installningar/'
-      preLoaderRoute: typeof MainInstallningarIndexRouteImport
-      parentRoute: typeof MainInstallningarRoute
-    }
-    '/_main/hushall/': {
-      id: '/_main/hushall/'
-      path: '/hushall'
-      fullPath: '/hushall/'
-      preLoaderRoute: typeof MainHushallIndexRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/hemmet/': {
-      id: '/_main/hemmet/'
-      path: '/hemmet'
-      fullPath: '/hemmet/'
-      preLoaderRoute: typeof MainHemmetIndexRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/alla-recept/': {
-      id: '/_main/alla-recept/'
-      path: '/alla-recept'
-      fullPath: '/alla-recept/'
-      preLoaderRoute: typeof MainAllaReceptIndexRouteImport
-      parentRoute: typeof MainRoute
     }
     '/_main/admin/': {
       id: '/_main/admin/'
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof MainAdminIndexRouteImport
-      parentRoute: typeof MainAdminRoute
-    }
-    '/api/webhooks/stripe': {
-      id: '/api/webhooks/stripe'
-      path: '/api/webhooks/stripe'
-      fullPath: '/api/webhooks/stripe'
-      preLoaderRoute: typeof ApiWebhooksStripeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/user/export': {
-      id: '/api/user/export'
-      path: '/api/user/export'
-      fullPath: '/api/user/export'
-      preLoaderRoute: typeof ApiUserExportRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/user/delete-account': {
-      id: '/api/user/delete-account'
-      path: '/api/user/delete-account'
-      fullPath: '/api/user/delete-account'
-      preLoaderRoute: typeof ApiUserDeleteAccountRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/recipes/search': {
-      id: '/api/recipes/search'
-      path: '/api/recipes/search'
-      fullPath: '/api/recipes/search'
-      preLoaderRoute: typeof ApiRecipesSearchRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/images/$': {
-      id: '/api/images/$'
-      path: '/api/images/$'
-      fullPath: '/api/images/$'
-      preLoaderRoute: typeof ApiImagesSplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/credits/history': {
-      id: '/api/credits/history'
-      path: '/api/credits/history'
-      fullPath: '/api/credits/history'
-      preLoaderRoute: typeof ApiCreditsHistoryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/credits/grant': {
-      id: '/api/credits/grant'
-      path: '/api/credits/grant'
-      fullPath: '/api/credits/grant'
-      preLoaderRoute: typeof ApiCreditsGrantRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/credits/checkout': {
-      id: '/api/credits/checkout'
-      path: '/api/credits/checkout'
-      fullPath: '/api/credits/checkout'
-      preLoaderRoute: typeof ApiCreditsCheckoutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/credits/balance': {
-      id: '/api/credits/balance'
-      path: '/api/credits/balance'
-      fullPath: '/api/credits/balance'
-      preLoaderRoute: typeof ApiCreditsBalanceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/auth/registrera': {
-      id: '/api/auth/registrera'
-      path: '/api/auth/registrera'
-      fullPath: '/api/auth/registrera'
-      preLoaderRoute: typeof ApiAuthRegistreraRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/auth/refresh': {
-      id: '/api/auth/refresh'
-      path: '/api/auth/refresh'
-      fullPath: '/api/auth/refresh'
-      preLoaderRoute: typeof ApiAuthRefreshRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/auth/logout': {
-      id: '/api/auth/logout'
-      path: '/api/auth/logout'
-      fullPath: '/api/auth/logout'
-      preLoaderRoute: typeof ApiAuthLogoutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/auth/login': {
-      id: '/api/auth/login'
-      path: '/api/auth/login'
-      fullPath: '/api/auth/login'
-      preLoaderRoute: typeof ApiAuthLoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/auth/google': {
-      id: '/api/auth/google'
-      path: '/api/auth/google'
-      fullPath: '/api/auth/google'
-      preLoaderRoute: typeof ApiAuthGoogleRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/ai/meal-plan': {
-      id: '/api/ai/meal-plan'
-      path: '/api/ai/meal-plan'
-      fullPath: '/api/ai/meal-plan'
-      preLoaderRoute: typeof ApiAiMealPlanRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/ai/generate': {
-      id: '/api/ai/generate'
-      path: '/api/ai/generate'
-      fullPath: '/api/ai/generate'
-      preLoaderRoute: typeof ApiAiGenerateRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/admin/users': {
-      id: '/api/admin/users'
-      path: '/api/admin/users'
-      fullPath: '/api/admin/users'
-      preLoaderRoute: typeof ApiAdminUsersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/admin/units': {
-      id: '/api/admin/units'
-      path: '/api/admin/units'
-      fullPath: '/api/admin/units'
-      preLoaderRoute: typeof ApiAdminUnitsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/admin/restructure': {
-      id: '/api/admin/restructure'
-      path: '/api/admin/restructure'
-      fullPath: '/api/admin/restructure'
-      preLoaderRoute: typeof ApiAdminRestructureRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/admin/foods': {
-      id: '/api/admin/foods'
-      path: '/api/admin/foods'
-      fullPath: '/api/admin/foods'
-      preLoaderRoute: typeof ApiAdminFoodsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/admin/dashboard': {
-      id: '/api/admin/dashboard'
-      path: '/api/admin/dashboard'
-      fullPath: '/api/admin/dashboard'
-      preLoaderRoute: typeof ApiAdminDashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/admin/categories': {
-      id: '/api/admin/categories'
-      path: '/api/admin/categories'
-      fullPath: '/api/admin/categories'
-      preLoaderRoute: typeof ApiAdminCategoriesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_main/samlingar/$id': {
-      id: '/_main/samlingar/$id'
-      path: '/samlingar/$id'
-      fullPath: '/samlingar/$id'
-      preLoaderRoute: typeof MainSamlingarIdRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/mina-recept/sok': {
-      id: '/_main/mina-recept/sok'
-      path: '/mina-recept/sok'
-      fullPath: '/mina-recept/sok'
-      preLoaderRoute: typeof MainMinaReceptSokRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/join/$code': {
-      id: '/_main/join/$code'
-      path: '/join/$code'
-      fullPath: '/join/$code'
-      preLoaderRoute: typeof MainJoinCodeRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/installningar_/hemmet': {
-      id: '/_main/installningar_/hemmet'
-      path: '/installningar/hemmet'
-      fullPath: '/installningar/hemmet'
-      preLoaderRoute: typeof MainInstallningarHemmetRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/installningar/sakerhet': {
-      id: '/_main/installningar/sakerhet'
-      path: '/sakerhet'
-      fullPath: '/installningar/sakerhet'
-      preLoaderRoute: typeof MainInstallningarSakerhetRouteImport
-      parentRoute: typeof MainInstallningarRoute
-    }
-    '/_main/installningar/konto': {
-      id: '/_main/installningar/konto'
-      path: '/konto'
-      fullPath: '/installningar/konto'
-      preLoaderRoute: typeof MainInstallningarKontoRouteImport
-      parentRoute: typeof MainInstallningarRoute
-    }
-    '/_main/installningar/delning': {
-      id: '/_main/installningar/delning'
-      path: '/delning'
-      fullPath: '/installningar/delning'
-      preLoaderRoute: typeof MainInstallningarDelningRouteImport
-      parentRoute: typeof MainInstallningarRoute
-    }
-    '/_main/installningar/data': {
-      id: '/_main/installningar/data'
-      path: '/data'
-      fullPath: '/installningar/data'
-      preLoaderRoute: typeof MainInstallningarDataRouteImport
-      parentRoute: typeof MainInstallningarRoute
-    }
-    '/_main/installningar/api-nycklar': {
-      id: '/_main/installningar/api-nycklar'
-      path: '/api-nycklar'
-      fullPath: '/installningar/api-nycklar'
-      preLoaderRoute: typeof MainInstallningarApiNycklarRouteImport
-      parentRoute: typeof MainInstallningarRoute
-    }
-    '/_main/hushall/medlemmar': {
-      id: '/_main/hushall/medlemmar'
-      path: '/hushall/medlemmar'
-      fullPath: '/hushall/medlemmar'
-      preLoaderRoute: typeof MainHushallMedlemmarRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/hemmet/medlemmar': {
-      id: '/_main/hemmet/medlemmar'
-      path: '/hemmet/medlemmar'
-      fullPath: '/hemmet/medlemmar'
-      preLoaderRoute: typeof MainHemmetMedlemmarRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/hemmet/hushall': {
-      id: '/_main/hemmet/hushall'
-      path: '/hemmet/hushall'
-      fullPath: '/hemmet/hushall'
-      preLoaderRoute: typeof MainHemmetHushallRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/hem/$homeId': {
-      id: '/_main/hem/$homeId'
-      path: '/hem/$homeId'
-      fullPath: '/hem/$homeId'
-      preLoaderRoute: typeof MainHemHomeIdRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/dela/$token': {
-      id: '/_main/dela/$token'
-      path: '/dela/$token'
-      fullPath: '/dela/$token'
-      preLoaderRoute: typeof MainDelaTokenRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/alla-recept/sok': {
-      id: '/_main/alla-recept/sok'
-      path: '/alla-recept/sok'
-      fullPath: '/alla-recept/sok'
-      preLoaderRoute: typeof MainAllaReceptSokRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/admin/strukturera': {
-      id: '/_main/admin/strukturera'
-      path: '/strukturera'
-      fullPath: '/admin/strukturera'
-      preLoaderRoute: typeof MainAdminStruktureraRouteImport
-      parentRoute: typeof MainAdminRoute
-    }
-    '/_main/admin/matvaror': {
-      id: '/_main/admin/matvaror'
-      path: '/matvaror'
-      fullPath: '/admin/matvaror'
-      preLoaderRoute: typeof MainAdminMatvarorRouteImport
-      parentRoute: typeof MainAdminRoute
-    }
-    '/_main/admin/kategorier': {
-      id: '/_main/admin/kategorier'
-      path: '/kategorier'
-      fullPath: '/admin/kategorier'
-      preLoaderRoute: typeof MainAdminKategorierRouteImport
-      parentRoute: typeof MainAdminRoute
-    }
-    '/_main/admin/enheter': {
-      id: '/_main/admin/enheter'
-      path: '/enheter'
-      fullPath: '/admin/enheter'
-      preLoaderRoute: typeof MainAdminEnheterRouteImport
-      parentRoute: typeof MainAdminRoute
-    }
-    '/_main/admin/anvandare': {
-      id: '/_main/admin/anvandare'
-      path: '/anvandare'
-      fullPath: '/admin/anvandare'
-      preLoaderRoute: typeof MainAdminAnvandareRouteImport
       parentRoute: typeof MainAdminRoute
     }
     '/_main/admin/ai-granskning': {
@@ -1860,26 +1531,341 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainAdminAiGranskningRouteImport
       parentRoute: typeof MainAdminRoute
     }
-    '/_auth/reset-password/$token': {
-      id: '/_auth/reset-password/$token'
-      path: '/reset-password/$token'
-      fullPath: '/reset-password/$token'
-      preLoaderRoute: typeof AuthResetPasswordTokenRouteImport
-      parentRoute: typeof AuthRoute
+    '/_main/admin/anvandare': {
+      id: '/_main/admin/anvandare'
+      path: '/anvandare'
+      fullPath: '/admin/anvandare'
+      preLoaderRoute: typeof MainAdminAnvandareRouteImport
+      parentRoute: typeof MainAdminRoute
     }
-    '/_main/recept/nytt/': {
-      id: '/_main/recept/nytt/'
-      path: '/recept/nytt'
-      fullPath: '/recept/nytt/'
-      preLoaderRoute: typeof MainReceptNyttIndexRouteImport
+    '/_main/admin/enheter': {
+      id: '/_main/admin/enheter'
+      path: '/enheter'
+      fullPath: '/admin/enheter'
+      preLoaderRoute: typeof MainAdminEnheterRouteImport
+      parentRoute: typeof MainAdminRoute
+    }
+    '/_main/admin/kategorier': {
+      id: '/_main/admin/kategorier'
+      path: '/kategorier'
+      fullPath: '/admin/kategorier'
+      preLoaderRoute: typeof MainAdminKategorierRouteImport
+      parentRoute: typeof MainAdminRoute
+    }
+    '/_main/admin/matvaror': {
+      id: '/_main/admin/matvaror'
+      path: '/matvaror'
+      fullPath: '/admin/matvaror'
+      preLoaderRoute: typeof MainAdminMatvarorRouteImport
+      parentRoute: typeof MainAdminRoute
+    }
+    '/_main/admin/strukturera': {
+      id: '/_main/admin/strukturera'
+      path: '/strukturera'
+      fullPath: '/admin/strukturera'
+      preLoaderRoute: typeof MainAdminStruktureraRouteImport
+      parentRoute: typeof MainAdminRoute
+    }
+    '/_main/alla-recept/': {
+      id: '/_main/alla-recept/'
+      path: '/alla-recept'
+      fullPath: '/alla-recept/'
+      preLoaderRoute: typeof MainAllaReceptIndexRouteImport
       parentRoute: typeof MainRoute
     }
-    '/_main/recept/$id/': {
-      id: '/_main/recept/$id/'
-      path: '/recept/$id'
-      fullPath: '/recept/$id/'
-      preLoaderRoute: typeof MainReceptIdIndexRouteImport
+    '/_main/alla-recept/sok': {
+      id: '/_main/alla-recept/sok'
+      path: '/alla-recept/sok'
+      fullPath: '/alla-recept/sok'
+      preLoaderRoute: typeof MainAllaReceptSokRouteImport
       parentRoute: typeof MainRoute
+    }
+    '/_main/dela/$token': {
+      id: '/_main/dela/$token'
+      path: '/dela/$token'
+      fullPath: '/dela/$token'
+      preLoaderRoute: typeof MainDelaTokenRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/hem/$homeId': {
+      id: '/_main/hem/$homeId'
+      path: '/hem/$homeId'
+      fullPath: '/hem/$homeId'
+      preLoaderRoute: typeof MainHemHomeIdRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/hemmet/': {
+      id: '/_main/hemmet/'
+      path: '/hemmet'
+      fullPath: '/hemmet/'
+      preLoaderRoute: typeof MainHemmetIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/hemmet/hushall': {
+      id: '/_main/hemmet/hushall'
+      path: '/hemmet/hushall'
+      fullPath: '/hemmet/hushall'
+      preLoaderRoute: typeof MainHemmetHushallRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/hemmet/medlemmar': {
+      id: '/_main/hemmet/medlemmar'
+      path: '/hemmet/medlemmar'
+      fullPath: '/hemmet/medlemmar'
+      preLoaderRoute: typeof MainHemmetMedlemmarRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/hushall/': {
+      id: '/_main/hushall/'
+      path: '/hushall'
+      fullPath: '/hushall/'
+      preLoaderRoute: typeof MainHushallIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/hushall/medlemmar': {
+      id: '/_main/hushall/medlemmar'
+      path: '/hushall/medlemmar'
+      fullPath: '/hushall/medlemmar'
+      preLoaderRoute: typeof MainHushallMedlemmarRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/installningar/': {
+      id: '/_main/installningar/'
+      path: '/'
+      fullPath: '/installningar/'
+      preLoaderRoute: typeof MainInstallningarIndexRouteImport
+      parentRoute: typeof MainInstallningarRoute
+    }
+    '/_main/installningar/api-nycklar': {
+      id: '/_main/installningar/api-nycklar'
+      path: '/api-nycklar'
+      fullPath: '/installningar/api-nycklar'
+      preLoaderRoute: typeof MainInstallningarApiNycklarRouteImport
+      parentRoute: typeof MainInstallningarRoute
+    }
+    '/_main/installningar/data': {
+      id: '/_main/installningar/data'
+      path: '/data'
+      fullPath: '/installningar/data'
+      preLoaderRoute: typeof MainInstallningarDataRouteImport
+      parentRoute: typeof MainInstallningarRoute
+    }
+    '/_main/installningar/delning': {
+      id: '/_main/installningar/delning'
+      path: '/delning'
+      fullPath: '/installningar/delning'
+      preLoaderRoute: typeof MainInstallningarDelningRouteImport
+      parentRoute: typeof MainInstallningarRoute
+    }
+    '/_main/installningar/konto': {
+      id: '/_main/installningar/konto'
+      path: '/konto'
+      fullPath: '/installningar/konto'
+      preLoaderRoute: typeof MainInstallningarKontoRouteImport
+      parentRoute: typeof MainInstallningarRoute
+    }
+    '/_main/installningar/sakerhet': {
+      id: '/_main/installningar/sakerhet'
+      path: '/sakerhet'
+      fullPath: '/installningar/sakerhet'
+      preLoaderRoute: typeof MainInstallningarSakerhetRouteImport
+      parentRoute: typeof MainInstallningarRoute
+    }
+    '/_main/installningar_/hemmet': {
+      id: '/_main/installningar_/hemmet'
+      path: '/installningar/hemmet'
+      fullPath: '/installningar/hemmet'
+      preLoaderRoute: typeof MainInstallningarHemmetRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/join/$code': {
+      id: '/_main/join/$code'
+      path: '/join/$code'
+      fullPath: '/join/$code'
+      preLoaderRoute: typeof MainJoinCodeRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/mina-recept/': {
+      id: '/_main/mina-recept/'
+      path: '/mina-recept'
+      fullPath: '/mina-recept/'
+      preLoaderRoute: typeof MainMinaReceptIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/mina-recept/sok': {
+      id: '/_main/mina-recept/sok'
+      path: '/mina-recept/sok'
+      fullPath: '/mina-recept/sok'
+      preLoaderRoute: typeof MainMinaReceptSokRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/samlingar/': {
+      id: '/_main/samlingar/'
+      path: '/samlingar'
+      fullPath: '/samlingar/'
+      preLoaderRoute: typeof MainSamlingarIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/samlingar/$id': {
+      id: '/_main/samlingar/$id'
+      path: '/samlingar/$id'
+      fullPath: '/samlingar/$id'
+      preLoaderRoute: typeof MainSamlingarIdRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/api/admin/categories': {
+      id: '/api/admin/categories'
+      path: '/api/admin/categories'
+      fullPath: '/api/admin/categories'
+      preLoaderRoute: typeof ApiAdminCategoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/dashboard': {
+      id: '/api/admin/dashboard'
+      path: '/api/admin/dashboard'
+      fullPath: '/api/admin/dashboard'
+      preLoaderRoute: typeof ApiAdminDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/foods': {
+      id: '/api/admin/foods'
+      path: '/api/admin/foods'
+      fullPath: '/api/admin/foods'
+      preLoaderRoute: typeof ApiAdminFoodsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/restructure': {
+      id: '/api/admin/restructure'
+      path: '/api/admin/restructure'
+      fullPath: '/api/admin/restructure'
+      preLoaderRoute: typeof ApiAdminRestructureRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/units': {
+      id: '/api/admin/units'
+      path: '/api/admin/units'
+      fullPath: '/api/admin/units'
+      preLoaderRoute: typeof ApiAdminUnitsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/users': {
+      id: '/api/admin/users'
+      path: '/api/admin/users'
+      fullPath: '/api/admin/users'
+      preLoaderRoute: typeof ApiAdminUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/generate': {
+      id: '/api/ai/generate'
+      path: '/api/ai/generate'
+      fullPath: '/api/ai/generate'
+      preLoaderRoute: typeof ApiAiGenerateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/meal-plan': {
+      id: '/api/ai/meal-plan'
+      path: '/api/ai/meal-plan'
+      fullPath: '/api/ai/meal-plan'
+      preLoaderRoute: typeof ApiAiMealPlanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/google': {
+      id: '/api/auth/google'
+      path: '/api/auth/google'
+      fullPath: '/api/auth/google'
+      preLoaderRoute: typeof ApiAuthGoogleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/login': {
+      id: '/api/auth/login'
+      path: '/api/auth/login'
+      fullPath: '/api/auth/login'
+      preLoaderRoute: typeof ApiAuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/logout': {
+      id: '/api/auth/logout'
+      path: '/api/auth/logout'
+      fullPath: '/api/auth/logout'
+      preLoaderRoute: typeof ApiAuthLogoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/refresh': {
+      id: '/api/auth/refresh'
+      path: '/api/auth/refresh'
+      fullPath: '/api/auth/refresh'
+      preLoaderRoute: typeof ApiAuthRefreshRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/registrera': {
+      id: '/api/auth/registrera'
+      path: '/api/auth/registrera'
+      fullPath: '/api/auth/registrera'
+      preLoaderRoute: typeof ApiAuthRegistreraRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/credits/balance': {
+      id: '/api/credits/balance'
+      path: '/api/credits/balance'
+      fullPath: '/api/credits/balance'
+      preLoaderRoute: typeof ApiCreditsBalanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/credits/checkout': {
+      id: '/api/credits/checkout'
+      path: '/api/credits/checkout'
+      fullPath: '/api/credits/checkout'
+      preLoaderRoute: typeof ApiCreditsCheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/credits/grant': {
+      id: '/api/credits/grant'
+      path: '/api/credits/grant'
+      fullPath: '/api/credits/grant'
+      preLoaderRoute: typeof ApiCreditsGrantRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/credits/history': {
+      id: '/api/credits/history'
+      path: '/api/credits/history'
+      fullPath: '/api/credits/history'
+      preLoaderRoute: typeof ApiCreditsHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/images/$': {
+      id: '/api/images/$'
+      path: '/api/images/$'
+      fullPath: '/api/images/$'
+      preLoaderRoute: typeof ApiImagesSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/recipes/search': {
+      id: '/api/recipes/search'
+      path: '/api/recipes/search'
+      fullPath: '/api/recipes/search'
+      preLoaderRoute: typeof ApiRecipesSearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/user/delete-account': {
+      id: '/api/user/delete-account'
+      path: '/api/user/delete-account'
+      fullPath: '/api/user/delete-account'
+      preLoaderRoute: typeof ApiUserDeleteAccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/user/export': {
+      id: '/api/user/export'
+      path: '/api/user/export'
+      fullPath: '/api/user/export'
+      preLoaderRoute: typeof ApiUserExportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/webhooks/stripe': {
+      id: '/api/webhooks/stripe'
+      path: '/api/webhooks/stripe'
+      fullPath: '/api/webhooks/stripe'
+      preLoaderRoute: typeof ApiWebhooksStripeRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_main/admin/recept/': {
       id: '/_main/admin/recept/'
@@ -1888,116 +1874,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainAdminReceptIndexRouteImport
       parentRoute: typeof MainAdminRoute
     }
-    '/api/auth/reset-password/complete': {
-      id: '/api/auth/reset-password/complete'
-      path: '/api/auth/reset-password/complete'
-      fullPath: '/api/auth/reset-password/complete'
-      preLoaderRoute: typeof ApiAuthResetPasswordCompleteRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_main/admin/recept/$id': {
+      id: '/_main/admin/recept/$id'
+      path: '/recept/$id'
+      fullPath: '/admin/recept/$id'
+      preLoaderRoute: typeof MainAdminReceptIdRouteImport
+      parentRoute: typeof MainAdminRoute
     }
-    '/api/auth/callback/google': {
-      id: '/api/auth/callback/google'
-      path: '/api/auth/callback/google'
-      fullPath: '/api/auth/callback/google'
-      preLoaderRoute: typeof ApiAuthCallbackGoogleRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/admin/users/role': {
-      id: '/api/admin/users/role'
-      path: '/role'
-      fullPath: '/api/admin/users/role'
-      preLoaderRoute: typeof ApiAdminUsersRoleRouteImport
-      parentRoute: typeof ApiAdminUsersRoute
-    }
-    '/api/admin/restructure/preview': {
-      id: '/api/admin/restructure/preview'
-      path: '/preview'
-      fullPath: '/api/admin/restructure/preview'
-      preLoaderRoute: typeof ApiAdminRestructurePreviewRouteImport
-      parentRoute: typeof ApiAdminRestructureRoute
-    }
-    '/api/admin/restructure/apply': {
-      id: '/api/admin/restructure/apply'
-      path: '/apply'
-      fullPath: '/api/admin/restructure/apply'
-      preLoaderRoute: typeof ApiAdminRestructureApplyRouteImport
-      parentRoute: typeof ApiAdminRestructureRoute
-    }
-    '/api/admin/foods/similar': {
-      id: '/api/admin/foods/similar'
-      path: '/similar'
-      fullPath: '/api/admin/foods/similar'
-      preLoaderRoute: typeof ApiAdminFoodsSimilarRouteImport
-      parentRoute: typeof ApiAdminFoodsRoute
-    }
-    '/api/admin/foods/recipes': {
-      id: '/api/admin/foods/recipes'
-      path: '/recipes'
-      fullPath: '/api/admin/foods/recipes'
-      preLoaderRoute: typeof ApiAdminFoodsRecipesRouteImport
-      parentRoute: typeof ApiAdminFoodsRoute
-    }
-    '/api/admin/foods/ai-review': {
-      id: '/api/admin/foods/ai-review'
-      path: '/ai-review'
-      fullPath: '/api/admin/foods/ai-review'
-      preLoaderRoute: typeof ApiAdminFoodsAiReviewRouteImport
-      parentRoute: typeof ApiAdminFoodsRoute
-    }
-    '/api/admin/ai/refine': {
-      id: '/api/admin/ai/refine'
-      path: '/api/admin/ai/refine'
-      fullPath: '/api/admin/ai/refine'
-      preLoaderRoute: typeof ApiAdminAiRefineRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/admin/ai-review/stream': {
-      id: '/api/admin/ai-review/stream'
-      path: '/api/admin/ai-review/stream'
-      fullPath: '/api/admin/ai-review/stream'
-      preLoaderRoute: typeof ApiAdminAiReviewStreamRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/admin/ai-review/runs': {
-      id: '/api/admin/ai-review/runs'
-      path: '/api/admin/ai-review/runs'
-      fullPath: '/api/admin/ai-review/runs'
-      preLoaderRoute: typeof ApiAdminAiReviewRunsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/admin/ai-review/foods': {
-      id: '/api/admin/ai-review/foods'
-      path: '/api/admin/ai-review/foods'
-      fullPath: '/api/admin/ai-review/foods'
-      preLoaderRoute: typeof ApiAdminAiReviewFoodsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_main/recept/nytt/manuellt': {
-      id: '/_main/recept/nytt/manuellt'
-      path: '/recept/nytt/manuellt'
-      fullPath: '/recept/nytt/manuellt'
-      preLoaderRoute: typeof MainReceptNyttManuelltRouteImport
+    '/_main/dela/bok/$token': {
+      id: '/_main/dela/bok/$token'
+      path: '/dela/bok/$token'
+      fullPath: '/dela/bok/$token'
+      preLoaderRoute: typeof MainDelaBokTokenRouteImport
       parentRoute: typeof MainRoute
     }
-    '/_main/recept/$id/redigera': {
-      id: '/_main/recept/$id/redigera'
-      path: '/recept/$id/redigera'
-      fullPath: '/recept/$id/redigera'
-      preLoaderRoute: typeof MainReceptIdRedigeraRouteImport
+    '/_main/dela/samling/$token': {
+      id: '/_main/dela/samling/$token'
+      path: '/dela/samling/$token'
+      fullPath: '/dela/samling/$token'
+      preLoaderRoute: typeof MainDelaSamlingTokenRouteImport
       parentRoute: typeof MainRoute
     }
-    '/_main/hem/$homeId/skafferi': {
-      id: '/_main/hem/$homeId/skafferi'
-      path: '/skafferi'
-      fullPath: '/hem/$homeId/skafferi'
-      preLoaderRoute: typeof MainHemHomeIdSkafferiRouteImport
-      parentRoute: typeof MainHemHomeIdRoute
-    }
-    '/_main/hem/$homeId/matplan': {
-      id: '/_main/hem/$homeId/matplan'
-      path: '/matplan'
-      fullPath: '/hem/$homeId/matplan'
-      preLoaderRoute: typeof MainHemHomeIdMatplanRouteImport
+    '/_main/hem/$homeId/inkopslista': {
+      id: '/_main/hem/$homeId/inkopslista'
+      path: '/inkopslista'
+      fullPath: '/hem/$homeId/inkopslista'
+      preLoaderRoute: typeof MainHemHomeIdInkopslistaRouteImport
       parentRoute: typeof MainHemHomeIdRoute
     }
     '/_main/hem/$homeId/installningar': {
@@ -2007,33 +1909,131 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainHemHomeIdInstallningarRouteImport
       parentRoute: typeof MainHemHomeIdRoute
     }
-    '/_main/hem/$homeId/inkopslista': {
-      id: '/_main/hem/$homeId/inkopslista'
-      path: '/inkopslista'
-      fullPath: '/hem/$homeId/inkopslista'
-      preLoaderRoute: typeof MainHemHomeIdInkopslistaRouteImport
+    '/_main/hem/$homeId/matplan': {
+      id: '/_main/hem/$homeId/matplan'
+      path: '/matplan'
+      fullPath: '/hem/$homeId/matplan'
+      preLoaderRoute: typeof MainHemHomeIdMatplanRouteImport
       parentRoute: typeof MainHemHomeIdRoute
     }
-    '/_main/dela/samling/$token': {
-      id: '/_main/dela/samling/$token'
-      path: '/dela/samling/$token'
-      fullPath: '/dela/samling/$token'
-      preLoaderRoute: typeof MainDelaSamlingTokenRouteImport
-      parentRoute: typeof MainRoute
+    '/_main/hem/$homeId/skafferi': {
+      id: '/_main/hem/$homeId/skafferi'
+      path: '/skafferi'
+      fullPath: '/hem/$homeId/skafferi'
+      preLoaderRoute: typeof MainHemHomeIdSkafferiRouteImport
+      parentRoute: typeof MainHemHomeIdRoute
     }
-    '/_main/dela/bok/$token': {
-      id: '/_main/dela/bok/$token'
-      path: '/dela/bok/$token'
-      fullPath: '/dela/bok/$token'
-      preLoaderRoute: typeof MainDelaBokTokenRouteImport
-      parentRoute: typeof MainRoute
-    }
-    '/_main/admin/recept/$id': {
-      id: '/_main/admin/recept/$id'
+    '/_main/recept/$id/': {
+      id: '/_main/recept/$id/'
       path: '/recept/$id'
-      fullPath: '/admin/recept/$id'
-      preLoaderRoute: typeof MainAdminReceptIdRouteImport
-      parentRoute: typeof MainAdminRoute
+      fullPath: '/recept/$id/'
+      preLoaderRoute: typeof MainReceptIdIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/recept/$id/redigera': {
+      id: '/_main/recept/$id/redigera'
+      path: '/recept/$id/redigera'
+      fullPath: '/recept/$id/redigera'
+      preLoaderRoute: typeof MainReceptIdRedigeraRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/recept/nytt/': {
+      id: '/_main/recept/nytt/'
+      path: '/recept/nytt'
+      fullPath: '/recept/nytt/'
+      preLoaderRoute: typeof MainReceptNyttIndexRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/_main/recept/nytt/manuellt': {
+      id: '/_main/recept/nytt/manuellt'
+      path: '/recept/nytt/manuellt'
+      fullPath: '/recept/nytt/manuellt'
+      preLoaderRoute: typeof MainReceptNyttManuelltRouteImport
+      parentRoute: typeof MainRoute
+    }
+    '/api/admin/ai-review/foods': {
+      id: '/api/admin/ai-review/foods'
+      path: '/api/admin/ai-review/foods'
+      fullPath: '/api/admin/ai-review/foods'
+      preLoaderRoute: typeof ApiAdminAiReviewFoodsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/ai-review/runs': {
+      id: '/api/admin/ai-review/runs'
+      path: '/api/admin/ai-review/runs'
+      fullPath: '/api/admin/ai-review/runs'
+      preLoaderRoute: typeof ApiAdminAiReviewRunsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/ai-review/stream': {
+      id: '/api/admin/ai-review/stream'
+      path: '/api/admin/ai-review/stream'
+      fullPath: '/api/admin/ai-review/stream'
+      preLoaderRoute: typeof ApiAdminAiReviewStreamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/ai/refine': {
+      id: '/api/admin/ai/refine'
+      path: '/api/admin/ai/refine'
+      fullPath: '/api/admin/ai/refine'
+      preLoaderRoute: typeof ApiAdminAiRefineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/foods/ai-review': {
+      id: '/api/admin/foods/ai-review'
+      path: '/ai-review'
+      fullPath: '/api/admin/foods/ai-review'
+      preLoaderRoute: typeof ApiAdminFoodsAiReviewRouteImport
+      parentRoute: typeof ApiAdminFoodsRoute
+    }
+    '/api/admin/foods/recipes': {
+      id: '/api/admin/foods/recipes'
+      path: '/recipes'
+      fullPath: '/api/admin/foods/recipes'
+      preLoaderRoute: typeof ApiAdminFoodsRecipesRouteImport
+      parentRoute: typeof ApiAdminFoodsRoute
+    }
+    '/api/admin/foods/similar': {
+      id: '/api/admin/foods/similar'
+      path: '/similar'
+      fullPath: '/api/admin/foods/similar'
+      preLoaderRoute: typeof ApiAdminFoodsSimilarRouteImport
+      parentRoute: typeof ApiAdminFoodsRoute
+    }
+    '/api/admin/restructure/apply': {
+      id: '/api/admin/restructure/apply'
+      path: '/apply'
+      fullPath: '/api/admin/restructure/apply'
+      preLoaderRoute: typeof ApiAdminRestructureApplyRouteImport
+      parentRoute: typeof ApiAdminRestructureRoute
+    }
+    '/api/admin/restructure/preview': {
+      id: '/api/admin/restructure/preview'
+      path: '/preview'
+      fullPath: '/api/admin/restructure/preview'
+      preLoaderRoute: typeof ApiAdminRestructurePreviewRouteImport
+      parentRoute: typeof ApiAdminRestructureRoute
+    }
+    '/api/admin/users/role': {
+      id: '/api/admin/users/role'
+      path: '/role'
+      fullPath: '/api/admin/users/role'
+      preLoaderRoute: typeof ApiAdminUsersRoleRouteImport
+      parentRoute: typeof ApiAdminUsersRoute
+    }
+    '/api/auth/callback/google': {
+      id: '/api/auth/callback/google'
+      path: '/api/auth/callback/google'
+      fullPath: '/api/auth/callback/google'
+      preLoaderRoute: typeof ApiAuthCallbackGoogleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/reset-password/complete': {
+      id: '/api/auth/reset-password/complete'
+      path: '/api/auth/reset-password/complete'
+      fullPath: '/api/auth/reset-password/complete'
+      preLoaderRoute: typeof ApiAuthResetPasswordCompleteRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/admin/ai-review/runs/$id/apply': {
       id: '/api/admin/ai-review/runs/$id/apply'

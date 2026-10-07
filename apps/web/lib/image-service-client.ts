@@ -23,7 +23,7 @@ export async function uploadImageBuffer(
 ): Promise<string> {
   const token = await getServiceToken(email)
   const formData = new FormData()
-  formData.append('file', new Blob([buffer], { type: contentType }), 'image.jpg')
+  formData.append('file', new Blob([new Uint8Array(buffer)], { type: contentType }), 'image.jpg')
 
   const response = await fetch(`${getImageServiceUrl()}/upload`, {
     method: 'POST',

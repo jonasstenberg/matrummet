@@ -15,10 +15,13 @@
     "./export-markdown": "./src/export-markdown.ts"
   },
   "dependencies": {
-    "zod": "^4.3.6"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@matrummet/tsconfig": "workspace:*",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
   }
 }

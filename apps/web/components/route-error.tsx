@@ -11,7 +11,7 @@ export function RouteError({ error, reset }: ErrorComponentProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            {error.message || 'Ett oväntat fel inträffade.'}
+            {error instanceof Error && error.message ? error.message : 'Ett oväntat fel inträffade.'}
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
             <Button onClick={reset} className="flex-1">

@@ -5,6 +5,8 @@ export default defineConfig({
     projects: [
       "apps/web/vitest.config.ts",
       "apps/email-service/vitest.config.ts",
+      "apps/events-service/vitest.config.ts",
+      "apps/image-service/vitest.config.ts",
       "apps/mcp-service/vitest.config.ts",
     ],
   },

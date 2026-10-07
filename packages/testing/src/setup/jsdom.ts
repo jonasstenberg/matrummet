@@ -1,4 +1,13 @@
-import "@testing-library/jest-dom";
+import "@testing-library/jest-dom/vitest";
+import type { TestingLibraryMatchers } from "@testing-library/jest-dom/matchers";
+
+// jest-dom 7 still augments Vitest's pre-v5 Assertion interface.
+// Bridge its matchers to v5's return-type-aware extension point.
+declare module "vitest" {
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type -- Module augmentation requires an interface.
+  interface Matchers<R extends void | Promise<void> = void | Promise<void>, T = unknown>
+    extends TestingLibraryMatchers<T, R> {}
+}
 import { vi, beforeEach, afterEach } from "vitest";
 
 // Reset all mocks before each test

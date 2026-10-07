@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ES2022"
+    ],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "jsx": "react-jsx",
@@ -11,11 +15,26 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "baseUrl": ".",
     "paths": {
-      "~/*": ["./src/*"],
-      "@/*": ["./*"]
-    }
+      "~/*": [
+        "./src/*"
+      ],
+      "@/*": [
+        "./*"
+      ]
+    },
+    "types": [
+      "node",
+      "vite/client",
+      "@matrummet/testing/setup/jsdom"
+    ]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "lib/**/*.ts", "components/**/*.tsx", "components/**/*.ts", "vite.config.ts"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "lib/**/*.ts",
+    "components/**/*.tsx",
+    "components/**/*.ts",
+    "vite.config.ts"
+  ]
 }

@@ -34,21 +34,22 @@
   "scripts": {
     "build": "tsc",
     "lint": "eslint . --ext .ts",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@testing-library/jest-dom": "^6.9.1"
+    "@testing-library/jest-dom": "^7.0.1"
   },
   "devDependencies": {
     "@matrummet/eslint": "workspace:*",
     "@matrummet/tsconfig": "workspace:*",
-    "@types/node": "^22.19.11",
-    "eslint": "^9.39.3",
-    "prettier": "^3.8.1",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.18"
+    "@types/node": "^24.19.1",
+    "eslint": "^9.39.5",
+    "prettier": "^3.9.9",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.3"
   },
   "peerDependencies": {
-    "vitest": "^4.0.0"
+    "vitest": "^5.0.3"
   }
 }

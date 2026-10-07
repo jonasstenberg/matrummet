@@ -73,7 +73,8 @@ export const Route = createFileRoute('/api/credits/checkout')({
           customer: stripeCustomerId,
           mode: 'payment',
           locale: 'sv',
-          payment_method_types: ['card', 'klarna'],
+          // Stripe filters these against the payment methods enabled for the account.
+          allowed_payment_method_types: ['card', 'klarna'],
           line_items: [
             {
               price_data: {

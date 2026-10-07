@@ -1,10 +1,14 @@
 
 import { useState, useMemo } from 'react'
 import {
-  useReactTable,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
+  useTable,
+  tableFeatures,
+  columnFilteringFeature,
+  columnVisibilityFeature,
+  rowPaginationFeature,
+  createFilteredRowModel,
+  createPaginatedRowModel,
+  filterFn_includesString,
   flexRender,
   createColumnHelper,
   type ColumnFiltersState,
@@ -42,7 +46,15 @@ function formatDate(dateString: string | null): string {
   }).format(date)
 }
 
-const columnHelper = createColumnHelper<PantryItem>()
+const features = tableFeatures({
+  columnFilteringFeature,
+  columnVisibilityFeature,
+  rowPaginationFeature,
+  filteredRowModel: createFilteredRowModel(),
+  paginatedRowModel: createPaginatedRowModel(),
+  filterFns: { includesString: filterFn_includesString },
+})
+const columnHelper = createColumnHelper<typeof features, PantryItem>()
 
 export function PantryTable({
   items,
@@ -54,7 +66,7 @@ export function PantryTable({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
   const columns = useMemo(
-    () => [
+    () => columnHelper.columns([
       // Conditionally include selection column
       ...(showSelection
         ? [
@@ -139,23 +151,21 @@ export function PantryTable({
           </Button>
         ),
       }),
-    ],
+    ]),
     [selectedIds, onSelectionChange, onRemoveItem, showSelection]
   )
 
-  // eslint-disable-next-line -- @tanstack/react-table patterns trigger react-compiler warnings
-  const table = useReactTable({
+  const table = useTable({
+    features,
     data: items,
     columns,
     state: {
       columnFilters,
     },
     onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     initialState: {
       pagination: {
+        pageIndex: 0,
         pageSize: 10,
       },
     },
@@ -234,9 +244,9 @@ export function PantryTable({
       {table.getPageCount() > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            Visar {table.getState().pagination.pageIndex * 10 + 1}-
+            Visar {table.state.pagination.pageIndex * 10 + 1}-
             {Math.min(
-              (table.getState().pagination.pageIndex + 1) * 10,
+              (table.state.pagination.pageIndex + 1) * 10,
               table.getFilteredRowModel().rows.length
             )}{' '}
             av {table.getFilteredRowModel().rows.length} ingredienser
@@ -252,7 +262,7 @@ export function PantryTable({
               <span className="sr-only md:not-sr-only md:ml-1">Föregående</span>
             </Button>
             <span className="text-sm text-muted-foreground">
-              Sida {table.getState().pagination.pageIndex + 1} av{' '}
+              Sida {table.state.pagination.pageIndex + 1} av{' '}
               {table.getPageCount()}
             </span>
             <Button

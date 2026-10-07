@@ -17,8 +17,9 @@ A Swedish recipe management application built with TanStack Start, PostgreSQL, a
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) 22+
-- [pnpm](https://pnpm.io/installation) 10+
+- [Node.js](https://nodejs.org/) 24.16+ (24.x; use `nvm use`)
+- [pnpm](https://pnpm.io/installation) 10.34.6 (pinned in `package.json`)
+- [Bun](https://bun.sh/) for the backend services
 - [PostgreSQL](https://www.postgresql.org/download/) 18+
 - [PostgREST](https://postgrest.org/en/stable/install.html)
 - [Docker](https://docs.docker.com/get-docker/) (for integration tests)
@@ -96,10 +97,11 @@ PORT=4004
 
 ```bash
 pnpm dev           # Start all apps with hot reload
-pnpm check         # Run lint + tests
+pnpm check         # Run lint + type checks + tests
 pnpm check:build   # Build all apps
 pnpm check:lint    # Lint all packages
-pnpm check:test    # Run unit tests
+pnpm check:typecheck # Check web, service, and shared package types
+pnpm check:test    # Run all five web/service test projects
 pnpm check:api     # Run API integration tests
 ```
 
@@ -233,6 +235,21 @@ Shared TypeScript configurations: `base.json`, `node.json`, `web.json`.
 ### @matrummet/testing
 
 Shared Vitest configuration and test setup with exports for both `node` and `jsdom` environments.
+
+## Maintenance notes
+
+The October 2026 upgrade covers the web app, services, and shared tooling. The Expo app retains its existing dependencies. Shared transitive packages may still change in the workspace lockfile.
+
+- ESLint stays on 9 because `eslint-plugin-import` does not support ESLint 10. TypeScript stays on 6.0 because typescript-eslint does not support TypeScript 7.
+- pnpm stays on the latest 10.x release to retain the existing `deploy --legacy` packaging workflow.
+- Nitro remains on its published beta channel. Its H3 dependency is pinned to 2.0.1 because the 2.0.2 tarball returned 404. Review this override when the registry release is repaired.
+- The scoped flatted and esbuild overrides apply available security fixes. The React DOM type override preserves the Expo tree’s existing 19.1 peer types.
+- Stripe 23 uses `allowed_payment_method_types`: card and Klarna must also be enabled and eligible in the Stripe account. Verify checkout and webhook handling in Stripe test mode before deployment.
+- Production must run Node 24.16+ before deploying the updated web build. Backend services continue to use Bun.
+
+The production dependency audit still reports advisories in the excluded Expo tree and a low-severity Windows development-server advisory in Vite’s transitive `tsx > esbuild`. This update does not claim a clean whole-workspace audit.
+
+Pull requests run web/service lint, type checks, all unit tests, and the production build. The database integration suite still requires PostgreSQL/PostgREST via Docker.
 
 ## Deployment
 

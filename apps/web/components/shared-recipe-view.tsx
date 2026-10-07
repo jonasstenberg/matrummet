@@ -28,6 +28,7 @@ function sharedToRecipe(shared: SharedRecipe): Recipe {
     cook_time: shared.cook_time,
     cuisine: shared.cuisine,
     image: shared.image,
+    thumbnail: shared.thumbnail,
     date_published: shared.date_published,
     date_modified: shared.date_modified,
     categories: shared.categories,

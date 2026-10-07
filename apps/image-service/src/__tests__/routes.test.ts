@@ -98,7 +98,7 @@ function createImageFormData(
   type = "image/jpeg",
 ): FormData {
   const formData = new FormData();
-  const file = new File([buffer], filename, { type });
+  const file = new File([new Uint8Array(buffer)], filename, { type });
   formData.append("file", file);
   return formData;
 }

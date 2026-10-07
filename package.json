@@ -9,37 +9,47 @@
     "type": "git",
     "url": "https://github.com/jonasstenberg/matrummet.git"
   },
-  "packageManager": "pnpm@10.26.0",
+  "packageManager": "pnpm@10.34.6",
   "scripts": {
     "dev": "pnpm -r --parallel dev",
     "build": "pnpm -r build",
-    "test": "pnpm -r test",
+    "test": "pnpm --filter @matrummet/shared --filter @matrummet/testing build && vitest run",
     "test:api": "PGPASSWORD=${TEST_DB_PASSWORD:-matrummet} psql -h ${TEST_DB_HOST:-localhost} -p ${TEST_DB_PORT:-5433} -U ${TEST_DB_USER:-matrummet} -d ${TEST_DB_NAME:-matrummet} -f tests/api/seed-admin.sql && vitest run --config tests/api/vitest.config.ts",
     "lint": "pnpm -r lint",
-    "check": ".claude/hooks/run-silent.sh 'All checks' 'pnpm lint && pnpm test --run'",
-    "check:build": ".claude/hooks/run-silent.sh 'Build' 'pnpm build'",
-    "check:lint": ".claude/hooks/run-silent.sh 'Lint' 'pnpm lint'",
-    "check:test": ".claude/hooks/run-silent.sh 'Tests' 'pnpm test --run'",
-    "check:api": ".claude/hooks/run-silent.sh 'API Tests' 'pnpm test:api'",
+    "check": "bash scripts/check.sh 'All checks' 'pnpm lint && pnpm typecheck && pnpm test'",
+    "check:build": "bash scripts/check.sh 'Build' 'pnpm build'",
+    "check:lint": "bash scripts/check.sh 'Lint' 'pnpm lint'",
+    "check:test": "bash scripts/check.sh 'Tests' 'pnpm test'",
+    "check:api": "bash scripts/check.sh 'API Tests' 'pnpm test:api'",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f",
     "inbucket": "docker compose up -d inbucket",
     "inbucket:stop": "docker compose stop inbucket",
     "android": "pnpm --filter matrummet-mobile exec expo run:android",
-    "ios": "pnpm --filter matrummet-mobile exec expo run:ios"
+    "ios": "pnpm --filter matrummet-mobile exec expo run:ios",
+    "typecheck": "pnpm --filter @matrummet/shared --filter @matrummet/testing build && pnpm -r typecheck",
+    "check:typecheck": "bash scripts/check.sh 'Types' 'pnpm typecheck'"
   },
   "devDependencies": {
-    "jose": "^6.1.3",
-    "vitest": "^4.0.18"
+    "jose": "^6.2.12",
+    "vitest": "^5.0.3",
+    "@types/node": "^24.19.1"
+  },
+  "dependencies": {},
+  "engines": {
+    "node": "^24.16.0"
   },
   "pnpm": {
     "overrides": {
-      "react": "19.1.0",
-      "react-dom": "19.1.0",
-      "@types/react": "~19.1.0",
-      "@types/react-dom": "~19.1.0"
-    }
-  },
-  "dependencies": {}
+      "nitro>h3": "2.0.1",
+      "@types/react-dom@*": "~19.1.0",
+      "flat-cache>flatted": "^3.4.2",
+      "unplugin>esbuild": "^0.28.1"
+    },
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp"
+    ]
+  }
 }
